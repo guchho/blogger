@@ -1,0 +1,56 @@
+{
+  "name": "@guchho/blogger",
+  "version": "0.1.0",
+  "description": "Blogger template compiler plugin for Guchho",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "guchho": ">=1.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "guchho": "^1.0.9",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "keywords": [
+    "blogger",
+    "blogger-template",
+    "guchho",
+    "plugin",
+    "xml",
+    "theme"
+  ],
+  "author": "Hemanta Gayen",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guchho/blogger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guchho/blogger/issues"
+  },
+  "homepage": "https://guchho.js.org"
+}
