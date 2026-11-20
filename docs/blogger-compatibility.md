@@ -23,7 +23,7 @@ Two pipelines consume a template:
 | `<g:include src="..."/>` | Inlines a relative XML component. May nest. Must stay inside the project. Cycles and missing files are errors. |
 | `<link rel="stylesheet" href="...">` | Local stylesheets are bundled and inlined into the template. |
 | `<script src="...">` | Local scripts are bundled and inlined into the template. |
-| Local asset attributes | `src`, `srcset`, `poster`, `data` and CSS `url(...)` values are inlined as data URLs. |
+| Local asset attributes | `src`, `srcset`, `poster`, `data`, `link[href]`, `image[href|xlink:href]`, `use[href|xlink:href]` and CSS `url(...)` values are inlined as data URLs. |
 | Absolute, protocol-relative, `data:`, `mailto:`, `tel:` and fragment URLs | Left untouched. |
 
 Styles are appended to `<b:skin>` when present (as an additional CDATA
@@ -51,7 +51,7 @@ element. No local development path is written to `dist/template.xml`.
 | `<b:attr>` | `name`, `value`/`expr:value`, `cond` | Adds or overrides an attribute. |
 | `<b:class>` | `name`/`expr:name`, `cond` | Adds a class. |
 | `<b:eval>` | `expr` | Outputs an expression as text. |
-| `<b:message>` | `name` | Outputs an escaped message with `{param}` substitution from child `b:param`. |
+| `<b:message>` | `name` | Outputs a message with `{param}` substitution from child `b:param`. Trusted `HtmlString` messages keep their markup; substituted params are still escaped. |
 | `<b:comment>` | — | Content is never rendered. |
 | `<b:whitespace>` | — | Renders its children transparently. |
 | `<b:skin>`, `<b:template-skin>` | — | Rendered as a `<style>` element. |
@@ -163,7 +163,7 @@ arguments. Unknown helpers are reported and evaluate to `null`.
 
 | Value | Properties |
 | --- | --- |
-| String / HTML string | `.escaped`, `.jsonEscaped`, `.empty`, `.length`, `.canonical`, `.isResizable` (always `false`; use the `isResizable` helper) |
+| String / HTML string | `.escaped`, `.jsonEscaped`, `.empty`, `.length`, `.canonical`; `.isResizable` is true for Blogger image URLs |
 | Number | `.escaped`, `.empty`, `.length` |
 | Boolean | `.escaped`, `.empty` |
 | `BloggerDate` | `.iso8601`, `.escaped`, `.empty` |
@@ -188,14 +188,15 @@ fallback exists so a bare `<b:widget type="...">` still renders.
 
 | Type | Mock-specific data |
 | --- | --- |
-| `Blog` | `posts` (title, body, author, labels, dates, URLs, comments metadata) |
+| `Blog` | `posts` (title, body, author, labels, dates, URLs, comments and backlinks metadata) |
 | `Header` | `title`, `description`, `image` |
 | `PageList` | `pages` |
 | `Label` | `labels` |
 | `BlogArchive` | `posts` |
 | `PopularPosts` | `posts` |
 | `FeaturedPost` | `posts` |
-| `BlogSearch` | `blog.homepageUrl`, `messages.search` |
+| `BlogSearch`, `Search` | `blog.searchUrl`, `messages.search` |
+| `FollowByEmail` | `messages.emailAddress`, `messages.subscribe` |
 | `HTML`, `Text` | `content` |
 | `Image` | `sourceUrl`, `link`, `width`, `height`, `altText`, `caption` |
 | `LinkList` | `links` (also expanded from `text-N` / `link-N` settings) |
@@ -223,23 +224,28 @@ Blogger.
 Preview data is deterministic. Nothing is fetched from the network and the clock
 is fixed (base date 2026-01-01). Available scenarios:
 
-| File | Page type | Contents |
-| --- | --- | --- |
-| `index.html` | `index` | Homepage with all default widgets |
-| `post.html` | `item` | One post |
-| `page.html` | `static_page` | One static page |
-| `label.html` | `label` | Label results |
-| `archive.html` | `archive` | Archive results |
-| `search.html` | `search` | Search results |
-| `404.html` | `error_page` | Not found |
-| `widgets.html` | `index` | Widget registry smoke page |
+| File | Route | Page type | Contents |
+| --- | --- | --- | --- |
+| `index.html` | `/` | `index` | Homepage with all default widgets |
+| `post.html` | `/2026/01/getting-started-with-guchho.html` | `item` | One post |
+| `page.html` | `/p/about.html` | `static_page` | One static page |
+| `label.html` | `/search/label/Templates/` | `label` | Label results |
+| `archive.html` | `/2026/01/` | `archive` | Archive results |
+| `search.html` | `/search/` | `search` | Search results; `/search?q=...` is not a distinct static route |
+| `404.html` | `/404.html` | `error_page` | Not found |
+| `widgets.html` | `/__preview/widgets/` | `index` | Built-in and custom widget showcase |
+
+Flat pages are written under `previewDir`; route-shaped copies are written at
+the output root unless a normal HTML entry owns `index.html`.
 
 The root object exposes `data:view`, `data:blog`, `data:posts`, `data:post`,
 `data:page`, `data:labels`, `data:comments`, `data:widgets`,
 `data:allBylineItems`, `data:messages`, `data:skin`, `data:defaultTitle`,
 `data:newerPageUrl`, `data:olderPageUrl`, `data:sourceUrl`, `data:feedPath`,
-`data:cmtIframeInitialHeight`, `data:showCmtPopup`, `data:navMessage` and
-`data:adClientId`.
+`data:cmtIframeInitialHeight`, `data:showCmtPopup`, `data:navMessage`,
+`data:adClientId`, `data:archive`, `data:search` and `data:settings`. Blog
+metadata includes `pageName`, `searchUrl`, `analytics4` and
+`analyticsAccountNumber`.
 
 Posts use deterministic authors (Ada Lovelace, Grace Hopper), titles, labels,
 comment threads, image URLs and dates. The blog URL is
@@ -266,8 +272,13 @@ comment threads, image URLs and dates. The blog URL is
   behavior is not reproduced.
 - **Production does not evaluate expressions.** Blogger evaluates them
   server-side when the theme is installed.
-- **One Blogger entry per build.** `dist/template.xml` and an optional HTML entry
-  are emitted side by side; preview pages are emitted only during watch builds.
+- **One Blogger entry per build.** Configured `outfile` and an optional normal
+  HTML entry are emitted side by side; preview pages are emitted only during
+  watch builds.
+- **Static preview routes.** Query strings are ignored when mapping routes to
+  files, so `/search?q=...` cannot have its own preview file.
+- **Whitespace minification is opt-in.** `minify: true` collapses formatting
+  whitespace outside raw-text and skin elements; it does not rewrite markup.
 - **Conservative validation.** Structural checks cover the root element,
   section/widget IDs and placement, includable IDs, include names and `b:if`
   conditions. Unknown `b:*` elements, `data:*`/`expr:*` expressions and
@@ -285,9 +296,16 @@ Preview diagnostics use these codes:
 
 | Code | Meaning |
 | --- | --- |
-| `BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION` | Malformed expression, unknown helper, unsupported element or missing includable. |
+| `BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION` | Malformed expression or unsupported syntax. |
+| `BLOGGER_PREVIEW_UNSUPPORTED_HELPER` | Unknown helper function. |
+| `BLOGGER_PREVIEW_UNSUPPORTED_ELEMENT` | Unknown `b:*` element. |
+| `BLOGGER_PREVIEW_UNKNOWN_INCLUDABLE` | Missing includable. |
+| `BLOGGER_PREVIEW_UNKNOWN_WIDGET` | Widget type without a fallback `main`. |
+| `BLOGGER_PREVIEW_MISSING_DATA` | Referenced preview data does not exist. |
+| `BLOGGER_PREVIEW_ROUTE_CONFLICT` | Preview route collided with an output file. |
+| `BLOGGER_PREVIEW_ROUTE_INVALID` | Preview route could not be mapped safely. |
 | `BLOGGER_PREVIEW_LIMIT` | Include, expression depth or step limit exceeded. |
-| `BLOGGER_PREVIEW_FAILED` | The preview pipeline could not render at all. |
+| `BLOGGER_PREVIEW_FAILED` | A preview page or the preview pipeline could not render. |
 
 Compiler and validation diagnostics (`BLOGGER_INCLUDE_*`, `BLOGGER_RESOURCE_*`,
 `BLOGGER_VALIDATION_*`, `BLOGGER_XML_*`, `BLOGGER_ASSET_*`) are reported during
