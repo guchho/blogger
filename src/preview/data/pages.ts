@@ -11,6 +11,14 @@ import {
 } from "./mock.js";
 import type { PreviewScenario } from "./types.js";
 
+function routeOf(url: string): string {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return "/";
+  }
+}
+
 function withView(data: ValueMap, overrides: ValueMap): ValueMap {
   const view = { ...(data["view"] as ValueMap), ...overrides };
   return { ...data, view };
@@ -34,6 +42,7 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
   scenarios.push({
     type: "index",
     file: "index.html",
+    route: "/",
     title: "Home",
     data: index,
   });
@@ -45,7 +54,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
     posts: [firstPost],
     post: firstPost,
   });
-  scenarios.push({ type: "post", file: "post.html", title: "Post", data: post });
+  scenarios.push({
+    type: "post",
+    file: "post.html",
+    route: routeOf(firstPost["url"] as string),
+    title: "Post",
+    data: post,
+  });
 
   const page = buildBaseData({
     pageType: "static_page",
@@ -54,7 +69,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
     posts: [],
     page: firstPage,
   });
-  scenarios.push({ type: "page", file: "page.html", title: "Page", data: page });
+  scenarios.push({
+    type: "page",
+    file: "page.html",
+    route: routeOf(firstPage["url"] as string),
+    title: "Page",
+    data: page,
+  });
 
   const label = withView(
     buildBaseData({
@@ -67,7 +88,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
       search: { label: "Templates", query: "", resultsMessageHtml: "<b>2</b> results" },
     }
   );
-  scenarios.push({ type: "label", file: "label.html", title: "Label", data: label });
+  scenarios.push({
+    type: "label",
+    file: "label.html",
+    route: "/search/label/Templates/",
+    title: "Label",
+    data: label,
+  });
 
   const archive = withView(
     buildBaseData({
@@ -78,7 +105,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
     }),
     { archive: { rangeMessage: "January 2026" } }
   );
-  scenarios.push({ type: "archive", file: "archive.html", title: "Archive", data: archive });
+  scenarios.push({
+    type: "archive",
+    file: "archive.html",
+    route: "/2026/01/",
+    title: "Archive",
+    data: archive,
+  });
 
   const search = withView(
     buildBaseData({
@@ -95,7 +128,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
       },
     }
   );
-  scenarios.push({ type: "search", file: "search.html", title: "Search", data: search });
+  scenarios.push({
+    type: "search",
+    file: "search.html",
+    route: "/search/",
+    title: "Search",
+    data: search,
+  });
 
   const error = buildBaseData({
     pageType: "error_page",
@@ -103,7 +142,13 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
     widgets,
     posts: [],
   });
-  scenarios.push({ type: "error", file: "404.html", title: "Not Found", data: error });
+  scenarios.push({
+    type: "error",
+    file: "404.html",
+    route: "/404.html",
+    title: "Not Found",
+    data: error,
+  });
 
   const widgetsPage = buildBaseData({
     pageType: "index",
@@ -114,6 +159,7 @@ export function buildScenarios(seeds: WidgetSeed[] = defaultWidgetSeeds()): Prev
   scenarios.push({
     type: "widgets",
     file: "widgets.html",
+    route: "/__preview/widgets/",
     title: "Widgets",
     data: widgetsPage,
   });

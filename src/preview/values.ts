@@ -135,6 +135,12 @@ export function toNumber(value: Value): number {
   return 0;
 }
 
+export function isResizableUrl(value: string): boolean {
+  return /blogger\.googleusercontent\.com|blogspot\.com|\/s\d+(-[a-z0-9-]+)?\/|=s\d+(-[a-z0-9-]+)?(?:$|[&#])/i.test(
+    value
+  );
+}
+
 /**
  * Reads a property, including the metadata suffixes Blogger documents:
  * `.escaped`, `.jsonEscaped`, `.iso8601`, `.canonical`, `.isResizable`,
@@ -156,7 +162,7 @@ export function getMember(object: Value, property: string): Value {
       case "canonical":
         return object.value;
       case "isResizable":
-        return false;
+        return isResizableUrl(object.value);
       default:
         return null;
     }
@@ -175,7 +181,7 @@ export function getMember(object: Value, property: string): Value {
       case "canonical":
         return object;
       case "isResizable":
-        return false;
+        return isResizableUrl(object);
       default:
         return null;
     }

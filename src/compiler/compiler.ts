@@ -40,7 +40,12 @@ const ASSET_ATTRIBUTES: Record<string, readonly string[]> = {
   embed: ["src"],
   object: ["data"],
   input: ["src"],
+  link: ["href"],
+  image: ["href", "xlink:href"],
+  use: ["href", "xlink:href"],
 };
+
+const INLINE_CSS_ELEMENTS = new Set(["style", "b:skin", "b:template-skin"]);
 
 class FileReadError extends Error {
   readonly filePath: string;
@@ -69,6 +74,7 @@ export class TemplateCompiler {
   private readonly assetPaths: string[] = [];
   private readonly assetTokens = new Map<string, string>();
   private readonly resourceKeys = new Set<string>();
+  private entrySource = "";
 
   constructor(options: CompileOptions) {
     this.options = options;
@@ -92,6 +98,7 @@ export class TemplateCompiler {
           marker: createMarker(this.options.entryPath),
           entryPath: this.options.entryPath,
           xml,
+          sourceText: this.entrySource,
           watchFiles: [...this.watchFiles].sort(),
           resources: this.resources.map((resource) => ({ ...resource })),
         },
@@ -188,6 +195,7 @@ export class TemplateCompiler {
     }
 
     this.visitAssetAttributes(node, edits);
+    this.visitInlineCss(node, edits);
 
     for (const child of node.children) {
       await this.visitNode(child, edits, options);
@@ -361,6 +369,75 @@ export class TemplateCompiler {
       } else {
         this.visitAssetAttribute(element, attr, edits);
       }
+    }
+  }
+
+  private visitInlineCss(element: XmlElement, edits: TextEdit[]): void {
+    const style = attribute(element, "style");
+    if (style !== undefined) {
+      this.visitCssText(
+        style.value,
+        element.source,
+        style.valueSpan,
+        element.source.path,
+        edits
+      );
+    }
+
+    if (!INLINE_CSS_ELEMENTS.has(element.name)) return;
+
+    for (const child of element.children) {
+      if (child.type !== "text" && child.type !== "cdata") continue;
+      const valueStart = child.type === "cdata" ? child.span.start + 9 : child.span.start;
+      this.visitCssText(
+        child.value,
+        element.source,
+        { start: valueStart, end: child.span.end },
+        element.source.path,
+        edits
+      );
+    }
+  }
+
+  private visitCssText(
+    value: string,
+    source: SourceFile,
+    span: Span,
+    importer: string,
+    edits: TextEdit[]
+  ): void {
+    const cssUrl = /url\(\s*(["']?)([^"')]+)\1\s*\)/g;
+    for (const match of value.matchAll(cssUrl)) {
+      const specifier = (match[2] ?? "").trim();
+      if (
+        specifier === "" ||
+        specifier.startsWith("#") ||
+        isExternalSpecifier(specifier)
+      ) {
+        continue;
+      }
+      const offset = match.index ?? 0;
+      const resolved = this.resolveLocal(
+        specifier,
+        source,
+        { start: span.start + offset, end: span.start + offset + match[0].length },
+        "BLOGGER_ASSET_INVALID",
+        "asset"
+      );
+      if (resolved === undefined) continue;
+      const token = this.tokenForAsset(
+        resolved,
+        specifier,
+        importer,
+        source,
+        { start: span.start + offset, end: span.start + offset + match[0].length }
+      );
+      const quote = match[1] ?? "";
+      edits.push({
+        start: span.start + offset,
+        end: span.start + offset + match[0].length,
+        replacement: `url(${quote}${token}${quote})`,
+      });
     }
   }
 
@@ -552,13 +629,14 @@ export class TemplateCompiler {
     });
   }
 
-  private async readSource(filePath: string, _isEntry: boolean): Promise<SourceFile> {
+  private async readSource(filePath: string, isEntry: boolean): Promise<SourceFile> {
     let raw: string;
     try {
       raw = await fs.readFile(filePath, "utf8");
     } catch (error) {
       throw new FileReadError(filePath, error);
     }
+    if (isEntry) this.entrySource = raw;
     const { bom, text } = splitBom(raw);
     return new SourceFile(filePath, text, bom);
   }

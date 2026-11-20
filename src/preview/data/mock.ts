@@ -75,6 +75,7 @@ function makePost(
   const snippetHtml = new HtmlString(
     `<p>${title} is one of the deterministic mock posts used to render this template…</p>`
   );
+  const comments = mockComments(url);
 
   return {
     id: `100000000000000000${index + 1}`,
@@ -101,11 +102,14 @@ function makePost(
     authorProfileUrl: author.profileUrl,
     authorAvatarSrc: author.avatar,
     labels: labelValues,
+    comments,
+    backlinks: [],
+    reactions: [],
     commentsUrl: `${url}#comments`,
     commentsUrlOnclick: `return false;`,
     emailPostUrl: `mailto:?subject=${encodeURIComponent(title)}`,
     shareUrl: url,
-    numberOfComments: index % 3,
+    numberOfComments: comments.length,
     reactionsUrl: `${url}#reactions`,
     featuredImage: IMAGE(index + 1),
     thumbnailUrl: IMAGE(index + 1, 400),
@@ -180,25 +184,35 @@ export function mockLabels(): ValueMap[] {
   }));
 }
 
-export function mockComments(): ValueMap[] {
+export function mockComments(
+  baseUrl = `${PREVIEW_BLOG_URL}2026/01/getting-started.html`
+): ValueMap[] {
   return [
     {
       id: "c1",
       author: "Reader One",
+      authorUrl: `${PREVIEW_BLOG_URL}profile/reader-one`,
       authorAvatarSrc:
         "https://blogger.googleusercontent.com/img/preview/s45-c/comment-1.png",
       body: new HtmlString("<p>Great post, thanks!</p>"),
       timestamp: previewTimestamp(1),
-      url: `${PREVIEW_BLOG_URL}2026/01/getting-started.html#c1`,
+      url: `${baseUrl}#c1`,
+      deleteUrl: `${baseUrl}#delete-c1`,
+      adminClass: "comment-author",
+      isDeleted: false,
     },
     {
       id: "c2",
       author: "Reader Two",
+      authorUrl: `${PREVIEW_BLOG_URL}profile/reader-two`,
       authorAvatarSrc:
         "https://blogger.googleusercontent.com/img/preview/s45-c/comment-2.png",
       body: new HtmlString("<p>Very helpful.</p>"),
       timestamp: previewTimestamp(2),
-      url: `${PREVIEW_BLOG_URL}2026/01/getting-started.html#c2`,
+      url: `${baseUrl}#c2`,
+      deleteUrl: `${baseUrl}#delete-c2`,
+      adminClass: "comment-author",
+      isDeleted: false,
     },
   ];
 }
@@ -275,7 +289,11 @@ export function widgetTypeExtras(type: string): ValueMap {
         ],
       };
     case "Subscribe":
+    case "FollowByEmail":
       return { feedUrl: `${PREVIEW_BLOG_URL}feeds/posts/default` };
+    case "BlogSearch":
+    case "Search":
+      return { searchUrl: `${PREVIEW_BLOG_URL}search` };
     case "Followers":
       return { totalCount: 42, followers: [] };
     case "Stats":
@@ -446,6 +464,19 @@ export function buildBaseData(options: BaseDataOptions): ValueMap {
     labels,
     comments: mockComments(),
     widgets: options.widgets,
+    archive: { rangeMessage: "January 2026" },
+    search: {
+      label: "",
+      query: "",
+      resultsMessageHtml: new HtmlString("<b>0</b> results"),
+    },
+    settings: {
+      title: "Guchho Blogger Preview",
+      description: "A deterministic mock blog.",
+      postsPerPage: 4,
+      commentsEnabled: true,
+      showCommentLink: true,
+    },
     allBylineItems: bylineMap,
     messages: messages(),
     skin: skinData(),

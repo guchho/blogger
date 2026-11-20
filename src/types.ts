@@ -20,6 +20,21 @@ export interface Diagnostic {
   notes?: string[];
 }
 
+export interface BloggerWidgetDefinitionObject {
+  /** A `<b:defaultmarkup>` or `<b:includable>` XML fragment. */
+  markup: string;
+  /** Deterministic preview data merged into the widget data scope. */
+  data?: Record<string, unknown>;
+}
+
+export type BloggerWidgetDefinition =
+  | string
+  | BloggerWidgetDefinitionObject;
+
+export type BloggerWidgetRegistry = Record<string, BloggerWidgetDefinition>;
+
+export type BloggerMockData = Record<string, unknown>;
+
 export interface BloggerPluginOptions {
   /** Blogger XML entry, relative to the project directory. */
   entry?: string;
@@ -32,6 +47,20 @@ export interface BloggerPluginOptions {
   preview?: boolean;
   /** Directory for preview pages, relative to the output dir. Defaults to "preview". */
   previewDir?: string;
+  /** Dashboard button and mock dashboard page in previews. Defaults to true. */
+  previewDashboard?: boolean | string;
+  /** Output XML path, relative to the output dir. Defaults to "template.xml". */
+  outfile?: string;
+  /** Conservatively remove insignificant XML whitespace. Defaults to false. */
+  minify?: boolean;
+  /** Preview data overrides, or a JSON fixture path relative to the project. */
+  mockData?: BloggerMockData | string;
+  /** Custom preview widget definitions keyed by Blogger widget type. */
+  widgets?: BloggerWidgetRegistry;
+  /** Local port for the dev-only Layout Editor save service. Defaults to 3001. */
+  layoutSavePort?: number;
+  /** Preview favicon URL. Defaults to `favicon.ico`. */
+  favicon?: string;
 }
 
 export type ResourceKind = "css" | "js" | "asset";
@@ -52,6 +81,8 @@ export interface CompiledTemplate {
   marker: string;
   entryPath: string;
   xml: string;
+  /** Byte-for-byte entry source before include expansion, CSS tokens and BOM splitting. */
+  sourceText: string;
   watchFiles: string[];
   resources: ResourceReference[];
 }

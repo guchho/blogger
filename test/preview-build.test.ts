@@ -31,6 +31,15 @@ test("buildPreview renders every scenario with no diagnostics", () => {
       "search.html",
       "404.html",
       "widgets.html",
+      "dashboard.html",
+      "dashboard-posts.html",
+      "dashboard-post-new.html",
+      "dashboard-pages.html",
+      "dashboard-page-new.html",
+      "dashboard-comments.html",
+      "dashboard-layout.html",
+      "dashboard-theme.html",
+      "dashboard-settings.html",
     ]
   );
   for (const page of result.pages) {
@@ -38,13 +47,13 @@ test("buildPreview renders every scenario with no diagnostics", () => {
   }
 });
 
-const THEME_PATH = "C:/Users/heman/Downloads/codehemu/template/theme.xml";
+const THEME_PATH = "demo/theme.xml";
 
 test("buildPreview renders the real theme fixture", { skip: !existsSync(THEME_PATH) }, () => {
   const xml = readFileSync(THEME_PATH, "utf8");
   const result = buildPreview({ entryPath: THEME_PATH, xml });
   assert.deepEqual(result.diagnostics, []);
-  assert.equal(result.pages.length, 8);
+  assert.equal(result.pages.length, 17);
   const index = result.pages.find((page) => page.file === "index.html");
   assert.ok(index);
   assert.match(index.html, /Getting started with Guchho/);

@@ -15,6 +15,7 @@ import { makeLocation } from "../../diagnostics.js";
 import { Evaluator, Scope } from "../expr/evaluator.js";
 import { ExpressionError } from "../expr/errors.js";
 import { parseExpression } from "../expr/parser.js";
+import { decodeEntities } from "../expr/tokenizer.js";
 import {
   HtmlString,
   escapeHtml,
@@ -26,10 +27,26 @@ import {
 } from "../values.js";
 import { expandLinks, widgetDataFor } from "../data/mock.js";
 import { builtinIncludables } from "./builtins.js";
-import { widgetDefaultMarkups } from "./widgets.js";
+import {
+  buildWidgetRegistry,
+  type WidgetRegistry,
+} from "./widgets.js";
+
+export interface RenderReportDetail {
+  severity?: "error" | "warning";
+  file?: string;
+  line?: number;
+  column?: number;
+  hint?: string;
+}
 
 export interface RenderHost {
-  report(code: string, message: string, location?: string): void;
+  report(
+    code: string,
+    message: string,
+    location?: string,
+    detail?: RenderReportDetail
+  ): void;
 }
 
 export interface RenderResult {
@@ -89,13 +106,20 @@ export class TemplateRenderer {
   private readonly reports: string[] = [];
   private readonly defaultMarkups = new Map<string, Map<string, XmlElement>>();
   private readonly commonIncludables = new Map<string, XmlElement>();
+  private readonly widgetRegistry: WidgetRegistry;
   private includeDepth = 0;
   private currentLayer: Layer = "common";
 
-  constructor(document: XmlDocument, data: ValueMap, host: RenderHost) {
+  constructor(
+    document: XmlDocument,
+    data: ValueMap,
+    host: RenderHost,
+    widgetRegistry?: WidgetRegistry
+  ) {
     this.document = document;
     this.data = data;
     this.host = host;
+    this.widgetRegistry = widgetRegistry ?? buildWidgetRegistry(undefined);
     this.evaluator = new Evaluator(data, {
       report: (code, message) => this.report(code, message),
     });
@@ -114,7 +138,23 @@ export class TemplateRenderer {
     const location = node === undefined ? undefined : this.location(node);
     const prefix = location === undefined ? "" : `${location}: `;
     this.reports.push(`${code}: ${prefix}${message}`);
-    this.host.report(code, message, location);
+    if (node === undefined) {
+      this.host.report(code, message, location);
+
+      return;
+    }
+    const source = makeLocation(
+      node.source.path,
+      node.source.text,
+      node.span.start,
+      node.span.end,
+      node.source.starts
+    );
+    this.host.report(code, message, location, {
+      file: source.file,
+      line: source.line,
+      column: source.column,
+    });
   }
 
   private location(node: XmlNode): string {
@@ -150,7 +190,8 @@ export class TemplateRenderer {
     nodes: readonly XmlNode[],
     scope: Scope,
     env: RenderEnv,
-    out: string[]
+    out: string[],
+    rawText = false
   ): void {
     let index = 0;
     while (index < nodes.length) {
@@ -163,7 +204,7 @@ export class TemplateRenderer {
         index = this.renderSwitch(nodes, index, scope, env, out);
         continue;
       }
-      this.renderNode(node, scope, env, out);
+      this.renderNode(node, scope, env, out, rawText);
       index++;
     }
   }
@@ -172,11 +213,12 @@ export class TemplateRenderer {
     node: XmlNode,
     scope: Scope,
     env: RenderEnv,
-    out: string[]
+    out: string[],
+    rawText = false
   ): void {
     switch (node.type) {
       case "text":
-        out.push(node.value);
+        out.push(rawText ? decodeEntities(node.value) : node.value);
         return;
       case "comment":
         out.push(`<!--${node.value}-->`);
@@ -281,7 +323,7 @@ export class TemplateRenderer {
         return;
       default:
         this.report(
-          "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+          "BLOGGER_PREVIEW_UNSUPPORTED_ELEMENT",
           `unsupported Blogger element "${element.name}"`,
           element
         );
@@ -299,7 +341,8 @@ export class TemplateRenderer {
     const attrs = this.buildAttributes(element, scope, env);
     out.push(`<${element.name}${attrs}>`);
     if (VOID_ELEMENTS.has(element.name.toLowerCase())) return;
-    this.renderNodes(element.children, scope, env, out);
+    const name = element.name.toLowerCase();
+    this.renderNodes(element.children, scope, env, out, name === "style" || name === "script");
     out.push(`</${element.name}>`);
   }
 
@@ -355,6 +398,8 @@ export class TemplateRenderer {
 
     const settings = this.collectWidgetSettings(element);
     const thisData = this.buildWidgetData(id, type, title, settings);
+    thisData["posts"] = this.data["posts"] ?? [];
+    thisData["labels"] = this.data["labels"] ?? [];
     const bindings: ValueMap = { ...thisData, this: thisData, title };
     const widgetScope = scope.child(bindings);
     const includables = this.collectIncludables(element);
@@ -371,8 +416,12 @@ export class TemplateRenderer {
         : widgetScope;
       this.renderIncludableBody(main.node, mainScope, env, out, main.layer);
     } else {
+      out.push(
+        `<div class="widget-content widget-unknown"><p>Unknown widget type ` +
+          `&quot;${escapeHtml(type)}&quot;.</p></div>`
+      );
       this.report(
-        "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+        "BLOGGER_PREVIEW_UNKNOWN_WIDGET",
         `widget "${type}" has no "main" includable`,
         element
       );
@@ -387,7 +436,16 @@ export class TemplateRenderer {
     settings: ValueMap
   ): ValueMap {
     const typeData = widgetDataFor({ type, id, title });
-    const data: ValueMap = { ...typeData, ...settings, title, type, id, instanceId: id };
+    const customData = this.widgetRegistry.data.get(type) ?? {};
+    const data: ValueMap = {
+      ...typeData,
+      ...customData,
+      ...settings,
+      title,
+      type,
+      id,
+      instanceId: id,
+    };
     if (type === "LinkList") {
       const links = expandLinks(settings);
       if (links.length > 0) data["links"] = links;
@@ -427,7 +485,9 @@ export class TemplateRenderer {
     if (own) return { node: own, layer: "widget" };
     const fromType = this.defaultMarkups.get(env.widgetType)?.get(name);
     if (fromType) return { node: fromType, layer: "default" };
-    const fromRegistry = widgetDefaultMarkups().get(env.widgetType)?.get(name);
+    const fromRegistry = this.widgetRegistry.markups
+      .get(env.widgetType)
+      ?.get(name);
     if (fromRegistry) return { node: fromRegistry, layer: "default" };
     const fromCommon = this.commonIncludables.get(name);
     if (fromCommon) return { node: fromCommon, layer: "common" };
@@ -444,7 +504,9 @@ export class TemplateRenderer {
     if (this.currentLayer === "widget") {
       const fromType = this.defaultMarkups.get(env.widgetType)?.get(name);
       if (fromType) return { node: fromType, layer: "default" };
-      const fromRegistry = widgetDefaultMarkups().get(env.widgetType)?.get(name);
+      const fromRegistry = this.widgetRegistry.markups
+        .get(env.widgetType)
+        ?.get(name);
       if (fromRegistry) return { node: fromRegistry, layer: "default" };
       const fromCommon = this.commonIncludables.get(name);
       if (fromCommon) return { node: fromCommon, layer: "common" };
@@ -472,7 +534,7 @@ export class TemplateRenderer {
       : this.resolveIncludable(name, env);
     if (!resolved) {
       this.report(
-        "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+        "BLOGGER_PREVIEW_UNKNOWN_INCLUDABLE",
         `unknown includable "${name}"`,
         element
       );
@@ -587,8 +649,10 @@ export class TemplateRenderer {
 
   private renderMessage(element: XmlElement, scope: Scope, out: string[]): void {
     const nameSource = this.attrValue(element, "name");
-    const message =
-      nameSource !== undefined ? toText(this.evaluateSource(nameSource, scope, element)) : "";
+    const value =
+      nameSource !== undefined ? this.evaluateSource(nameSource, scope, element) : null;
+    const trusted = value instanceof HtmlString;
+    const message = toText(value);
     const params: Record<string, string> = {};
     for (const child of element.children) {
       if (!isElement(child) || child.name !== "b:param") continue;
@@ -597,9 +661,13 @@ export class TemplateRenderer {
       params[paramName] = toText(this.paramValue(child, scope));
     }
     const substituted = message.replace(/\{(\w+)\}/g, (whole, key: string) =>
-      key in params ? (params[key] as string) : whole
+      key in params
+        ? trusted
+          ? escapeHtml(params[key] as string)
+          : (params[key] as string)
+        : whole
     );
-    out.push(escapeHtml(substituted));
+    out.push(trusted ? substituted : escapeHtml(substituted));
   }
 
   private renderIfChain(
@@ -816,13 +884,14 @@ export class TemplateRenderer {
     const exprValue = attribute(element, "expr:value")?.value;
     if (exprValue !== undefined) return this.evaluateSource(exprValue, scope, element);
     const literal = this.attrValue(element, "value");
-    return literal ?? null;
+    return literal === undefined ? null : decodeEntities(literal);
   }
 
   private textContent(element: XmlElement): string {
     let text = "";
     for (const child of element.children) {
-      if (child.type === "text" || child.type === "cdata") text += child.value;
+      if (child.type === "text") text += decodeEntities(child.value);
+      else if (child.type === "cdata") text += child.value;
       else if (isElement(child)) text += this.textContent(child);
     }
     return text;
@@ -832,7 +901,8 @@ export class TemplateRenderer {
 export function renderTemplate(
   document: XmlDocument,
   data: ValueMap,
-  host: RenderHost
+  host: RenderHost,
+  widgetRegistry?: WidgetRegistry
 ): RenderResult {
-  return new TemplateRenderer(document, data, host).render();
+  return new TemplateRenderer(document, data, host, widgetRegistry).render();
 }

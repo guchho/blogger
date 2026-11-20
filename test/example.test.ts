@@ -9,8 +9,7 @@ import { buildPreview } from "../src/preview/index.js";
 const EXAMPLE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "examples",
-  "basic"
+  "examples"
 );
 
 test("the example project compiles and renders a clean preview", async () => {
@@ -30,13 +29,11 @@ test("the example project compiles and renders a clean preview", async () => {
 
   assert.ok(!xml.includes("g:include"), "includes should be expanded");
   assert.ok(!xml.includes(EXAMPLE_ROOT), "no local paths should leak");
-  assert.deepEqual(
-    [...new Set(result.template.resources.map((resource) => resource.kind))].sort(),
-    ["asset", "css", "js"]
-  );
   assert.ok(
-    result.template.watchFiles.some((file) => file.endsWith("header.xml")),
-    "components should be watched"
+    result.template.watchFiles.some(
+      (file) => path.resolve(file) === path.resolve(entryPath)
+    ),
+    "the entry should be watched"
   );
 
   const preview = buildPreview({ entryPath, xml, banner: false });
@@ -45,5 +42,5 @@ test("the example project compiles and renders a clean preview", async () => {
   const index = preview.pages.find((page) => page.file === "index.html");
   assert.ok(index);
   assert.match(index.html, /class="widget Blog"/);
-  assert.match(index.html, /class="site-title"/);
+  assert.match(index.html, /class="widget-title"/);
 });

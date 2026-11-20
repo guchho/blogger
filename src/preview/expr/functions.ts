@@ -9,6 +9,7 @@ import {
   getMember,
   isInvokable,
   isMap,
+  isResizableUrl,
   isTruthy,
   toNumber,
   toText,
@@ -240,7 +241,7 @@ export const FUNCTIONS: Record<string, HelperFn> = {
   isResizable(args) {
     const url = requireString(arg(args, 0));
     if (url === undefined) return false;
-    return /blogger\.googleusercontent\.com|blogspot\.com|\/s\d+/.test(url);
+    return isResizableUrl(url);
   },
 
   empty(args) {
@@ -266,7 +267,7 @@ function takeInternal(args: Value[], context: HelperContext, name: string): Valu
   const count = optionNumber(arg(args, 1));
   if (count === undefined) {
     context.report(
-      "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+      "BLOGGER_PREVIEW_UNSUPPORTED_HELPER",
       `the "${name}" helper needs a numeric count`
     );
     return items;
@@ -279,7 +280,7 @@ function skipInternal(args: Value[], context: HelperContext, name: string): Valu
   const count = optionNumber(arg(args, 1));
   if (count === undefined) {
     context.report(
-      "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+      "BLOGGER_PREVIEW_UNSUPPORTED_HELPER",
       `the "${name}" helper needs a numeric count`
     );
     return items;

@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type {
   LoadResult,
@@ -16,9 +17,15 @@ import { assembleTemplate } from "./compiler/assemble.js";
 import {
   TemplateCompiler,
   assetToken,
+  isInside,
 } from "./compiler/compiler.js";
+import { minifyXml } from "./compiler/minify.js";
 import { formatDiagnostic } from "./diagnostics.js";
-import { buildPreview } from "./preview/index.js";
+import { startSaveService, type SaveServiceHandle } from "./layout/save-service.js";
+import { buildPreview, previewRouteFile } from "./preview/index.js";
+import { buildWidgetRegistry, type WidgetRegistry } from "./preview/render/widgets.js";
+import { parseXml } from "./xml/parser.js";
+import { SourceFile } from "./xml/source.js";
 import type {
   BloggerPluginOptions,
   CompiledTemplate,
@@ -27,7 +34,9 @@ import type {
 } from "./types.js";
 
 const DEFAULT_ENTRY = "src/template.xml";
-const OUTPUT_FILE = "template.xml";
+const DEFAULT_OUTFILE = "template.xml";
+const DEFAULT_LAYOUT_SAVE_PORT = 3001;
+const DEFAULT_FAVICON = "favicon.ico";
 const CARRIER_NAMESPACE = "guchho-blogger";
 const CARRIER_OUTPUT = "guchho-blogger-carrier";
 
@@ -38,26 +47,38 @@ interface BuildStartResult {
 
 interface BloggerPluginState {
   entryPath: string;
-  carrierEntry: string;
-  carrierId: string;
-  marker: string;
+  fullCarrierEntry: string;
+  fullCarrierId: string;
+  configuredCarrierId: string;
+  fullMarker: string;
+  configuredMarker: string;
   template?: CompiledTemplate;
+  widgetRegistry?: WidgetRegistry;
+  mockData?: Record<string, unknown>;
+  mockFixture?: string;
+  saveService?: SaveServiceHandle;
 }
 
 export function blogger(options: BloggerPluginOptions = {}): Plugin {
   const state: BloggerPluginState = {
     entryPath: path.resolve(process.cwd(), options.entry ?? DEFAULT_ENTRY),
-    carrierEntry: "",
-    carrierId: "",
-    marker: "",
+    fullCarrierEntry: "",
+    fullCarrierId: "",
+    configuredCarrierId: "",
+    fullMarker: "",
+    configuredMarker: "",
   };
-  state.carrierEntry = `\0guchho-blogger-entry:${state.entryPath}`;
-  state.carrierId = `\0guchho-blogger:${state.entryPath}`;
-  state.marker = `@@GUCHHO_BLOGGER_CARRIER:${state.entryPath.replace(/\\/g, "/")}@@`;
+  const markerBase = state.entryPath.replace(/\\/g, "/");
+  state.fullCarrierEntry = `\0guchho-blogger-entry:${state.entryPath}`;
+  state.fullCarrierId = `\0guchho-blogger:carrier:${state.entryPath}`;
+  state.configuredCarrierId = `\0guchho-blogger:configured:${state.entryPath}`;
+  state.fullMarker = `@@GUCHHO_BLOGGER_CARRIER:${markerBase}@@`;
+  state.configuredMarker = `@@GUCHHO_BLOGGER_CONFIGURED:${markerBase}@@`;
 
   const validate = options.validate !== false;
   const previewEnabled = options.preview !== false;
   const previewDir = normalizeDir(options.previewDir ?? "preview");
+  const layoutSavePort = options.layoutSavePort ?? DEFAULT_LAYOUT_SAVE_PORT;
 
   return {
     name: "guchho:blogger",
@@ -91,9 +112,60 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
       }
 
       state.template = result.template;
+
+      try {
+        state.widgetRegistry = buildWidgetRegistry(options.widgets);
+      } catch (error) {
+        this.error({
+          message: `invalid custom widget definition: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          id: state.entryPath,
+          code: "BLOGGER_WIDGET_INVALID",
+        });
+      }
+
+      try {
+        const loaded = await loadMockData(this, options.mockData);
+        state.mockData = loaded.data;
+        state.mockFixture = loaded.fixture;
+      } catch (error) {
+        this.error({
+          message: `unable to load mock preview data: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          id: state.entryPath,
+          code: "BLOGGER_MOCK_DATA_INVALID",
+        });
+      }
+
+      if (
+        previewEnabled &&
+        options.previewDashboard !== false &&
+        isWatchBuild(this.meta?.watchMode === true)
+      ) {
+        try {
+          state.saveService = await startSaveService({
+            entryPath: state.entryPath,
+            projectRoot: process.cwd(),
+            port: layoutSavePort,
+          });
+        } catch (error) {
+          this.warn({
+            message: `Blogger Layout save service could not start on port ${layoutSavePort}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            code: "BLOGGER_LAYOUT_SAVE_UNAVAILABLE",
+          });
+        }
+      }
+
       return {
-        entries: [{ input: state.carrierEntry, output: CARRIER_OUTPUT }],
-        watchFiles: watchFilesFor(result.template),
+        entries: [{ input: state.fullCarrierEntry, output: CARRIER_OUTPUT }],
+        watchFiles: [
+          ...watchFilesFor(result.template),
+          ...(state.mockFixture === undefined ? [] : [state.mockFixture]),
+        ],
       };
     },
 
@@ -103,23 +175,32 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
       _importer: string | undefined,
       _resolveOptions: unknown
     ): ResolvedId | null {
-      if (source !== state.carrierId && source !== state.carrierEntry) {
-        return null;
+      const watchFiles =
+        state.template === undefined ? undefined : watchFilesFor(state.template);
+
+      if (source === state.fullCarrierId || source === state.fullCarrierEntry) {
+        return {
+          id: state.fullCarrierId,
+          namespace: CARRIER_NAMESPACE,
+          watchFiles,
+        } as ResolvedId;
       }
 
-      return {
-        id: state.carrierId,
-        namespace: CARRIER_NAMESPACE,
-        watchFiles:
-          state.template === undefined
-            ? undefined
-            : watchFilesFor(state.template),
-      } as ResolvedId;
+      if (
+        !source.startsWith("\0") &&
+        path.resolve(process.cwd(), source) === state.entryPath
+      ) {
+        return {
+          id: state.configuredCarrierId,
+          namespace: CARRIER_NAMESPACE,
+          watchFiles,
+        } as ResolvedId;
+      }
+
+      return null;
     },
 
     load(this: PluginContext, id: string): LoadResult | null {
-      if (id !== state.carrierId) return null;
-
       const template = state.template;
       if (template === undefined) {
         this.error({
@@ -130,12 +211,28 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
         return null;
       }
 
-      return {
-        code: carrierCode(template, state.marker),
-        loader: "js",
-        resolveDir: path.dirname(state.entryPath),
-        watchFiles: watchFilesFor(template),
-      };
+      if (id === state.fullCarrierId) {
+        return {
+          code: carrierCode(template, state.fullMarker),
+          loader: "js",
+          resolveDir: path.dirname(state.entryPath),
+          watchFiles: watchFilesFor(template),
+        };
+      }
+
+      if (id === state.configuredCarrierId) {
+        return {
+          code: `export const __guchhoBloggerConfiguredCarrier = ${JSON.stringify(
+            state.configuredMarker
+          )};
+`,
+          loader: "js",
+          resolveDir: path.dirname(state.entryPath),
+          watchFiles: watchFilesFor(template),
+        };
+      }
+
+      return null;
     },
 
     async generateBundle(
@@ -156,7 +253,7 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
       const entries = Object.values(bundle);
       const carrier = entries.find(
         (entry): entry is OutputChunk =>
-          entry.type === "chunk" && entry.code.includes(state.marker)
+          entry.type === "chunk" && entry.code.includes(state.fullMarker)
       );
 
       if (carrier === undefined) {
@@ -169,10 +266,30 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
         return;
       }
 
-      const outputDir =
+      const hasHtmlEntry = entries.some(
+        (entry) => entry.fileName.replace(/\\/g, "/") === "index.html"
+      );
+      const bundleDir =
         typeof outputOptions.dir === "string"
           ? outputOptions.dir
           : path.dirname(carrier.fileName);
+      const outputDir = path.resolve(process.cwd(), bundleDir);
+
+      let outfile: string;
+      try {
+        outfile = resolveOutfile(
+          options.outfile ?? DEFAULT_OUTFILE,
+          outputDir,
+          process.cwd()
+        );
+      } catch (error) {
+        this.error({
+          message: error instanceof Error ? error.message : String(error),
+          id: state.entryPath,
+          code: "BLOGGER_OUTPUT_INVALID",
+        });
+        return;
+      }
 
       const cssAssets = entries.filter(
         (entry): entry is OutputAsset =>
@@ -181,84 +298,358 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
       const css = inlineBundleUrls(
         cssAssets.map((asset) => sourceText(asset.source)).join("\n"),
         entries,
-        outputDir
+        bundleDir
       );
 
       const hasJs = template.resources.some((resource) => resource.kind === "js");
       const js = hasJs
         ? inlineBundleUrls(
             stripModuleSyntax(
-              stripCarrierCode(carrier.code, state.marker, state.carrierId)
+              stripCarrierCode(
+                carrier.code,
+                state.fullMarker,
+                state.fullCarrierId
+              )
             ),
             entries,
-            outputDir
+            bundleDir
           )
         : "";
 
       const assets = await assetDataUrls(this, template);
-      const xml = assembleTemplate(template, { css, js, assets });
+      let xml = assembleTemplate(template, { css, js, assets });
       assertNoUnresolvedTokens(this, xml, state.entryPath);
 
-      // Remove only the synthetic carrier chunk. It is an implementation detail
-      // of pulling CSS/JS/assets through Guchho, never part of the output.
-      // Deleting the whole bundle when the carrier is the only chunk used to
-      // also erase a normal HTML entry, whose page is an asset and not a chunk,
-      // so a project with both entries silently lost dist/index.html.
-      delete bundle[carrier.fileName];
+      if (options.minify === true) {
+        try {
+          xml = minifyXml(xml, state.entryPath);
+        } catch (error) {
+          this.error({
+            message: `unable to minify the assembled Blogger XML: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            id: state.entryPath,
+            code: "BLOGGER_OUTPUT_INVALID_XML",
+          });
+          return;
+        }
+      }
+
+      try {
+        parseXml(new SourceFile(state.entryPath, xml));
+      } catch (error) {
+        this.error({
+          message: `the assembled Blogger XML is not well-formed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          id: state.entryPath,
+          code: "BLOGGER_OUTPUT_INVALID_XML",
+        });
+        return;
+      }
+
+      deleteCarrierChunks(bundle, state);
+
+      if (bundle[DEFAULT_FAVICON] === undefined && outfile !== DEFAULT_FAVICON) {
+        const faviconSource = await resolveFaviconSource(process.cwd());
+        if (faviconSource !== undefined) {
+          this.emitFile({
+            type: "asset",
+            fileName: DEFAULT_FAVICON,
+            source: await fs.readFile(faviconSource),
+          });
+        }
+      }
+
+      if (bundle[outfile] !== undefined) {
+        this.error({
+          message: `the Blogger output "${outfile}" collides with another emitted file`,
+          id: state.entryPath,
+          code: "BLOGGER_OUTPUT_CONFLICT",
+        });
+        return;
+      }
 
       this.emitFile({
         type: "asset",
-        fileName: OUTPUT_FILE,
+        fileName: outfile,
         source: xml,
       });
 
-      if (previewEnabled && this.meta?.watchMode === true) {
-        emitPreview(this, xml, previewDir, state.entryPath);
+      if (previewEnabled && isWatchBuild(this.meta?.watchMode === true)) {
+        emitPreview(this, xml, {
+          previewDir,
+          dashboard: options.previewDashboard,
+          entryPath: state.entryPath,
+          layoutXml: template.sourceText,
+          layoutSavePort: state.saveService?.port ?? layoutSavePort,
+          favicon: options.favicon ?? DEFAULT_FAVICON,
+          hasHtmlEntry,
+          existing: new Set(Object.keys(bundle)),
+          widgetRegistry: state.widgetRegistry,
+          mockData: state.mockData,
+          widgets: options.widgets,
+        });
+      }
+    },
+
+    async closeBundle(this: PluginContext): Promise<void> {
+      if (state.saveService === undefined) return;
+      const service = state.saveService;
+      state.saveService = undefined;
+      try {
+        await service.close();
+      } catch (error) {
+        this.warn({
+          message: `Blogger Layout save service could not stop: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          code: "BLOGGER_LAYOUT_SAVE_STOP_FAILED",
+        });
       }
     },
   } as unknown as Plugin;
 }
 
+function isWatchBuild(metaWatchMode: boolean): boolean {
+  if (metaWatchMode) return true;
+  const command = process.argv[2];
+  return (
+    command === "dev" ||
+    command === "watch" ||
+    process.argv.includes("--watch")
+  );
+}
+
+async function resolveFaviconSource(projectRoot: string): Promise<string | undefined> {
+  const candidates = [
+    path.join(projectRoot, DEFAULT_FAVICON),
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      DEFAULT_FAVICON
+    ),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const stat = await fs.stat(candidate);
+      if (stat.isFile()) return candidate;
+    } catch {
+      continue;
+    }
+  }
+  return undefined;
+}
+
 function normalizeDir(dir: string): string {
-  return dir.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  const normalized = dir.replace(/\\/g, "/");
+  if (
+    path.isAbsolute(dir) ||
+    normalized.split("/").some((segment) => segment === "..")
+  ) {
+    throw new Error(`previewDir must be a relative path inside the output dir: ${dir}`);
+  }
+  return normalized.replace(/^\/+|\/+$/g, "");
+}
+
+interface PreviewEmitOptions {
+  previewDir: string;
+  dashboard?: boolean | string;
+  entryPath: string;
+  layoutXml: string;
+  layoutSavePort: number;
+  favicon?: string;
+  hasHtmlEntry: boolean;
+  existing: Set<string>;
+  widgetRegistry?: WidgetRegistry;
+  mockData?: Record<string, unknown>;
+  widgets?: BloggerPluginOptions["widgets"];
 }
 
 function emitPreview(
   context: PluginContext,
   xml: string,
-  previewDir: string,
-  entryPath: string
+  options: PreviewEmitOptions
 ): void {
   let result;
   try {
-    result = buildPreview({ entryPath, xml });
+    result = buildPreview({
+      entryPath: options.entryPath,
+      xml,
+      layoutXml: options.layoutXml,
+      layoutSavePort: options.layoutSavePort,
+      favicon: options.favicon,
+      dashboard: options.dashboard,
+      widgetRegistry: options.widgetRegistry,
+      mockData: options.mockData,
+      widgets: options.widgets,
+    });
   } catch (error) {
     context.warn({
       message: `Blogger preview could not be rendered: ${
         error instanceof Error ? error.message : String(error)
       }`,
-      id: entryPath,
+      id: options.entryPath,
       code: "BLOGGER_PREVIEW_FAILED",
     });
     return;
   }
 
   for (const diagnostic of result.diagnostics) {
-    const where = diagnostic.location ? ` (${entryPath}:${diagnostic.location})` : "";
+    const where =
+      diagnostic.file !== undefined && diagnostic.line !== undefined
+        ? ` (${diagnostic.file}:${diagnostic.line}:${diagnostic.column ?? 1})`
+        : "";
     context.warn({
-      message: `Blogger preview: ${diagnostic.message}${where}`,
-      id: entryPath,
+      message: `Blogger preview ${diagnostic.severity}: ${diagnostic.message}${where}`,
+      id: diagnostic.file ?? options.entryPath,
+      line: diagnostic.line,
+      column:
+        diagnostic.column === undefined ? undefined : Math.max(0, diagnostic.column - 1),
       code: diagnostic.code,
     });
   }
 
+  const emitted = new Set(options.existing);
   for (const page of result.pages) {
-    context.emitFile({
-      type: "asset",
-      fileName: previewDir === "" ? page.file : `${previewDir}/${page.file}`,
-      source: page.html,
-    });
+    const flat =
+      options.previewDir === ""
+        ? page.file
+        : `${options.previewDir}/${page.file}`;
+    emitPreviewFile(context, emitted, flat, page.html, false);
+
+    let routeFile: string;
+    try {
+      routeFile = previewRouteFile(page.route);
+    } catch (error) {
+      context.warn({
+        message: `Blogger preview route "${page.route}" was skipped: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        id: options.entryPath,
+        code: "BLOGGER_PREVIEW_ROUTE_INVALID",
+      });
+      continue;
+    }
+
+    if (routeFile === "index.html" && options.hasHtmlEntry) continue;
+    if (emitted.has(routeFile) && routeFile !== flat) {
+      if (routeFile !== "index.html") {
+        context.warn({
+          message: `Blogger preview route "${page.route}" collides with "${routeFile}" and was skipped`,
+          id: options.entryPath,
+          code: "BLOGGER_PREVIEW_ROUTE_CONFLICT",
+        });
+      }
+      continue;
+    }
+    emitPreviewFile(context, emitted, routeFile, page.html, routeFile === "index.html");
   }
+}
+
+function emitPreviewFile(
+  context: PluginContext,
+  emitted: Set<string>,
+  fileName: string,
+  source: string,
+  reserved: boolean
+): void {
+  if (emitted.has(fileName)) {
+    if (!reserved) {
+      context.warn({
+        message: `Blogger preview file "${fileName}" collides with an existing output and was skipped`,
+        code: "BLOGGER_PREVIEW_ROUTE_CONFLICT",
+      });
+    }
+    return;
+  }
+  context.emitFile({ type: "asset", fileName, source });
+  emitted.add(fileName);
+}
+
+function resolveOutfile(
+  value: string,
+  outputDir: string,
+  cwd: string
+): string {
+  const trimmed = value.trim();
+  if (trimmed === "") return DEFAULT_OUTFILE;
+
+  const candidate = path.isAbsolute(trimmed)
+    ? path.resolve(trimmed)
+    : path.resolve(cwd, trimmed);
+  if (isInside(outputDir, candidate)) {
+    return path.relative(outputDir, candidate).replace(/\\/g, "/");
+  }
+
+  if (!path.isAbsolute(trimmed)) {
+    const fromOutput = path.resolve(outputDir, trimmed);
+    if (isInside(outputDir, fromOutput)) {
+      return path.relative(outputDir, fromOutput).replace(/\\/g, "/");
+    }
+  }
+
+  throw new Error(
+    `outfile must resolve inside the Guchho output directory (${outputDir}): ${value}`
+  );
+}
+
+function deleteCarrierChunks(
+  bundle: OutputBundle,
+  state: BloggerPluginState
+): void {
+  for (const [fileName, entry] of Object.entries(bundle)) {
+    if (entry.type !== "chunk") continue;
+    if (
+      entry.code.includes(state.fullMarker) ||
+      entry.code.includes(state.configuredMarker) ||
+      entry.code.includes(state.fullCarrierId) ||
+      entry.code.includes(state.configuredCarrierId)
+    ) {
+      delete bundle[fileName];
+    }
+  }
+}
+
+async function loadMockData(
+  context: PluginContext,
+  value: BloggerPluginOptions["mockData"]
+): Promise<{
+  data?: Record<string, unknown>;
+  fixture?: string;
+}> {
+  if (value === undefined) return {};
+  if (typeof value !== "string") {
+    if (value === null || Array.isArray(value)) {
+      context.error({
+        message: "mockData must be an object or a JSON fixture path",
+        code: "BLOGGER_MOCK_DATA_INVALID",
+      });
+    }
+    return { data: value };
+  }
+
+  const fixture = path.resolve(process.cwd(), value);
+  let text: string;
+  try {
+    text = await fs.readFile(fixture, "utf8");
+  } catch {
+    throw new Error(`unable to read "${value}"`);
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error) {
+    throw new Error(
+      `"${value}" is not valid JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`"${value}" must contain a JSON object`);
+  }
+  return { data: parsed as Record<string, unknown>, fixture };
 }
 
 function carrierCode(template: CompiledTemplate, marker: string): string {
@@ -279,9 +670,7 @@ function toImportSpecifier(filePath: string): string {
 
 function watchFilesFor(template: CompiledTemplate): string[] {
   const files = new Set(template.watchFiles);
-  for (const resource of template.resources) {
-    if (resource.kind !== "asset") files.add(resource.path);
-  }
+  for (const resource of template.resources) files.add(resource.path);
   return [...files];
 }
 
@@ -373,6 +762,7 @@ function stripCarrierCode(
 
 function stripModuleSyntax(code: string): string {
   return code
+    .replace(/^\s*import\s+(?:[^;]*?\sfrom\s*)?["'][^"']+["']\s*;?\s*$/gm, "")
     .replace(/\bexport\s*\{[^}]*\}\s*;?/g, "")
     .replace(/\bexport\s+default\s+/g, "")
     .replace(/\bexport\s+(?=(?:const|let|var|function|class|async)\b)/g, "");

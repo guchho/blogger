@@ -12,6 +12,7 @@ import {
   TemplateCompiler,
 } from "../src/compiler/compiler.js";
 import { assembleTemplate, findUnresolvedTokens } from "../src/compiler/assemble.js";
+import { minifyXml } from "../src/compiler/minify.js";
 import { parseXml } from "../src/xml/parser.js";
 import { SourceFile } from "../src/xml/source.js";
 import type { CompiledTemplate } from "../src/types.js";
@@ -61,7 +62,11 @@ test("parser keeps raw slices for declarations, doctypes, comments and CDATA", (
   assert.equal(cdata?.type, "cdata");
   if (comment?.type === "comment") assert.equal(comment.value, " c ");
   if (cdata?.type === "cdata") assert.equal(cdata.value, "<x>");
-  assert.ok(document.children.some((node) => node.type === "doctype"));
+  const doctype = document.children.find((node) => node.type === "doctype");
+  assert.equal(doctype?.type, "doctype");
+  if (doctype?.type === "doctype") {
+    assert.equal(doctype.value, 'html [<!ENTITY x "y">]');
+  }
 });
 
 test("compiler expands includes and discovers CSS, JS and assets", async () => {
@@ -99,6 +104,31 @@ test("compiler expands includes and discovers CSS, JS and assets", async () => {
       assert.ok(
         result.template.watchFiles.some((file) => file.endsWith("body.xml"))
       );
+    }
+  );
+});
+
+test("compiler preserves pristine entry source for the layout editor", async () => {
+  const entryXml =
+    '<html><head><link href="./main.css" rel="stylesheet"/></head>' +
+    "<body><g:include src=\"./body.xml\"/><!-- keep me --></body></html>";
+  await project(
+    {
+      "template.xml": entryXml,
+      "body.xml": "<p>expanded</p>",
+      "main.css": "body { color: red; }",
+    },
+    async (root) => {
+      const result = await new TemplateCompiler({
+        entryPath: path.join(root, "template.xml"),
+        projectRoot: root,
+        validate: true,
+      }).compile();
+
+      assert.ok(result.template);
+      assert.equal(result.template.sourceText, entryXml);
+      assert.equal(result.template.sourceText.includes("expanded"), false);
+      assert.match(result.template.xml, /<p>expanded<\/p>/);
     }
   );
 });
@@ -242,4 +272,59 @@ test("assemble inlines CSS/JS and escapes CDATA terminators", async () => {
     assert.ok(output.includes("data:image/svg+xml;base64,AA=="));
     assert.deepEqual(findUnresolvedTokens(output), []);
   });
+});
+
+
+test("compiler rewrites local URLs in inline CSS and asset link attributes", async () => {
+  await project(
+    {
+      "template.xml":
+        "<html><head>" +
+        "<link href=\"./assets/icon.png\" rel=\"icon\" />" +
+        "<style>.hero { background: url(\"./assets/hero.png\") }</style>" +
+        "</head><body><div style=\"background-image:url(./assets/hero.png)\">x</div>" +
+        "<svg><use href=\"./assets/sprite.svg#icon\" /></svg></body></html>",
+      "assets/icon.png": "png",
+      "assets/hero.png": "png",
+      "assets/sprite.svg": "<svg></svg>",
+    },
+    async (root) => {
+      const result = await new TemplateCompiler({
+        entryPath: path.join(root, "template.xml"),
+        projectRoot: root,
+        validate: true,
+      }).compile();
+
+      assert.ok(result.template);
+      assert.equal(
+        result.diagnostics.some((item) => item.code === "BLOGGER_ASSET_INVALID"),
+        false
+      );
+      assert.equal(
+        (result.template.xml.match(/@@GUCHHO_BLOGGER_ASSET_/g) ?? []).length,
+        4
+      );
+      assert.deepEqual(
+        result.template.resources
+          .filter((resource) => resource.kind === "asset")
+          .map((resource) => resource.specifier)
+          .sort(),
+        ["./assets/hero.png", "./assets/icon.png", "./assets/sprite.svg#icon"]
+      );
+    }
+  );
+});
+
+test("minifyXml collapses formatting whitespace but preserves CSS and scripts", () => {
+  const xml =
+    "<html>\n  <head>\n    <b:skin><![CDATA[body {  margin: 0; }]]></b:skin>\n" +
+    "    <script>if (a > b) {  run(); }</script>\n  </head>\n" +
+    "  <body>\n    <p>Hello   world</p>\n    <pre>keep   this</pre>\n  </body>\n</html>";
+
+  const output = minifyXml(xml, "minify.xml");
+
+  assert.match(output, /<b:skin><!\[CDATA\[body \{  margin: 0; \}\]\]><\/b:skin>/);
+  assert.match(output, /<script>if \(a > b\) \{  run\(\); \}<\/script>/);
+  assert.match(output, /<pre>keep   this<\/pre>/);
+  assert.match(output, /<p>Hello world<\/p>/);
 });

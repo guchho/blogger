@@ -447,11 +447,12 @@ export class XmlParser {
       } else if (char === "]") {
         bracketDepth = Math.max(0, bracketDepth - 1);
       } else if (char === ">" && bracketDepth === 0) {
+        const value = this.text.slice(start + 9, this.index).trim();
         this.index++;
         return {
           type: "doctype",
           source: this.source,
-          value: this.text.slice(start, this.index),
+          value,
           span: { start, end: this.index },
         };
       }

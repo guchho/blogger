@@ -131,7 +131,7 @@ test("renders widgets through the built-in registry without reports", () => {
   assert.match(html, /class="powered-by">Powered by Blogger<\/span>/);
 });
 
-const THEME_PATH = "C:/Users/heman/Downloads/codehemu/template/theme.xml";
+const THEME_PATH = "demo/theme.xml";
 
 const SUPER_TEMPLATE = `<?xml version="1.0" encoding="UTF-8" ?>
 <html xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
@@ -188,7 +188,7 @@ test("reports include diagnostics with a line:column location", () => {
     report: (code, message, location) => diagnostics.push({ code, message, location }),
   });
   assert.equal(diagnostics.length, 1);
-  assert.equal(diagnostics[0]?.code, "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION");
+  assert.equal(diagnostics[0]?.code, "BLOGGER_PREVIEW_UNKNOWN_INCLUDABLE");
   assert.match(diagnostics[0]?.message ?? "", /does-not-exist/);
   assert.match(diagnostics[0]?.location ?? "", /^7:\d+$/);
 });

@@ -17,6 +17,8 @@ export interface PreviewScenario {
   type: PreviewPageType;
   /** Output file name relative to the preview directory, e.g. "post.html". */
   file: string;
+  /** Route-shaped path, e.g. "/2026/01/getting-started.html". */
+  route: string;
   /** Human label shown in the preview index. */
   title: string;
   /** The `data:` root object for this page. */

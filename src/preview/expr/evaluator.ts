@@ -222,7 +222,7 @@ export class Evaluator {
     if (result !== undefined) return result;
 
     this.host.report(
-      "BLOGGER_PREVIEW_UNSUPPORTED_EXPRESSION",
+      "BLOGGER_PREVIEW_UNSUPPORTED_HELPER",
       `unsupported Blogger helper "${node.name}"`,
       node.start,
       node.end
@@ -243,6 +243,12 @@ export class Evaluator {
       if (Object.prototype.hasOwnProperty.call(this.rootData, key)) {
         return this.rootData[key] as Value;
       }
+      this.host.report(
+        "BLOGGER_PREVIEW_MISSING_DATA",
+        `the preview has no value for "data:${key}"`,
+        0,
+        0
+      );
       return null;
     }
     const bound = scope.get(name);

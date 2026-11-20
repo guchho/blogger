@@ -69,6 +69,12 @@ test("getMember exposes string metadata suffixes", () => {
   assert.equal(getMember("", "empty"), true);
   assert.equal(getMember("abc", "canonical"), "abc");
   assert.equal(getMember("abc", "isResizable"), false);
+  assert.equal(
+    getMember("https://blogger.googleusercontent.com/img/a.jpg/s320/photo.jpg", "isResizable"),
+    true
+  );
+  assert.equal(getMember(new HtmlString("https://1.bp.blogspot.com/x/s1600/photo.jpg"), "isResizable"), true);
+  assert.equal(getMember("https://example.com/photo.jpg=s1600-c", "isResizable"), true);
 });
 
 test("getMember exposes array metadata and own type keys", () => {
