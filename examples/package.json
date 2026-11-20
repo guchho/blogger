@@ -1,0 +1,16 @@
+{
+  "name": "guchho-blogger-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "guchho dev --open",
+    "build": "guchho build"
+  },
+  "devDependencies": {
+    "@guchho/blogger": "file:..",
+    "guchho": "file:../../../OneDrive/Documents/GitHub/guchho/package/npm/guchho"
+  },
+  "dependencies": {
+    "@guchho/win32-x64": "file:../../../OneDrive/Documents/GitHub/guchho/package/npm/@guchho/win32-x64"
+  }
+}
