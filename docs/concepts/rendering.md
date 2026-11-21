@@ -86,5 +86,5 @@ dist/search/index.html
 | Save service | Started locally when enabled | Never |
 | Content pages | Preview output | Production HTML output |
 
-See [Blogger compatibility](../../docs/blogger-compatibility.md) for the
-expression language and widget behavior used by the renderer.
+See [Blogger compatibility](../blogger-compatibility.md) for the expression
+language and widget behavior used by the renderer.
