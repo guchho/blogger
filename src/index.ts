@@ -12,6 +12,26 @@ export {
   isInside,
 } from "./compiler/compiler.js";
 export { assembleTemplate, findUnresolvedTokens } from "./compiler/assemble.js";
+export {
+  createPostRepository,
+  createPageRepository,
+  loadContent,
+  loadSettings,
+  resolveContentPaths,
+  slugify,
+  ensureUniqueSlug,
+  validatePost,
+  validatePage,
+  sanitizeHtml,
+  buildContentScenarios,
+  postPath,
+  pagePath,
+  postUrl,
+  pageUrl,
+  searchUrl,
+  assertNoRouteCollisions,
+} from "./content/index.js";
+export { ContentError } from "./content/index.js";
 export { buildPreview } from "./preview/index.js";
 export { buildScenarios } from "./preview/data/pages.js";
 export { previewRouteFile } from "./preview/routes.js";
@@ -31,6 +51,7 @@ export type {
   WidgetRegistry,
 } from "./preview/index.js";
 export type {
+  BloggerContentOptions,
   BloggerMockData,
   BloggerPluginOptions,
   BloggerWidgetDefinition,
@@ -46,4 +67,14 @@ export type {
   ResourceReference,
   SourceLocation,
 } from "./types.js";
+export type {
+  ContentItem,
+  ContentKind,
+  ContentPaths,
+  ContentSnapshot,
+  ContentStatus,
+  Page,
+  Post,
+  SiteSettings,
+} from "./content/index.js";
 export type { Plugin } from "guchho";
