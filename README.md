@@ -7,6 +7,15 @@ style it with CSS, script it with JavaScript, and let Guchho produce one
 production-ready `dist/template.xml` plus a deterministic mock preview during
 watch mode.
 
+## Documentation
+
+- [Documentation hub](docs/README.md)
+- [Getting started](docs/getting-started.md)
+- [Content CMS guide](docs/guides/content-cms.md)
+- [Dashboard and Layout Editor](docs/guides/dashboard.md)
+- [Reference](docs/reference/plugin-options.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
 ## Requirements
 
 - Node.js 18 or newer.
@@ -128,7 +137,7 @@ src/
     logo.svg
 ```
 
-See [`examples/basic`](examples/basic) for a working project.
+See [`examples/`](examples/) for a working project.
 
 ## Components
 
@@ -312,8 +321,9 @@ Preview diagnostics include `severity`, `code`, `message`, `location`, `file`,
 | `BLOGGER_PREVIEW_ROUTE_INVALID` | Preview route could not be mapped safely. |
 | `BLOGGER_PREVIEW_FAILED` | A preview page failed to render. |
 
-See [`docs/blogger-compatibility.md`](docs/blogger-compatibility.md) for the
-full preview data, expression and widget reference.
+See the [documentation hub](docs/README.md) and
+[Blogger compatibility](docs/blogger-compatibility.md) for the full preview
+data, expression and widget reference.
 
 ## Current limitations
 
