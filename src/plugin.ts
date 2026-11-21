@@ -20,6 +20,8 @@ import {
   isInside,
 } from "./compiler/compiler.js";
 import { minifyXml } from "./compiler/minify.js";
+import { loadContent, resolveContentPaths } from "./content/index.js";
+import type { ContentPaths, ContentSnapshot } from "./content/index.js";
 import { formatDiagnostic } from "./diagnostics.js";
 import { startSaveService, type SaveServiceHandle } from "./layout/save-service.js";
 import { buildPreview, previewRouteFile } from "./preview/index.js";
@@ -37,6 +39,7 @@ const DEFAULT_ENTRY = "src/template.xml";
 const DEFAULT_OUTFILE = "template.xml";
 const DEFAULT_LAYOUT_SAVE_PORT = 3001;
 const DEFAULT_FAVICON = "favicon.ico";
+const DEFAULT_SITE_URL = "http://localhost:3000/";
 const CARRIER_NAMESPACE = "guchho-blogger";
 const CARRIER_OUTPUT = "guchho-blogger-carrier";
 
@@ -57,6 +60,9 @@ interface BloggerPluginState {
   mockData?: Record<string, unknown>;
   mockFixture?: string;
   saveService?: SaveServiceHandle;
+  contentPaths?: ContentPaths;
+  contentSnapshot?: ContentSnapshot;
+  contentError?: string;
 }
 
 export function blogger(options: BloggerPluginOptions = {}): Plugin {
@@ -79,11 +85,26 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
   const previewEnabled = options.preview !== false;
   const previewDir = normalizeDir(options.previewDir ?? "preview");
   const layoutSavePort = options.layoutSavePort ?? DEFAULT_LAYOUT_SAVE_PORT;
+  const contentEnabled = options.content !== false;
+  const contentOptions = typeof options.content === "object" ? options.content : {};
+
+  try {
+    state.contentPaths = resolveContentPaths(process.cwd(), contentOptions);
+  } catch (error) {
+    state.contentError = error instanceof Error ? error.message : String(error);
+  }
 
   return {
     name: "guchho:blogger",
 
     async buildStart(this: PluginContext): Promise<BuildStartResult> {
+      if (contentEnabled && state.contentError !== undefined) {
+        this.warn({
+          message: `Blogger content is disabled: ${state.contentError}`,
+          id: state.entryPath,
+          code: "BLOGGER_CONTENT_PATH_FORBIDDEN",
+        });
+      }
       const compiler = new TemplateCompiler({
         entryPath: state.entryPath,
         projectRoot: process.cwd(),
@@ -139,6 +160,23 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
         });
       }
 
+      if (contentEnabled && state.contentPaths !== undefined) {
+        try {
+          const snapshot = await loadContent(state.contentPaths);
+          state.contentSnapshot =
+            snapshot.posts.length > 0 || snapshot.pages.length > 0 ? snapshot : undefined;
+        } catch (error) {
+          state.contentSnapshot = undefined;
+          this.warn({
+            message: `Blogger content could not be loaded: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            id: state.entryPath,
+            code: "BLOGGER_CONTENT_LOAD_FAILED",
+          });
+        }
+      }
+
       if (
         previewEnabled &&
         options.previewDashboard !== false &&
@@ -149,6 +187,7 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
             entryPath: state.entryPath,
             projectRoot: process.cwd(),
             port: layoutSavePort,
+            contentPaths: state.contentPaths,
           });
         } catch (error) {
           this.warn({
@@ -160,11 +199,21 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
         }
       }
 
+      const contentWatchFiles =
+        state.contentPaths === undefined || !contentEnabled
+          ? []
+          : await jsonFilesIn([
+              state.contentPaths.postsDir,
+              state.contentPaths.pagesDir,
+              state.contentPaths.dataDir,
+            ]);
+
       return {
         entries: [{ input: state.fullCarrierEntry, output: CARRIER_OUTPUT }],
         watchFiles: [
           ...watchFilesFor(result.template),
           ...(state.mockFixture === undefined ? [] : [state.mockFixture]),
+          ...contentWatchFiles,
         ],
       };
     },
@@ -389,6 +438,37 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           widgetRegistry: state.widgetRegistry,
           mockData: state.mockData,
           widgets: options.widgets,
+          content: state.contentSnapshot,
+          contentOptions: {
+            baseUrl:
+              contentOptions.siteUrl ??
+              (state.contentSnapshot === undefined
+                ? DEFAULT_SITE_URL
+                : state.contentSnapshot.settings.baseUrl),
+            sanitize: contentOptions.sanitize ?? true,
+          },
+        });
+      }
+
+      if (
+        contentEnabled &&
+        state.contentSnapshot !== undefined &&
+        !isWatchBuild(this.meta?.watchMode === true)
+      ) {
+        emitContentPages(this, xml, {
+          entryPath: state.entryPath,
+          content: state.contentSnapshot,
+          baseUrl:
+            contentOptions.siteUrl ??
+            (state.contentSnapshot === undefined
+              ? DEFAULT_SITE_URL
+              : state.contentSnapshot.settings.baseUrl),
+          sanitize: contentOptions.sanitize ?? true,
+          favicon: options.favicon ?? state.contentSnapshot.settings.favicon ?? DEFAULT_FAVICON,
+          hasHtmlEntry,
+          existing: new Set(Object.keys(bundle)),
+          widgetRegistry: state.widgetRegistry,
+          widgets: options.widgets,
         });
       }
     },
@@ -464,6 +544,13 @@ interface PreviewEmitOptions {
   widgetRegistry?: WidgetRegistry;
   mockData?: Record<string, unknown>;
   widgets?: BloggerPluginOptions["widgets"];
+  content?: ContentSnapshot;
+  contentOptions?: {
+    baseUrl?: string;
+    favicon?: string;
+    sanitize?: boolean;
+    now?: Date;
+  };
 }
 
 function emitPreview(
@@ -481,9 +568,11 @@ function emitPreview(
       favicon: options.favicon,
       dashboard: options.dashboard,
       widgetRegistry: options.widgetRegistry,
-      mockData: options.mockData,
-      widgets: options.widgets,
-    });
+       mockData: options.mockData,
+       widgets: options.widgets,
+       content: options.content,
+       contentOptions: options.contentOptions,
+     });
   } catch (error) {
     context.warn({
       message: `Blogger preview could not be rendered: ${
@@ -565,6 +654,86 @@ function emitPreviewFile(
   }
   context.emitFile({ type: "asset", fileName, source });
   emitted.add(fileName);
+}
+
+async function jsonFilesIn(directories: string[]): Promise<string[]> {
+  const files: string[] = [];
+  for (const directory of directories) {
+    try {
+      for (const name of await fs.readdir(directory)) {
+        if (name.endsWith(".json")) files.push(path.join(directory, name));
+      }
+    } catch {
+      continue;
+    }
+  }
+  return files;
+}
+
+interface ContentEmitOptions {
+  entryPath: string;
+  content: ContentSnapshot;
+  baseUrl: string;
+  sanitize: boolean;
+  favicon?: string;
+  hasHtmlEntry: boolean;
+  existing: Set<string>;
+  widgetRegistry?: WidgetRegistry;
+  widgets?: BloggerPluginOptions["widgets"];
+}
+
+function emitContentPages(
+  context: PluginContext,
+  xml: string,
+  options: ContentEmitOptions
+): void {
+  let result;
+  try {
+    result = buildPreview({
+      entryPath: options.entryPath,
+      xml,
+      banner: false,
+      dashboard: false,
+      favicon: options.favicon,
+      widgetRegistry: options.widgetRegistry,
+      widgets: options.widgets,
+      content: options.content,
+      contentOptions: {
+        baseUrl: options.baseUrl,
+        favicon: options.favicon,
+        sanitize: options.sanitize,
+        includeWidgets: false,
+      },
+    });
+  } catch (error) {
+    context.warn({
+      message: `Blogger content pages could not be rendered: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      id: options.entryPath,
+      code: "BLOGGER_CONTENT_RENDER_FAILED",
+    });
+    return;
+  }
+
+  const emitted = new Set(options.existing);
+  for (const page of result.pages) {
+    let file: string;
+    try {
+      file = previewRouteFile(page.route);
+    } catch (error) {
+      context.warn({
+        message: `Blogger content route "${page.route}" was skipped: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        id: options.entryPath,
+        code: "BLOGGER_CONTENT_ROUTE_INVALID",
+      });
+      continue;
+    }
+    if (file === "index.html" && options.hasHtmlEntry) continue;
+    emitPreviewFile(context, emitted, file, page.html, file === "index.html");
+  }
 }
 
 function resolveOutfile(
