@@ -5,6 +5,13 @@ import {
   mockPages,
   mockPosts,
 } from "./data/mock.js";
+import {
+  contentEditorBody,
+  contentOverviewBody,
+  contentPagesBody,
+  contentPostsBody,
+  type ContentDashboardOptions,
+} from "../dashboard/content/screen-data.js";
 import { extractLayout } from "../layout/extract.js";
 import { editorPayload } from "../layout/serialize.js";
 import {
@@ -548,13 +555,26 @@ export function buildDashboardScreens(
     savePort: 3001,
   },
   favicon = PREVIEW_FAVICON,
+  content?: ContentDashboardOptions,
 ): DashboardScreen[] {
+  const contentInput = content === undefined ? undefined : {
+    ...content,
+    routes: {
+      posts: SCREEN_ROUTES.posts,
+      pages: SCREEN_ROUTES.pages,
+      postNew: SCREEN_ROUTES["post-new"],
+      pageNew: SCREEN_ROUTES["page-new"],
+    },
+  };
   const bodies: Record<DashboardScreenKey, string> = {
-    overview: overviewBody(pages),
-    posts: postsBody(),
-    "post-new": editorBody("post"),
-    pages: pagesBody(),
-    "page-new": editorBody("page"),
+    overview:
+      contentInput === undefined ? overviewBody(pages) : contentOverviewBody(pages, contentInput),
+    posts: contentInput === undefined ? postsBody() : contentPostsBody(contentInput),
+    "post-new":
+      contentInput === undefined ? editorBody("post") : contentEditorBody("post", contentInput),
+    pages: contentInput === undefined ? pagesBody() : contentPagesBody(contentInput),
+    "page-new":
+      contentInput === undefined ? editorBody("page") : contentEditorBody("page", contentInput),
     comments: commentsBody(),
     layout: layoutBody(layout),
     theme: themeBody(templateXml, baseStyle),
