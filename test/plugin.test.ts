@@ -6,6 +6,7 @@ import path from "node:path";
 import test, { afterEach } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { defaultPost } from "../src/content/model.js";
 import { stopAllSaveServices } from "../src/layout/save-service.js";
 import { blogger } from "../src/plugin.js";
 
@@ -175,6 +176,52 @@ test("plugin emits the assembled Blogger template and removes carriers", async (
     assert.match(template.source, /data:image\/svg\+xml;base64,/);
     assert.equal(template.source.includes("@@GUCHHO_BLOGGER"), false);
     assert.equal(template.source.includes(tempDir.replace(/\\/g, "/")), false);
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("production build emits rendered HTML from CMS content", async () => {
+  const tempDir = await fs.mkdtemp(path.join(process.cwd(), ".tmp-blogger-content-"));
+  try {
+    const entry = path.join(tempDir, "template.xml");
+    await fs.writeFile(
+      entry,
+      `<html><body><b:section id='main'><b:widget id='Blog1' type='Blog'>` +
+        `<b:includable id='main'><b:loop values='data:posts' var='post'>` +
+        `<h2><data:post.title/></h2><div><data:post.body/></div>` +
+        `</b:loop></b:includable></b:widget></b:section></body></html>`
+    );
+    const postsDir = path.join(tempDir, "posts");
+    await fs.mkdir(postsDir);
+    const post = defaultPost({
+      id: "post-prod",
+      title: "CMS Production Post",
+      slug: "cms-production-post",
+      content: "<p>Production body</p>",
+      status: "published",
+      publishAt: "2026-11-21T10:00:00Z",
+      publishedAt: "2026-11-21T10:00:00Z",
+    });
+    await fs.writeFile(path.join(postsDir, "post-prod.json"), JSON.stringify(post));
+    const relative = (name: string) => path.relative(process.cwd(), path.join(tempDir, name)).replace(/\\/g, "/");
+    const plugin = blogger({
+      entry,
+      preview: false,
+      validate: false,
+      content: {
+        postsDir: relative("posts"),
+        pagesDir: relative("pages"),
+        dataDir: relative("data"),
+        backupDir: relative("backups"),
+      },
+    });
+    const { emitted } = await buildBundle(plugin);
+    const rendered = emitted.find((file) => file.fileName === "2026/11/cms-production-post.html");
+    assert.ok(rendered);
+    assert.match(rendered.source, /CMS Production Post/);
+    assert.match(rendered.source, /Production body/);
+    assert.ok(emitted.some((file) => file.fileName === "template.xml"));
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
