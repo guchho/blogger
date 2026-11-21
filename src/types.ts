@@ -35,6 +35,21 @@ export type BloggerWidgetRegistry = Record<string, BloggerWidgetDefinition>;
 
 export type BloggerMockData = Record<string, unknown>;
 
+export interface BloggerContentOptions {
+  /** Post JSON directory, relative to the project. Defaults to `src/posts`. */
+  postsDir?: string;
+  /** Page JSON directory, relative to the project. Defaults to `src/pages`. */
+  pagesDir?: string;
+  /** Settings JSON directory, relative to the project. Defaults to `data`. */
+  dataDir?: string;
+  /** Backup directory, relative to the project. Defaults to `.blogger-backups`. */
+  backupDir?: string;
+  /** Public base URL used to generate content links. Overrides `settings.json`. */
+  siteUrl?: string;
+  /** Sanitize rich-text HTML before rendering. Defaults to true. */
+  sanitize?: boolean;
+}
+
 export interface BloggerPluginOptions {
   /** Blogger XML entry, relative to the project directory. */
   entry?: string;
@@ -61,6 +76,11 @@ export interface BloggerPluginOptions {
   layoutSavePort?: number;
   /** Preview favicon URL. Defaults to `favicon.ico`. */
   favicon?: string;
+  /**
+   * Enable file-based content and rendered HTML output. Set to false to keep
+   * the legacy XML-only build. Defaults to true.
+   */
+  content?: boolean | BloggerContentOptions;
 }
 
 export type ResourceKind = "css" | "js" | "asset";
