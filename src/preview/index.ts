@@ -172,7 +172,7 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
       route: scenario.route,
       title: scenario.title,
       html: withBanner
-        ? injectPreviewChrome(html, scenario.title, feedScript, dashboardHref)
+        ? injectPreviewChrome(html, feedScript, dashboardHref)
         : html,
     });
   }
@@ -244,7 +244,6 @@ function fallbackPage(title: string, message: string): string {
 
 function injectPreviewChrome(
   html: string,
-  title: string,
   feedScript: string,
   dashboardHref: string | undefined
 ): string {
@@ -260,8 +259,7 @@ function injectPreviewChrome(
     `<div data-guchho-preview="banner" style="position:relative;z-index:2147483647;` +
     `background:#111;color:#fff;font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +
     `padding:8px 12px;text-align:center">` +
-    `Mock preview — ${escapeHtml(title)}. Rendered from deterministic sample data; ` +
-    `not a live Blogger page.${dashboardButton}</div>`;
+    `Mock preview — Sample content, not a live Blogger page.${dashboardButton}</div>`;
 
   let output = html;
   if (feedScript !== "") {
