@@ -174,7 +174,7 @@ test("content screens use deterministic mock data", () => {
     "dashboard-posts.html": ["Getting started with Guchho", "New post", "Published", "Draft"],
     "dashboard-pages.html": ["About", "New page", "Published"],
     "dashboard-comments.html": ["Reader One", "View post", "Approve"],
-    "dashboard-layout.html": ["Guchho Blogger Preview", "Posts", "+ Add a Gadget", "layout-editor-save"],
+    "dashboard-layout.html": ["Guchho Blogger Preview", "Posts", "Add a Gadget", "layout-editor-save"],
     "dashboard-theme.html": ["Backup", "Edit HTML", "&lt;b:section"],
     "dashboard-settings.html": ["Guchho Blogger Preview", "Blog address", "Comments"],
     "dashboard-post-new.html": ['placeholder="Title"', "Labels", "Publish"],
