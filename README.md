@@ -2,6 +2,8 @@
 
 Official Blogger template compiler plugin for [Guchho](https://guchho.js.org).
 
+[![Guchho Plugin Blogger](https://raw.githubusercontent.com/guchho/plugins/refs/heads/main/resources/guchho_blogger_plugin.png)](https://github.com/guchho)
+
 Develop a Blogger theme as a normal frontend project: split it into components,
 style it with CSS, script it with JavaScript, and let Guchho produce one
 production-ready `dist/template.xml` plus a deterministic mock preview during
