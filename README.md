@@ -10,15 +10,6 @@ watch mode.
 
 [![Guchho Plugin Blogger](https://raw.githubusercontent.com/guchho/plugins/refs/heads/main/resources/guchho_blogger_plugin.png)](https://github.com/guchho)
 
-## Documentation
-
-- [Documentation hub](docs/README.md)
-- [Getting started](docs/getting-started.md)
-- [Content CMS guide](docs/guides/content-cms.md)
-- [Dashboard and Layout Editor](docs/guides/dashboard.md)
-- [Reference](docs/reference/plugin-options.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
 ## Requirements
 
 - Node.js 18 or newer.
