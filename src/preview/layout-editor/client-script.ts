@@ -159,7 +159,7 @@ export const LAYOUT_EDITOR_SCRIPT = `(function () {
       '.le-section-settings{float:right;display:inline-flex;align-items:center;justify-content:center;padding:2px 5px;border:0;background:transparent;color:#777;cursor:pointer}',
       '.le-section-settings svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
       '.le-widgets{display:contents}',
-      '.le-widget{position:relative;display:block!important;box-sizing:border-box;min-height:40px;margin:0 0 6px;padding:0;border:1px solid #c9c9c9;border-radius:2px;background:#fff;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.08)}',
+      'body#layout.blogger-layout-page .le-widget{position:relative;display:block!important;box-sizing:border-box;min-height:40px;margin:0 0 6px;padding:0;border:1px solid #c9c9c9;border-radius:2px;background:#fff;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.08)}',
       '.le-widget.le-dragging{opacity:.45}',
       '.widget-wrap1,.widget-wrap2,.widget-wrap3{display:block;min-height:inherit}',
       '.le-widget-content.visibility{display:flex!important;align-items:center;gap:9px;min-height:40px;padding:7px 10px;background:#fff}',
