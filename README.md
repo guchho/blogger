@@ -70,6 +70,17 @@ template and owns `dist/index.html`.
    shown on the dashboard Settings screen. Default: `favicon.ico`. The bundled
    `favicon.ico` is emitted to the output directory unless the build already has
    one.
+ - `content` — enable the file-based Post/Page CMS. `false` keeps the legacy
+   XML-only build; an object configures content paths. Default: enabled.
+   - `postsDir` — post JSON directory relative to the project root. Default:
+     `src/posts`.
+   - `pagesDir` — page JSON directory relative to the project root. Default:
+     `src/pages`.
+   - `dataDir` — settings/categories/authors JSON directory. Default: `data`.
+   - `backupDir` — backup directory for overwritten/deleted content. Default:
+     `.blogger-backups`.
+   - `siteUrl` — public base URL for generated links; overrides `settings.json`.
+   - `sanitize` — sanitize rich-text HTML before rendering. Default: `true`.
 
 - `mockData` — preview data overrides as an object or a JSON fixture path
   relative to the project root. Objects deep-merge into the deterministic mock
@@ -234,6 +245,38 @@ pass a URL string to point the button somewhere else. The default link is
 root-relative, so previews should be served (as with `guchho dev`) rather than
 opened directly via `file://`.
 
+## File-based content
+
+When `content` is enabled, Posts and Pages are stored as individual JSON files in
+the consuming project. The Dashboard lists live content and opens Blogger-style
+editors for creating and updating it; the dev-only save service exposes CRUD,
+publish/unpublish, trash/restore and bulk endpoints under `/api/posts` and
+`/api/pages`. All writes are validated, path-confined, hashed for stale-write
+detection and backed up before replacement or deletion.
+
+```text
+src/
+  posts/
+    hello-world.json
+  pages/
+    about.json
+data/
+  settings.json
+  categories.json
+  authors.json
+```
+
+Production builds render content through the actual Blogger template and emit
+HTML beside `template.xml`, using Blogger-compatible routes such as
+`/2026/11/hello-world.html` and `/p/about.html`. Scheduled posts become published
+when their `publishAt` time passes; trashed items are soft-deleted with
+`trashedAt` and excluded from public output. Rich-text HTML is preserved in the
+JSON and sanitized before rendering by default.
+
+Enable the legacy behavior with `content: false`: no content files are watched,
+no content endpoints are served, and production emits only the XML template plus
+any normal HTML entry.
+
 ## Validation
 
 XML well-formedness is always checked. With `validate: true`, the plugin also
@@ -274,11 +317,16 @@ full preview data, expression and widget reference.
 
 ## Current limitations
 
-- One Blogger entry per build.
-- Search query strings cannot be represented by static preview routes.
-- Production XML is assembled from compiled resources; preview evaluation and
-  live Blogger data never run during a production build.
-- Guchho's `transform` hook and `this.resolve()` are not used by this plugin.
+ - One Blogger entry per build.
+ - Search query strings cannot be represented by static preview routes.
+ - Production XML is assembled from compiled resources; content is rendered to
+   static HTML at build time, and live Blogger data never runs during a
+   production build.
+ - The content save service is local development only; it binds to
+   `127.0.0.1`, accepts localhost origins and is never started by production
+   builds.
+ - Guchho's `transform` hook and `this.resolve()` are not used by this plugin.
+
 
 ## License
 
