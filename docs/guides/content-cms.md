@@ -6,8 +6,10 @@ render them into static HTML.
 
 ## Enable content
 
-Content is enabled by default. Configure it when the default directories or
-render behavior need to change:
+Content is enabled by default. The first dev or production build creates a
+published `src/posts/hello-world.json` when the posts directory is empty.
+Configure content when the default directories or render behavior need to
+change:
 
 ```js
 import blogger from "@guchho/blogger";
@@ -22,6 +24,7 @@ export default {
         backupDir: ".content-backups",
         siteUrl: "https://example.com/",
         sanitize: true,
+        seedDefaultPost: true,
       },
     }),
   ],
@@ -31,11 +34,14 @@ export default {
 All directories must stay inside the project root. `siteUrl` overrides
 `baseUrl` from `data/settings.json`.
 
+Set `content.seedDefaultPost: false` to keep empty content directories empty.
 Set `content: false` for the legacy XML-only build.
 
 ## Create a post
 
-Create `src/posts/hello-world.json`:
+The first dev or production build creates `src/posts/hello-world.json`
+automatically. To provide your own first post instead, create the file before
+running a build:
 
 ```json
 {
@@ -79,8 +85,10 @@ Create `src/pages/about.json`:
 }
 ```
 
-The dashboard can create these files automatically. Direct file edits are also
-supported; watch mode reloads JSON files in the content and data directories.
+The dashboard can create and edit these files automatically. Open
+`http://localhost:3000/__preview/dashboard/posts/` during `guchho dev` to see the
+seeded post and its live JSON data. Direct file edits are also supported; watch
+mode reloads JSON files in the content and data directories.
 
 ## Site settings
 

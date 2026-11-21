@@ -48,6 +48,7 @@ export interface BloggerContentOptions {
   siteUrl?: string;
   /** Sanitize rich-text HTML before rendering. Defaults to true. */
   sanitize?: boolean;
+  seedDefaultPost?: boolean;
 }
 
 export interface BloggerPluginOptions {

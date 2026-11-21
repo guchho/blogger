@@ -5,6 +5,7 @@ export * from "./slug.js";
 export * from "./storage.js";
 export * from "./settings-model.js";
 export * from "./settings.js";
+export * from "./seed.js";
 export * from "./repository.js";
 export * from "./posts.js";
 export * from "./pages.js";

@@ -72,6 +72,7 @@ These codes appear as plugin warnings rather than HTTP errors.
 | Code | Meaning |
 | --- | --- |
 | `BLOGGER_CONTENT_PATH_FORBIDDEN` | Content directories could not be resolved inside the project. |
+| `BLOGGER_CONTENT_SEED_FAILED` | The default post could not be created; existing content is still loaded. |
 | `BLOGGER_CONTENT_LOAD_FAILED` | Content files could not be loaded. |
 | `BLOGGER_CONTENT_RENDER_FAILED` | Static content pages could not be rendered. |
 | `BLOGGER_CONTENT_ROUTE_INVALID` | A content route could not be mapped to a safe file. |

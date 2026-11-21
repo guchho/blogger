@@ -45,6 +45,7 @@ export default {
 | `content.backupDir` | string | `.blogger-backups` | Backup directory for replaced or deleted content. |
 | `content.siteUrl` | string | `baseUrl` from settings | Absolute public base URL used for generated links. |
 | `content.sanitize` | boolean | `true` | Sanitize rich-text HTML before rendering. |
+| `content.seedDefaultPost` | boolean | `true` | Create one published `hello-world.json` post during dev and production builds when the posts directory has no JSON files. |
 
 ## Complete example
 
@@ -82,6 +83,7 @@ export default {
         backupDir: ".blogger-backups",
         siteUrl: "https://example.com/",
         sanitize: true,
+        seedDefaultPost: true,
       },
     }),
   ],

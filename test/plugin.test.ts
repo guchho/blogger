@@ -8,7 +8,19 @@ import { fileURLToPath } from "node:url";
 
 import { defaultPost } from "../src/content/model.js";
 import { stopAllSaveServices } from "../src/layout/save-service.js";
-import { blogger } from "../src/plugin.js";
+import { blogger as createBlogger } from "../src/plugin.js";
+
+type BloggerOptions = Parameters<typeof createBlogger>[0];
+
+function blogger(options: BloggerOptions = {}): ReturnType<typeof createBlogger> {
+  const content =
+    options.content === false
+      ? false
+      : typeof options.content === "object"
+        ? { ...options.content, seedDefaultPost: false }
+        : { seedDefaultPost: false };
+  return createBlogger({ ...options, content });
+}
 
 const EXAMPLE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -127,7 +139,7 @@ console.log("hello");`,
     ) => Promise<void>
   ).call(context, { dir: outputDir }, bundle);
 
-  return { bundle, emitted, warnings };
+  return { start, bundle, emitted, warnings };
 }
 
 async function buildBundle(
@@ -527,6 +539,136 @@ test("plugin loads and watches a mockData JSON fixture", async () => {
   }
 });
 
+
+test("dev builds seed a default post and show live data in the posts dashboard", async () => {
+  const tempDir = await fs.mkdtemp(
+    path.join(process.cwd(), ".tmp-blogger-seed-dev-")
+  );
+  const port = await freePort();
+  try {
+    const entry = path.join(tempDir, "template.xml");
+    await fs.writeFile(
+      entry,
+      `<html><body><b:section id='main'><b:widget id='Blog1' type='Blog'>` +
+        `<b:includable id='main'><b:loop values='data:posts' var='post'>` +
+        `<h2><data:post.title/></h2><div><data:post.body/></div>` +
+        `</b:loop></b:includable></b:widget></b:section></body></html>`
+    );
+    const relative = (name: string) =>
+      path.relative(process.cwd(), path.join(tempDir, name)).replace(/\\/g, "/");
+    const plugin = createBlogger({
+      entry,
+      validate: false,
+      layoutSavePort: port,
+      content: {
+        postsDir: relative("posts"),
+        pagesDir: relative("pages"),
+        dataDir: relative("data"),
+        backupDir: relative("backups"),
+      },
+    });
+    const harness = fakeContext({ watchMode: true });
+    try {
+      const { start, emitted } = await runBuild(plugin, harness, path.join(tempDir, "out"));
+      const seeded = path.join(tempDir, "posts", "hello-world.json");
+
+      assert.ok(start.watchFiles.includes(seeded));
+      assert.equal(await fs.readFile(seeded, "utf8").then(JSON.parse).then(
+        (post: { title: string; status: string }) =>
+          post.title === "Hello world" && post.status === "published"
+      ), true);
+
+      const dashboard = emitted.find(
+        (file) => file.fileName === "__preview/dashboard/posts/index.html"
+      );
+      assert.ok(dashboard);
+      assert.match(dashboard.source, /Hello world/);
+      assert.match(dashboard.source, /hello-world/);
+      assert.match(dashboard.source, new RegExp(`http://localhost:${port}`));
+      assert.match(dashboard.source, /data-guchho-content="payload"/);
+    } finally {
+      await closePlugin(plugin, harness.context);
+    }
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("production builds seed a default post and render its route", async () => {
+  const tempDir = await fs.mkdtemp(
+    path.join(process.cwd(), ".tmp-blogger-seed-build-")
+  );
+  try {
+    const entry = path.join(tempDir, "template.xml");
+    await fs.writeFile(
+      entry,
+      `<html><body><b:section id='main'><b:widget id='Blog1' type='Blog'>` +
+        `<b:includable id='main'><b:loop values='data:posts' var='post'>` +
+        `<h2><data:post.title/></h2><div><data:post.body/></div>` +
+        `</b:loop></b:includable></b:widget></b:section></body></html>`
+    );
+    const relative = (name: string) =>
+      path.relative(process.cwd(), path.join(tempDir, name)).replace(/\\/g, "/");
+    const plugin = createBlogger({
+      entry,
+      preview: false,
+      validate: false,
+      content: {
+        postsDir: relative("posts"),
+        pagesDir: relative("pages"),
+        dataDir: relative("data"),
+        backupDir: relative("backups"),
+      },
+    });
+    const { emitted } = await buildBundle(plugin, path.join(tempDir, "out"));
+    const seeded = path.join(tempDir, "posts", "hello-world.json");
+    const post = JSON.parse(await fs.readFile(seeded, "utf8")) as {
+      publishedAt: string;
+    };
+    const date = new Date(post.publishedAt);
+    const route = `${date.getUTCFullYear()}/${String(date.getUTCMonth() + 1).padStart(2, "0")}/hello-world.html`;
+    const rendered = emitted.find((file) => file.fileName === route);
+
+    assert.ok(rendered);
+    assert.match(rendered.source, /Hello world/);
+    assert.match(rendered.source, /Welcome to your Guchho Blogger site/);
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("seedDefaultPost false keeps empty content directories empty", async () => {
+  const tempDir = await fs.mkdtemp(
+    path.join(process.cwd(), ".tmp-blogger-seed-off-")
+  );
+  try {
+    const entry = path.join(tempDir, "template.xml");
+    await fs.writeFile(entry, `<html><body>seed off</body></html>`);
+    const relative = (name: string) =>
+      path.relative(process.cwd(), path.join(tempDir, name)).replace(/\\/g, "/");
+    const plugin = createBlogger({
+      entry,
+      preview: false,
+      validate: false,
+      content: {
+        postsDir: relative("posts"),
+        pagesDir: relative("pages"),
+        dataDir: relative("data"),
+        backupDir: relative("backups"),
+        seedDefaultPost: false,
+      },
+    });
+    const harness = fakeContext();
+    try {
+      await runBuild(plugin, harness, path.join(tempDir, "out"));
+      await assert.rejects(() => fs.stat(path.join(tempDir, "posts", "hello-world.json")));
+    } finally {
+      await closePlugin(plugin, harness.context);
+    }
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
 
 test("plugin reports template output collisions", async () => {
   const plugin = blogger({ entry: ENTRY, preview: false });

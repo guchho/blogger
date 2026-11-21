@@ -9,12 +9,22 @@ preview through `guchho dev` or another static server, not `file://`.
 
 ## Content changes do not appear
 
-1. Confirm at least one JSON file exists in `src/posts` or `src/pages`. With no
-   content files, preview uses deterministic mock data.
-2. Check that `content` is not `false` in the plugin configuration.
-3. Check that custom content paths are inside the project root.
-4. Look for `BLOGGER_CONTENT_LOAD_FAILED` warnings caused by invalid JSON.
-5. Draft, future-scheduled and trashed items are excluded from public output.
+1. Check that `content` is not `false` in the plugin configuration.
+2. Confirm at least one JSON file exists in `src/posts` or `src/pages`. A dev or
+   production build seeds a published `hello-world.json` when the posts directory
+   has no JSON files.
+3. Check `content.seedDefaultPost`; when it is `false`, an empty posts directory
+   stays empty and preview uses deterministic mock data.
+4. Check that custom content paths are inside the project root.
+5. Look for `BLOGGER_CONTENT_SEED_FAILED` or `BLOGGER_CONTENT_LOAD_FAILED`
+   warnings caused by write or JSON errors.
+6. Draft, future-scheduled and trashed items are excluded from public output.
+
+## `BLOGGER_CONTENT_SEED_FAILED`
+
+The plugin could not write the default post. Existing content is still loaded.
+Check that the configured posts directory is writable, then run the build again.
+Set `content.seedDefaultPost: false` if seeding is not wanted.
 
 ## `BLOGGER_CONTENT_STALE`
 

@@ -35,7 +35,7 @@ test(
         "guchho.config.js":
           `import blogger from ${JSON.stringify(pathToFileURL(plugin).href)};\n` +
           "export default {\n" +
-          "  plugins: [blogger({ entry: 'src/template.xml' })],\n" +
+          "  plugins: [blogger({ entry: 'src/template.xml', content: { seedDefaultPost: false } })],\n" +
           "  build: { entry: 'src/index.html', outdir: 'dist' },\n" +
           "};\n",
         "src/index.html":

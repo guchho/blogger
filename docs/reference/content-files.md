@@ -23,6 +23,18 @@ time.
 The file name must be the item `id` plus `.json`. IDs may contain only letters,
 digits, hyphens and underscores. Paths are confined to the project root.
 
+## Default post seeding
+
+During dev and production builds, the plugin checks the configured posts
+directory before loading content. If it contains no JSON files, the plugin
+creates `hello-world.json`: a published post with the title `Hello world` and an
+ISO 8601 timestamp. Existing JSON files are never overwritten, including invalid
+files. A seeding failure is reported as a `BLOGGER_CONTENT_SEED_FAILED` warning
+and the build continues.
+
+Set `content.seedDefaultPost: false` to keep empty posts directories empty. When
+content is disabled with `content: false`, no post is seeded.
+
 ## Post schema
 
 ```json

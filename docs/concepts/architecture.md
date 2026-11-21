@@ -7,13 +7,15 @@ a local rendering layer used by previews and static content output.
 
 During `guchho build`:
 
-1. The configured XML entry is parsed.
-2. `<g:include>` components are inlined.
-3. Local CSS, JavaScript and assets are bundled and inlined.
-4. Conservative Blogger structure validation runs when `validate` is enabled.
-5. A synthetic carrier token is replaced and the final `template.xml` is
+1. Content is initialized, creating one published default post when the posts
+   directory is empty and seeding is enabled.
+2. The configured XML entry is parsed.
+3. `<g:include>` components are inlined.
+4. Local CSS, JavaScript and assets are bundled and inlined.
+5. Conservative Blogger structure validation runs when `validate` is enabled.
+6. A synthetic carrier token is replaced and the final `template.xml` is
    emitted.
-6. When content files exist, the template is rendered again through the local
+7. When content files exist, the template is rendered again through the local
    Blogger-compatible renderer and static post/page/label/archive/search pages
    are emitted beside `template.xml`.
 
@@ -22,15 +24,17 @@ dashboard or widget showcase pages.
 
 ## Watch preview pipeline
 
-During `guchho dev`, the compiled template is rendered into static HTML for a
-set of scenarios. Preview pages are written in two forms:
+During `guchho dev`, content is initialized and seeded before the compiled
+template is rendered into static HTML for a set of scenarios. Preview pages are
+written in two forms:
 
 - under `previewDir` (`dist/preview/` by default), and
 - at route-shaped output paths so links inside the theme resolve.
 
-If content files exist, scenarios are generated from them. Otherwise the
-built-in deterministic mock data is used. The renderer reports unsupported
-expressions, missing includables and unknown widget types as diagnostics.
+If content files exist, scenarios are generated from them. With seeding disabled
+and no content files, the built-in deterministic mock data is used. The renderer
+reports unsupported expressions, missing includables and unknown widget types as
+diagnostics.
 
 When the dashboard is enabled, the plugin also generates Blogger-style admin
 screens under `/__preview/dashboard/` and starts a localhost save service.

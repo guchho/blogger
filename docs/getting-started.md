@@ -83,9 +83,11 @@ Open the served preview with `http://localhost:3000/` or the port used by your
 Guchho setup. Previews use root-relative dashboard links, so open them through
 the dev server rather than `file://`.
 
-If content files exist, the preview renders them through the real template. If
-no posts or pages exist, the plugin keeps the deterministic built-in mock
-preview data.
+The dev build creates a published `src/posts/hello-world.json` when no post JSON
+files exist, then renders content through the real template and shows it in the
+posts dashboard at `http://localhost:3000/__preview/dashboard/posts/`. Set
+`content.seedDefaultPost: false` to keep empty directories empty; in that case
+the plugin uses deterministic built-in mock preview data.
 
 ## Run a production build
 
@@ -93,7 +95,8 @@ preview data.
 npx guchho build
 ```
 
-A production build writes:
+A production build also seeds `src/posts/hello-world.json` when the posts
+directory has no JSON files, then writes:
 
 - `dist/template.xml` — the complete Blogger template,
 - `dist/index.html` — only when a normal HTML entry is configured,

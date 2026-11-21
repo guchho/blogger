@@ -17,6 +17,9 @@ Then open:
 http://localhost:3000/__preview/dashboard/
 ```
 
+Open `http://localhost:3000/__preview/dashboard/posts/` to see live post JSON
+data, including the default `Hello world` post seeded on the first build.
+
 A flat copy is also written to `dist/preview/dashboard.html`. Each preview page
 has an **Open dashboard** button when the dashboard is enabled.
 

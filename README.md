@@ -88,8 +88,12 @@ template and owns `dist/index.html`.
    - `dataDir` — settings/categories/authors JSON directory. Default: `data`.
    - `backupDir` — backup directory for overwritten/deleted content. Default:
      `.blogger-backups`.
-   - `siteUrl` — public base URL for generated links; overrides `settings.json`.
-   - `sanitize` — sanitize rich-text HTML before rendering. Default: `true`.
+    - `siteUrl` — public base URL for generated links; overrides `settings.json`.
+    - `sanitize` — sanitize rich-text HTML before rendering. Default: `true`.
+    - `seedDefaultPost` — create `src/posts/hello-world.json` as a published
+      post during dev and production builds when the posts directory has no JSON
+      files. Default: `true`; set `false` to keep empty directories empty.
+
 
 - `mockData` — preview data overrides as an object or a JSON fixture path
   relative to the project root. Objects deep-merge into the deterministic mock
@@ -257,11 +261,13 @@ opened directly via `file://`.
 ## File-based content
 
 When `content` is enabled, Posts and Pages are stored as individual JSON files in
-the consuming project. The Dashboard lists live content and opens Blogger-style
-editors for creating and updating it; the dev-only save service exposes CRUD,
-publish/unpublish, trash/restore and bulk endpoints under `/api/posts` and
-`/api/pages`. All writes are validated, path-confined, hashed for stale-write
-detection and backed up before replacement or deletion.
+the consuming project. The first dev or production build creates a published
+`hello-world.json` post when no post JSON files exist. The Dashboard lists live
+content and opens Blogger-style editors for creating and updating it; the
+dev-only save service exposes CRUD, publish/unpublish, trash/restore and bulk
+endpoints under `/api/posts` and `/api/pages`. At `http://localhost:3000/__preview/dashboard/posts/`,
+the dashboard shows live JSON post data. All writes are validated, path-confined,
+hashed for stale-write detection and backed up before replacement or deletion.
 
 ```text
 src/
@@ -282,8 +288,9 @@ when their `publishAt` time passes; trashed items are soft-deleted with
 `trashedAt` and excluded from public output. Rich-text HTML is preserved in the
 JSON and sanitized before rendering by default.
 
-Enable the legacy behavior with `content: false`: no content files are watched,
-no content endpoints are served, and production emits only the XML template plus
+Set `content.seedDefaultPost: false` to keep empty content directories empty, or
+`content: false` for the legacy behavior: no content files are watched, no
+content endpoints are served, and production emits only the XML template plus
 any normal HTML entry.
 
 ## Validation

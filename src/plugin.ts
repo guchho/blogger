@@ -20,7 +20,11 @@ import {
   isInside,
 } from "./compiler/compiler.js";
 import { minifyXml } from "./compiler/minify.js";
-import { loadContent, resolveContentPaths } from "./content/index.js";
+import {
+  ensureDefaultPost,
+  loadContent,
+  resolveContentPaths,
+} from "./content/index.js";
 import type { ContentPaths, ContentSnapshot } from "./content/index.js";
 import { formatDiagnostic } from "./diagnostics.js";
 import { startSaveService, type SaveServiceHandle } from "./layout/save-service.js";
@@ -87,6 +91,7 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
   const layoutSavePort = options.layoutSavePort ?? DEFAULT_LAYOUT_SAVE_PORT;
   const contentEnabled = options.content !== false;
   const contentOptions = typeof options.content === "object" ? options.content : {};
+  const seedDefaultPost = contentOptions.seedDefaultPost !== false;
 
   try {
     state.contentPaths = resolveContentPaths(process.cwd(), contentOptions);
@@ -161,6 +166,19 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
       }
 
       if (contentEnabled && state.contentPaths !== undefined) {
+        if (seedDefaultPost) {
+          try {
+            await ensureDefaultPost(state.contentPaths);
+          } catch (error) {
+            this.warn({
+              message: `Blogger default post could not be created: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+              id: state.entryPath,
+              code: "BLOGGER_CONTENT_SEED_FAILED",
+            });
+          }
+        }
         try {
           const snapshot = await loadContent(state.contentPaths);
           state.contentSnapshot =
