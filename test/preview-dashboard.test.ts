@@ -363,6 +363,8 @@ test("Layout editor chrome is applied after template CSS", () => {
   );
   assert.match(screen.html, /body#layout\.blogger-layout-page div\.le-section/);
   assert.match(screen.html, /\.layout-widget-state\.visible\{/);
+  assert.match(screen.html, /\.layout-widget-state svg\{/);
+  assert.match(screen.html, /icon\(widget\.visible \? 'eye' : 'eye-off'\)/);
 });
 
 test("Theme shows decoded, escaped template base style", () => {
