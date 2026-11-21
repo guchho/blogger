@@ -1,7 +1,9 @@
-// Dev-only preview pipeline. It parses the compiled Blogger template, renders
-// every mock scenario to static HTML and reports any expression the preview
-// engine could not evaluate. Nothing here runs during a production build.
+// Template rendering pipeline. It parses the compiled Blogger template, renders
+// scenarios to static HTML and reports expressions the renderer could not
+// evaluate. Used by watch previews and by production content emission.
 
+import { buildContentScenarios, type ContentScenarioOptions } from "../content/scenarios.js";
+import type { ContentSnapshot } from "../content/settings.js";
 import type { BloggerWidgetRegistry } from "../types.js";
 import { parseXml } from "../xml/parser.js";
 import { SourceFile } from "../xml/source.js";
@@ -78,6 +80,10 @@ export interface PreviewBuildOptions {
   widgets?: BloggerWidgetRegistry;
   /** Prebuilt widget registry, mainly for internal reuse. */
   widgetRegistry?: WidgetRegistry;
+  /** CMS content to render. When omitted, deterministic mock scenarios are used. */
+  content?: ContentSnapshot;
+  /** Options for CMS scenario generation. */
+  contentOptions?: ContentScenarioOptions;
 }
 
 export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
@@ -88,7 +94,17 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
   const showcaseDocument = parseXml(
     new SourceFile(`${options.entryPath}#widgets`, buildShowcaseTemplate(registry))
   );
-  const scenarios = options.scenarios ?? buildScenarios();
+  const scenarios =
+    options.scenarios ??
+    (options.content === undefined
+      ? buildScenarios()
+      : buildContentScenarios(options.content, {
+          ...options.contentOptions,
+          baseUrl: options.contentOptions?.baseUrl ?? options.content.settings.baseUrl,
+          favicon: options.favicon ?? options.content.settings.favicon,
+          includeWidgets: options.contentOptions?.includeWidgets ?? options.banner !== false,
+          sanitize: options.contentOptions?.sanitize ?? true,
+        }));
   const favicon = options.favicon ?? PREVIEW_FAVICON;
   const withBanner = options.banner !== false;
   const dashboard = options.dashboard ?? true;
@@ -96,9 +112,16 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
     typeof dashboard === "string" ? dashboard : PREVIEW_DASHBOARD_ROUTE;
   const dashboardHref =
     withBanner && dashboard !== false ? dashboardUrl : undefined;
-  const feedScript = withBanner
-    ? previewFeedScript(previewFeedEntries(mockPosts()))
-    : "";
+  const feedPosts: ValueMap[] =
+    options.content === undefined
+      ? mockPosts()
+      : scenarios.flatMap((scenario) => {
+          const post = scenario.data["post"];
+          return post !== null && typeof post === "object" && !Array.isArray(post)
+            ? [post as ValueMap]
+            : [];
+        });
+  const feedScript = withBanner ? previewFeedScript(previewFeedEntries(feedPosts)) : "";
 
   const pages: PreviewPage[] = [];
   const diagnostics: PreviewDiagnostic[] = [];
@@ -189,7 +212,10 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
           css: extractBaseStyle(baseDocument),
           savePort: options.layoutSavePort ?? 3001,
         },
-        favicon
+        favicon,
+        options.content === undefined
+          ? undefined
+          : { snapshot: options.content, savePort: options.layoutSavePort ?? 3001 }
       )
     );
   }
