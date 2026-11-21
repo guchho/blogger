@@ -8,6 +8,8 @@ import {
 import path from "node:path";
 
 import { isInside } from "../compiler/compiler.js";
+import { ContentError, handleContentRequest } from "../content/index.js";
+import type { ContentPaths } from "../content/index.js";
 import { hashSource } from "./extract.js";
 import { LayoutError, type LayoutOperation } from "./model.js";
 import { serializeLayout } from "./serialize.js";
@@ -16,6 +18,7 @@ export interface SaveServiceOptions {
   entryPath: string;
   projectRoot: string;
   port: number;
+  contentPaths?: ContentPaths;
 }
 
 export interface SaveServiceHandle {
@@ -178,6 +181,7 @@ async function handleRequest(
     await handleSave(request, response, options, origin);
     return;
   }
+  if (await handleContentRequest(request, response, options, origin)) return;
   sendJson(response, 404, { error: "BLOGGER_LAYOUT_ROUTE_MISSING", message: "unknown route" }, origin);
 }
 
@@ -200,6 +204,7 @@ async function handleStatus(
         hash: hashSource(source),
         size: stats.size,
         modified: stats.mtime.toISOString(),
+        capabilities: ["layout", ...(options.contentPaths === undefined ? [] : ["content"])],
       },
       origin
     );
@@ -292,6 +297,15 @@ function sendError(response: ServerResponse, error: unknown, origin: string | nu
     sendJson(response, 400, { error: error.code, message: error.message }, origin);
     return;
   }
+  if (error instanceof ContentError) {
+    sendJson(
+      response,
+      error.status,
+      { error: error.code, message: error.message, ...error.details },
+      origin
+    );
+    return;
+  }
   sendJson(
     response,
     500,
@@ -325,7 +339,7 @@ function sendJson(
   const headers: Record<string, string> = {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": origin ?? "*",
-    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
     "access-control-allow-headers": "content-type",
     "cache-control": "no-store",
   };
@@ -336,7 +350,7 @@ function sendJson(
 function sendNoContent(response: ServerResponse, origin: string | null): void {
   response.writeHead(204, {
     "access-control-allow-origin": origin ?? "*",
-    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
     "access-control-allow-headers": "content-type",
   });
   response.end();
