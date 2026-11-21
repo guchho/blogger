@@ -17,6 +17,7 @@ import {
   type LayoutCssModel,
   type LayoutModel,
   type LayoutSectionModel,
+  type LayoutStructureNode,
   type LayoutWidgetModel,
 } from "./model.js";
 
@@ -52,7 +53,83 @@ export function extractLayout(xml: string, entryPath = "src/template.xml"): Layo
     .join("\n")
     .trim();
 
-  return { entryPath, sections, css, hash: hashSource(xml) };
+  const structure = extractStructure(document, sections);
+  return { entryPath, sections, structure, css, hash: hashSource(xml) };
+}
+
+/**
+ * Builds a pruned tree of the elements that contain `b:section` elements.
+ * Keeping those wrappers lets the Layout Editor render the template's real
+ * header, content, sidebar, and footer arrangement without rendering blog content.
+ */
+export function extractStructure(
+  document: XmlDocument,
+  sections: readonly LayoutSectionModel[]
+): LayoutStructureNode[] {
+  const body = findBody(document.children);
+  const nodes = structureFromNodes(body ? body.children : document.children);
+  const present = new Set<string>();
+  collectSectionIds(nodes, present);
+  for (const section of sections) {
+    if (present.has(section.id)) continue;
+    nodes.push({
+      tag: "b:section",
+      id: section.id,
+      className: section.className,
+      sectionId: section.id,
+      children: [],
+    });
+  }
+  return nodes;
+}
+
+function findBody(nodes: readonly XmlNode[]): XmlElement | undefined {
+  for (const node of nodes) {
+    if (!isElement(node)) continue;
+    if (node.name === "body") return node;
+    const nested = findBody(node.children);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+function structureFromNodes(nodes: readonly XmlNode[]): LayoutStructureNode[] {
+  const result: LayoutStructureNode[] = [];
+  for (const node of nodes) {
+    if (!isElement(node) || node.name === "b:widget") continue;
+    if (node.name === "b:section") {
+      const id = valueOf(node, "id") ?? "";
+      if (id === "") continue;
+      result.push({
+        tag: node.name,
+        id,
+        className: decodeOptional(valueOf(node, "class")),
+        sectionId: id,
+        children: structureFromNodes(node.children),
+      });
+      continue;
+    }
+    const children = structureFromNodes(node.children);
+    if (children.length === 0) continue;
+    result.push({
+      tag: node.name,
+      id: decodeOptional(valueOf(node, "id")),
+      className: decodeOptional(valueOf(node, "class")),
+      cond: decodeOptional(valueOf(node, "cond")),
+      children,
+    });
+  }
+  return result;
+}
+
+function collectSectionIds(
+  nodes: readonly LayoutStructureNode[],
+  ids: Set<string>
+): void {
+  for (const node of nodes) {
+    if (node.sectionId) ids.add(node.sectionId);
+    collectSectionIds(node.children, ids);
+  }
 }
 
 export function sectionModel(element: XmlElement): LayoutSectionModel {

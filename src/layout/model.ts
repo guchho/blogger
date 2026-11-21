@@ -35,6 +35,15 @@ export interface LayoutWidgetModel {
   includables: string[];
 }
 
+export interface LayoutStructureNode {
+  tag: string;
+  id?: string;
+  className?: string;
+  cond?: string;
+  sectionId?: string;
+  children: LayoutStructureNode[];
+}
+
 export interface LayoutCssModel {
   skin: string;
   templateSkin: string;
@@ -45,6 +54,8 @@ export interface LayoutCssModel {
 export interface LayoutModel {
   entryPath: string;
   sections: LayoutSectionModel[];
+  /** Nested wrapper/section tree that mirrors the template page structure. */
+  structure?: LayoutStructureNode[];
   css: LayoutCssModel;
   hash: string;
 }

@@ -65,58 +65,123 @@ export const LAYOUT_EDITOR_SCRIPT = `(function () {
     if (reset) reset.disabled = operations.length === 0;
   }
 
-  function sectionHtml(section, index) {
+  function sectionHtml(section) {
     var label = section.name || section.id;
-    var meta = [];
-    if (section.className) meta.push('class=' + section.className);
-    if (section.maxwidgets !== undefined && section.maxwidgets !== null) meta.push('maxwidgets=' + section.maxwidgets);
-    if (!section.showaddelement) meta.push('showaddelement=false');
-    if (section.growth) meta.push('growth=' + section.growth);
-    if (section.widgets.length > 0) meta.push(section.widgets.length + (section.widgets.length === 1 ? ' widget' : ' widgets'));
-    var chips = '';
-    for (var m = 0; m < meta.length; m++) chips += '<span class="le-chip">' + esc(meta[m]) + '</span>';
     var widgets = '';
     for (var i = 0; i < section.widgets.length; i++) {
       var widget = section.widgets[i];
-      widgets += widgetHtml(widget, section.id);
+      widgets += widgetHtml(widget, section.id) + '<div class="dropregion dropregion_v" aria-hidden="true"></div>';
     }
-    var empty = section.widgets.length === 0 ? '<p class="le-empty">No widgets in this section yet.</p>' : '';
     var canAdd = section.showaddelement !== false &&
-      (section.maxwidgets === undefined || section.maxwidgets === null || section.widgets.length < section.maxwidgets);
+      (section.maxwidgets === undefined || section.maxwidgets === null || section.maxwidgets < 0 || section.widgets.length < section.maxwidgets);
     var add = canAdd
-      ? '<button type="button" class="le-add" data-action="add-gadget" data-section-id="' + esc(section.id) + '">' + icon('plus') + '<span>+ Add a Gadget</span></button>'
-      : '<span class="le-add-disabled">+ Add a Gadget (disabled by section settings)</span>';
-    return '<section class="le-section ' + esc(section.className || '') + '" data-section-id="' + esc(section.id) + '">' +
-      '<div class="le-section-header">' +
-      '<span class="le-section-index">' + (index < 9 ? '0' : '') + (index + 1) + '</span>' +
-      '<span class="le-section-title-wrap"><span class="le-section-title">' + esc(label) + '</span>' +
-      '<span class="le-section-subtitle">id: ' + esc(section.id) + '</span></span>' +
-      '<span class="le-section-meta">' + chips + '</span><span class="le-spacer"></span>' +
-      '<button type="button" class="le-icon-btn" data-action="section-settings" data-section-id="' + esc(section.id) + '">' +
-      icon('settings') + '<span>Settings</span></button></div>' +
-      '<div class="le-widgets" data-section-id="' + esc(section.id) + '">' + widgets + empty + add + '</div></section>';
+      ? '<div class="add_widget"><span class="add-icon">+</span><button type="button" class="le-add" data-action="add-gadget" data-section-id="' + esc(section.id) + '">Add a Gadget</button></div>'
+      : '';
+    var classes = ['section', 'le-section'];
+    if (section.className) classes.push(section.className);
+    if (section.widgets.length === 0) classes.push('no-items');
+    var attrs = ' id="' + esc(section.id) + '" data-section-id="' + esc(section.id) + '" name="' + esc(label) + '"';
+    if (section.growth) attrs += ' growth="' + esc(section.growth) + '"';
+    if (section.maxwidgets !== undefined && section.maxwidgets !== null) attrs += ' maxwidgets="' + esc(section.maxwidgets) + '"';
+    attrs += ' showaddelement="' + (section.showaddelement ? 'true' : 'false') + '"';
+    var settings = '<button type="button" class="le-section-settings" data-action="section-settings" data-section-id="' + esc(section.id) + '" title="Section settings" aria-label="Settings for ' + esc(label) + '">' + icon('settings') + '</button>';
+    var dropStart = '<div class="dropregion dropregion_v" aria-hidden="true"></div>';
+    return '<div class="' + esc(classes.join(' ')) + '"' + attrs + '>' +
+      '<h4>' + esc(label) + settings + '</h4>' + add +
+      '<div class="le-widgets" data-section-id="' + esc(section.id) + '">' + dropStart + widgets + '</div></div>';
   }
 
   function widgetHtml(widget, sectionId) {
-    var initials = (widget.type || 'W').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'W';
-    var badges = '<span class="le-pill">' + esc(widget.type) + '</span>';
-    if (widget.locked) badges += '<span class="le-pill le-locked">Locked</span>';
-    if (!widget.visible) badges += '<span class="le-pill le-hidden">Hidden</span>';
-    var remove = widget.locked ? '' : '<button type="button" class="le-btn le-danger" data-action="remove-widget" data-widget-id="' + esc(widget.id) + '">' + icon('trash') + '<span>Remove</span></button>';
-    return '<article class="le-widget ' + esc(widget.type) + '" draggable="' + (widget.locked ? 'false' : 'true') + '"' +
-      ' data-widget-id="' + esc(widget.id) + '" data-section-id="' + esc(sectionId) + '">' +
-      '<span class="le-grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' +
-      '<span class="le-widget-icon">' + esc(initials) + '</span>' +
-      '<span class="le-widget-body"><span class="le-widget-title">' + esc(widget.title || widget.type) + '</span>' +
-      '<span class="le-widget-meta">' + esc(widget.id) + ' · ' + esc(widget.version || '') + '</span></span>' +
-      '<span class="le-widget-badges">' + badges + '</span>' +
-      '<span class="le-actions"><button type="button" class="le-btn" data-action="edit-widget" data-widget-id="' + esc(widget.id) + '">' +
-      icon('edit') + '<span>Edit</span></button>' + remove + '</span>' +
-      '</article>';
+    var remove = widget.locked ? '' : '<button type="button" class="le-btn le-danger" data-action="remove-widget" data-widget-id="' + esc(widget.id) + '" title="Remove gadget">' + icon('trash') + '</button>';
+    return '<div class="widget le-widget ' + esc(widget.type) + (widget.locked ? ' locked-widget' : ' draggable-widget') + '" draggable="' + (widget.locked ? 'false' : 'true') + '"' +
+      ' data-version="' + esc(widget.version || '2') + '" data-widget-id="' + esc(widget.id) + '" data-section-id="' + esc(sectionId) + '">' +
+      '<div class="widget-wrap1"><div class="widget-wrap2"><div class="widget-wrap3"><div class="widget-content visibility">' +
+      '<div class="layout-widget-state ' + (widget.visible ? 'visible' : 'not-visible') + '" title="' + (widget.visible ? 'Currently visible' : 'Currently hidden') + '"></div>' +
+      '<div class="layout-title">' + esc(widget.title || widget.type) + '</div>' +
+      '<div class="layout-widget-description">' + esc(widget.type) + ' gadget</div>' +
+      '<span class="le-actions"><button type="button" class="le-btn" data-action="edit-widget" data-widget-id="' + esc(widget.id) + '" title="Edit gadget">' + icon('edit') + '</button>' + remove + '</span>' +
+      '</div></div></div></div></div>';
+  }
+
+  function nodeHtml(node) {
+    if (!node) return '';
+    if (node.sectionId) {
+      var section = byId(model.sections, node.sectionId);
+      if (!section) return '';
+      return sectionHtml(section);
+    }
+    var children = '';
+    for (var i = 0; i < node.children.length; i++) children += nodeHtml(node.children[i]);
+    if (children === '') return '';
+    var id = node.id ? ' id="' + esc(node.id) + '"' : '';
+    var classes = ['le-wrapper'];
+    if (node.className) classes.push(node.className);
+    var tag = /^[a-z][a-z0-9-]*$/.test(node.tag || '') ? node.tag : 'div';
+    return '<' + tag + ' class="' + esc(classes.join(' ')) + '"' + id + '>' + children + '</' + tag + '>';
+  }
+
+  function structureHtml() {
+    var nodes = clone(model.structure || []);
+    var present = {};
+    countSections(nodes, function (node) { present[node.sectionId] = true; });
+    for (var i = 0; i < model.sections.length; i++) {
+      var section = model.sections[i];
+      if (present[section.id]) continue;
+      nodes.push({ tag: 'b:section', id: section.id, className: section.className || '', sectionId: section.id, children: [] });
+    }
+    var html = '';
+    for (var n = 0; n < nodes.length; n++) html += nodeHtml(nodes[n]);
+    return html;
+  }
+
+  function countSections(nodes, visit) {
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].sectionId) visit(nodes[i]);
+      countSections(nodes[i].children || [], visit);
+    }
   }
 
   function editorCss() {
-    return '.le-canvas{--le-bg:#fff;--le-line:#dbe3ee;--le-ink:#0f172a;--le-muted:#64748b;--le-accent:#1a73e8;--le-radius:10px;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--le-ink)}.le-canvas-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 14px}.le-canvas-title{font-weight:700;font-size:14px;letter-spacing:-.01em}.le-canvas-hint{color:var(--le-muted);font-size:11px}.le-section{display:block;margin:0 0 16px;border:1px solid var(--le-line);border-radius:var(--le-radius);background:var(--le-bg);box-shadow:0 1px 2px rgba(15,23,42,.05);overflow:hidden;position:relative}.le-section:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--le-accent);opacity:.65}.le-section.le-drop-active{border-color:var(--le-accent);box-shadow:0 0 0 3px rgba(26,115,232,.14)}.le-section-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid #eef1f5;background:linear-gradient(180deg,#fbfcfe,#f7f9fc)}.le-section-index{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:#e8f0fe;color:var(--le-accent);font-size:10px;font-weight:700;letter-spacing:.04em}.le-section-title-wrap{display:flex;flex-direction:column;min-width:0}.le-section-title{font-weight:700;font-size:14px;color:var(--le-ink)}.le-section-subtitle{color:var(--le-muted);font-size:10px}.le-section-meta{display:flex;gap:6px;flex-wrap:wrap}.le-chip{display:inline-block;padding:3px 8px;border:1px solid #e2e8f0;border-radius:999px;background:#fff;color:#475569;font-size:10px;font-weight:600}.le-spacer{flex:1;min-width:12px}.le-icon-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #dbe3ee;border-radius:6px;background:#fff;color:#475569;cursor:pointer;font:11px/1.4 inherit;font-weight:600}.le-icon-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.le-icon-btn:hover{border-color:var(--le-accent);color:var(--le-accent)}.le-widgets{display:flex;flex-direction:column;gap:8px;min-height:52px;padding:12px}.le-widget{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;box-shadow:0 1px 1px rgba(15,23,42,.03);cursor:grab;position:relative}.le-widget:hover{border-color:#b8c7db;box-shadow:0 3px 10px rgba(15,23,42,.06)}.le-widget[draggable="false"]{cursor:not-allowed;opacity:.72}.le-widget.le-dragging{opacity:.4}.le-widget.le-drop-before:before{content:"";position:absolute;left:8px;right:8px;top:-6px;height:3px;border-radius:2px;background:var(--le-accent)}.le-widget.le-drop-after:after{content:"";position:absolute;left:8px;right:8px;bottom:-6px;height:3px;border-radius:2px;background:var(--le-accent)}.le-grip{display:grid;grid-template-columns:repeat(2,3px);gap:2px;flex:none;opacity:.7}.le-grip i{width:3px;height:3px;border-radius:50%;background:#94a3b8}.le-widget-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:8px;background:#eef4ff;color:var(--le-accent);font-size:10px;font-weight:800;letter-spacing:.04em}.le-widget-body{display:flex;flex-direction:column;flex:1;min-width:0}.le-widget-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.le-widget-meta{color:var(--le-muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.le-widget-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.le-pill{display:inline-block;padding:2px 7px;border-radius:999px;background:#e8f0fe;color:var(--le-accent);font-size:9px;font-weight:700;letter-spacing:.02em}.le-pill.le-locked{background:#fff7e6;color:#b54708}.le-pill.le-hidden{background:#f1f5f9;color:#475569}.le-actions{display:flex;gap:6px;flex:none}.le-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid #dbe3ee;border-radius:6px;background:#fff;color:#334155;cursor:pointer;font:11px/1.4 inherit;font-weight:600}.le-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.le-btn:hover{border-color:var(--le-accent);color:var(--le-accent)}.le-btn.le-danger:hover{border-color:#dc2626;color:#dc2626}.le-add{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:7px 11px;border:1px dashed #94a3b8;border-radius:7px;background:#f8fbff;color:var(--le-accent);cursor:pointer;font:11px/1.4 inherit;font-weight:700}.le-add svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.le-add:hover{border-color:var(--le-accent);background:#e8f0fe}.le-add-disabled{color:#94a3b8;font:11px/1.4 inherit;padding:7px 0}.le-empty{margin:2px 0 6px;color:var(--le-muted);font-size:11px;font-style:italic}.le-empty-state{padding:32px 16px;text-align:center;color:var(--le-muted);font-size:12px}@media(max-width:640px){.le-canvas-head{align-items:flex-start;flex-direction:column}.le-widget{flex-wrap:wrap}.le-actions{width:100%;justify-content:flex-end}.le-widget-badges{justify-content:flex-start}}';
+    return [
+      'body#layout.blogger-layout-page{box-sizing:border-box;width:800px;max-width:100%;min-height:320px;margin:0 auto;padding:18px 12px;background:#f1f3f4;color:#3c4043;font:13px/1.45 Arial,sans-serif;overflow:visible}',
+      'body#layout.blogger-layout-page #outer-wrapper,body#layout.blogger-layout-page .row{width:auto;max-width:100%;padding:0}',
+      'body#layout.blogger-layout-page .hidden-widgets{display:block!important;visibility:visible!important;opacity:1!important}',
+      'body#layout.blogger-layout-page #content-wrapper{display:flow-root!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:180px!important;overflow:visible!important;clear:both!important;margin:14px 0!important}',
+      'body#layout.blogger-layout-page #content-wrapper>.container{display:flow-root!important;visibility:visible!important;height:auto!important;min-height:160px!important;width:100%!important;overflow:visible!important;margin:0!important}',
+      'body#layout.blogger-layout-page #main-wrapper,body#layout.blogger-layout-page #sidebar-wrapper{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:120px!important}',
+      'body#layout.blogger-layout-page .le-section,body#layout.blogger-layout-page .le-widget{visibility:visible!important;opacity:1!important}',
+      '.le-wrapper{position:relative;box-sizing:border-box;border:0;border-radius:0;padding:0;min-height:0}',
+      '.le-wrapper:hover{border-color:transparent;background:transparent}',
+      'body#layout.blogger-layout-page div.le-section{position:relative;display:block!important;box-sizing:border-box;min-height:44px;margin:0 5px 10px!important;padding:16px 16px 18px!important;border:1px solid #c4c4c4;border-radius:0;background:#e7e7e7;box-shadow:none}',
+      '.le-section h4{margin:0 0 12px!important;padding:0;color:#333;font-size:14px;font-weight:600;line-height:20px}',
+      '.le-section-settings{float:right;display:inline-flex;align-items:center;justify-content:center;padding:2px 5px;border:0;background:transparent;color:#777;cursor:pointer}',
+      '.le-section-settings svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+      '.le-widgets{display:contents}',
+      '.le-widget{position:relative;display:block!important;box-sizing:border-box;min-height:40px;margin:0 0 6px;padding:0;border:1px solid #c9c9c9;border-radius:2px;background:#fff;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.08)}',
+      '.le-widget.le-dragging{opacity:.45}',
+      '.widget-wrap1,.widget-wrap2,.widget-wrap3{display:block;min-height:inherit}',
+      '.le-widget-content.visibility{display:flex!important;align-items:center;gap:9px;min-height:40px;padding:7px 10px;background:#fff}',
+      '.le-actions{display:flex;gap:6px;opacity:.35;transition:opacity .12s ease}',
+      '.le-widget:hover .le-actions,.le-widget:focus-within .le-actions{opacity:1}',
+      '.layout-widget-state{width:10px;height:10px;flex:none;border:1px solid #777;border-radius:50%;background:#fff}',
+      '.layout-widget-state.visible{background:#6aa84f;border-color:#6aa84f}',
+      '.layout-title{flex:1;color:#333;font-size:13px;font-weight:500}',
+      '.layout-widget-description{display:none}',
+      '.le-btn{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;padding:4px;border:1px solid transparent;border-radius:2px;background:transparent;color:#666;cursor:pointer}',
+      '.le-btn:hover{border-color:#bbb;background:#f5f5f5}',
+      '.le-danger{color:#a33}',
+      '.le-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+      '.add_widget{display:flex;align-items:center;justify-content:center;gap:6px;min-height:30px;margin:0 auto 8px;color:#666}',
+      '.le-add{width:auto;margin:0;padding:3px 7px;border:0;background:transparent;color:#666;font:12px/1.4 Arial,sans-serif;cursor:pointer}',
+      '.le-add:hover{color:#1a73e8;text-decoration:underline}',
+      '.add-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid #888;border-radius:50%;font-size:13px;line-height:1}',
+      '.dropregion{display:block;clear:both;height:9px;margin:0 0 2px;border:1px dashed transparent}',
+      '.dropregion:hover,.le-drop-active .dropregion{border-color:#4285f4;background:rgba(66,133,244,.06)}',
+      '.le-drop-before{box-shadow:0 -3px 0 #4285f4}',
+      '.le-drop-after{box-shadow:0 3px 0 #4285f4}',
+      '.le-empty-state{padding:30px;border:1px dashed #aaa;background:#fff;color:#666;text-align:center}',
+      '@media(max-width:760px){body#layout.blogger-layout-page{width:100%;padding:12px}body#layout.blogger-layout-page #main-wrapper,body#layout.blogger-layout-page #sidebar-wrapper{float:none!important;width:100%!important}.le-section{margin-left:0!important;margin-right:0!important}}'
+    ].join('');
   }
 
   function render() {
@@ -124,15 +189,14 @@ export const LAYOUT_EDITOR_SCRIPT = `(function () {
     var style = document.createElement('style');
     style.textContent = (model.css.combined || '') + '\\n' + editorCss();
     shadow.appendChild(style);
-    var canvas = document.createElement('div');
-    canvas.className = 'le-canvas';
-    var html = '';
-    for (var i = 0; i < model.sections.length; i++) html += sectionHtml(model.sections[i], i);
-    var head = '<div class="le-canvas-head"><span class="le-canvas-title">Page structure</span>' +
-      '<span class="le-canvas-hint">Drag widgets to reorder or move them between sections</span></div>';
-    var body = html === '' ? '<p class="le-empty-state">No b:section elements were found in template.xml.</p>' : html;
-    canvas.innerHTML = head + body;
-    shadow.appendChild(canvas);
+    var html = structureHtml();
+    var page = document.createElement('body');
+    page.id = 'layout';
+    page.className = 'blogger-layout-page';
+    page.innerHTML = html === ''
+      ? '<p class="le-empty-state">No b:section elements were found in template.xml.</p>'
+      : html;
+    shadow.appendChild(page);
   }
 
   function simulate(operation) {
@@ -143,7 +207,7 @@ export const LAYOUT_EDITOR_SCRIPT = `(function () {
         section = byId(next.sections, operation.sectionId);
         if (!section) return { error: 'Section not found' };
         if (section.showaddelement === false) return { error: 'This section does not allow adding widgets' };
-        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
+        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.maxwidgets >= 0 && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
         if (payload.widgetTypes.indexOf(operation.widgetType) < 0) return { error: 'Unknown widget type' };
         var used = {};
         for (var i = 0; i < next.sections.length; i++) for (var j = 0; j < next.sections[i].widgets.length; j++) used[next.sections[i].widgets[j].id] = true;
@@ -165,7 +229,7 @@ export const LAYOUT_EDITOR_SCRIPT = `(function () {
         if (target.widget.locked) return { error: 'Locked widgets cannot be moved' };
         section = operation.kind === 'moveWidget' ? byId(next.sections, operation.sectionId) : target.section;
         if (!section) return { error: 'Section not found' };
-        if (section.maxwidgets !== undefined && section.maxwidgets !== null &&
+        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.maxwidgets >= 0 &&
             (operation.kind === 'moveWidget' || section !== target.section) && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
         target.section.widgets.splice(target.section.widgets.indexOf(target.widget), 1);
         index = Math.max(0, Math.min(operation.index, section.widgets.length));

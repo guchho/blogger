@@ -8,9 +8,6 @@
   },
   "devDependencies": {
     "@guchho/blogger": "file:..",
-    "guchho": "file:../../../OneDrive/Documents/GitHub/guchho/package/npm/guchho"
-  },
-  "dependencies": {
-    "@guchho/win32-x64": "file:../../../OneDrive/Documents/GitHub/guchho/package/npm/@guchho/win32-x64"
+    "guchho": "^1.1.0"
   }
 }

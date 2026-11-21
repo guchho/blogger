@@ -196,12 +196,12 @@ test("feed entries mirror mock post metadata", () => {
     {
       id: "42",
       title: "A post",
-      url: "https://preview.example.com/2026/01/a-post.html",
+      url: "http://localhost:3000/2026/01/a-post.html",
       body: new HtmlString("<p>Body</p>"),
       snippet: "Snippet",
       labels: [{ name: "Templates" }],
-      author: { name: "Ada", profileUrl: "https://preview.example.com/p/about.html" },
-      thumbnailUrl: "https://preview.example.com/thumb.png",
+      author: { name: "Ada", profileUrl: "http://localhost:3000/p/about.html" },
+      thumbnailUrl: "http://localhost:3000/thumb.png",
       date: new BloggerDate("2026-01-01T12:00:00.000Z"),
     },
   ]);
@@ -212,6 +212,66 @@ test("feed entries mirror mock post metadata", () => {
     (entries[0]?.["published"] as { $t: string }).$t,
     "2026-01-01T12:00:00.000+00:00"
   );
+});
+
+test("preview images are self-contained and fall back when unavailable", () => {
+  const scenarios = buildScenarios();
+  const index = scenarios.find((scenario) => scenario.file === "index.html");
+  const post = index?.data["posts"];
+  assert.ok(Array.isArray(post));
+  const first = post[0];
+  assert.ok(first && typeof first === "object");
+  assert.match(String((first as ValueMap)["featuredImage"]), /^data:image\/svg\+xml;base64,/);
+
+  const imageTemplate =
+    '<?xml version="1.0" encoding="UTF-8" ?>\n' +
+    "<html><body>" +
+    '<img class="broken" src="https://invalid.example/missing.png"/>' +
+    '<img class="inline" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="/>' +
+    "</body></html>";
+  const result = buildPreview({
+    entryPath: "images.xml",
+    xml: imageTemplate,
+    banner: false,
+    dashboard: false,
+  });
+  const page = result.pages.find(({ file }) => file === "index.html");
+  assert.ok(page);
+  assert.match(
+    page.html,
+    /<img class="broken" src="https:\/\/invalid\.example\/missing\.png" onerror="this\.onerror=null;this\.src='data:image\/svg\+xml;base64,[^']+'"/,
+  );
+  assert.doesNotMatch(page.html, /class="inline"[^>]*onerror/);
+});
+
+test("b:else image supplies the fallback for a featured image", () => {
+  const template =
+    '<?xml version="1.0" encoding="UTF-8" ?>\n' +
+    "<html xmlns:b='http://www.google.com/2005/gml/b' " +
+    "xmlns:data='http://www.google.com/2005/gml/data' " +
+    "xmlns:expr='http://www.google.com/2005/gml/expr'><body>" +
+    "<b:section id='main'><b:widget id='Blog1' type='Blog'>" +
+    "<b:includable id='main'><b:loop values='data:posts' var='post'>" +
+    "<b:if cond='data:post.featuredImage'>" +
+    "<img class='featured' expr:src='data:post.featuredImage resizeImage 280'/>" +
+    "<b:else/>" +
+    "<img class='default' src='https://example.com/default.png'/>" +
+    "</b:if></b:loop></b:includable></b:widget></b:section>" +
+    "</body></html>";
+  const result = buildPreview({
+    entryPath: "featured.xml",
+    xml: template,
+    banner: false,
+    dashboard: false,
+    mockData: { posts: [{ featuredImage: "https://example.com/missing.png" }] },
+  });
+  const page = result.pages.find(({ file }) => file === "index.html");
+  assert.ok(page);
+  assert.match(
+    page.html,
+    /class="featured"[^>]*onerror="this\.onerror=null;this\.src='https:\/\/example\.com\/default\.png'"/
+  );
+  assert.doesNotMatch(page.html, /class="default"/);
 });
 
 test("preview emits a single well-formed doctype and keeps head scripts", () => {

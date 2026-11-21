@@ -40,10 +40,10 @@ export function layoutEditorMarkup(payload: LayoutEditorPayload): string {
   return (
     `<div class="layout-editor-head">` +
     `<div class="layout-editor-heading">` +
-    `<span class="layout-editor-eyebrow">Design / Layout</span>` +
+    `<span class="layout-editor-eyebrow">Theme › Layout</span>` +
     `<h1>Layout</h1>` +
-    `<p class="subtitle">Sections and widgets loaded from ${escapeHtml(model.entryPath)}. ` +
-    `${sectionCount} section${sectionCount === 1 ? "" : "s"}, ${widgetCount} widget${widgetCount === 1 ? "" : "s"}.</p>` +
+    `<p class="subtitle">Arrange the sections and gadgets that make up your blog. ` +
+    `Changes are saved to ${escapeHtml(model.entryPath)}.</p>` +
     `</div><span class="layout-editor-summary">${summary}</span></div>` +
     `<div class="layout-editor-toolbar toolbar">` +
     `<button type="button" class="btn btn-primary" id="layout-editor-save" data-guchho-preview="layout-save" disabled>${icon("save")}<span>Save</span></button>` +

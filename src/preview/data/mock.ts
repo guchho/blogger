@@ -14,13 +14,16 @@ import {
   allBylineItems,
   blogMetadata,
   messages,
+  previewImage,
   previewTimestamp,
   skinData,
   SHARING_PLATFORMS,
 } from "./metadata.js";
 
 const IMAGE = (id: number, size = 1600): string =>
-  `https://blogger.googleusercontent.com/img/preview/s${size}/post-${id}.png`;
+  previewImage(`Post ${id}`, size, (id * 47 + 190) % 360);
+const AVATAR = (label: string, id: number): string =>
+  previewImage(label, 160, (id * 67 + 24) % 360);
 
 export interface MockAuthor {
   name: string;
@@ -34,15 +37,13 @@ export const AUTHORS: MockAuthor[] = [
     name: "Ada Lovelace",
     profileUrl: `${PREVIEW_BLOG_URL}p/about.html`,
     aboutMe: "Writes about templates and the web.",
-    avatar:
-      "https://blogger.googleusercontent.com/img/preview/s45-c/avatar-1.png",
+    avatar: AVATAR("AL", 1),
   },
   {
     name: "Grace Hopper",
     profileUrl: `${PREVIEW_BLOG_URL}p/about.html`,
     aboutMe: "Compiler enthusiast and blogger.",
-    avatar:
-      "https://blogger.googleusercontent.com/img/preview/s45-c/avatar-2.png",
+    avatar: AVATAR("GH", 2),
   },
 ];
 
@@ -192,8 +193,7 @@ export function mockComments(
       id: "c1",
       author: "Reader One",
       authorUrl: `${PREVIEW_BLOG_URL}profile/reader-one`,
-      authorAvatarSrc:
-        "https://blogger.googleusercontent.com/img/preview/s45-c/comment-1.png",
+      authorAvatarSrc: AVATAR("R1", 3),
       body: new HtmlString("<p>Great post, thanks!</p>"),
       timestamp: previewTimestamp(1),
       url: `${baseUrl}#c1`,
@@ -205,8 +205,7 @@ export function mockComments(
       id: "c2",
       author: "Reader Two",
       authorUrl: `${PREVIEW_BLOG_URL}profile/reader-two`,
-      authorAvatarSrc:
-        "https://blogger.googleusercontent.com/img/preview/s45-c/comment-2.png",
+      authorAvatarSrc: AVATAR("R2", 4),
       body: new HtmlString("<p>Very helpful.</p>"),
       timestamp: previewTimestamp(2),
       url: `${baseUrl}#c2`,
@@ -313,8 +312,9 @@ export function widgetTypeExtras(type: string): ValueMap {
 
 export function widgetDataFor(seed: WidgetSeed): ValueMap {
   const items = bylineItemsArray();
+  const extras = widgetTypeExtras(seed.type);
   const data: ValueMap = {
-    ...widgetTypeExtras(seed.type),
+    ...extras,
     type: seed.type,
     id: seed.id,
     title: seed.title ?? "",
@@ -347,7 +347,7 @@ export function widgetDataFor(seed: WidgetSeed): ValueMap {
     height: 160,
     width: 160,
     imagePlacement: "REPLACE",
-    sourceUrl: PREVIEW_BLOG_URL,
+    sourceUrl: extras["sourceUrl"] ?? PREVIEW_BLOG_URL,
     description: "A deterministic mock widget.",
     messages: messages(),
     sharing: { platforms: SHARING_PLATFORMS },

@@ -81,7 +81,7 @@ test("renders sections, widgets and loops with mock data", () => {
   assert.match(html, /<div class="widget Blog" id="Blog1"/);
   assert.match(html, /<h3 class="title">Posts<\/h3>/);
   assert.match(html, /data-index="1"/);
-  assert.match(html, /href="https:\/\/preview\.example\.com\/2026\/01\/getting-started-with-guchho\.html"/);
+  assert.match(html, /href="http:\/\/localhost:3000\/2026\/01\/getting-started-with-guchho\.html"/);
   assert.match(html, /<span class="pt">listing<\/span>/);
   assert.equal(html.includes("single"), false);
   assert.equal((html.match(/<article class="post"/g) ?? []).length, 4);
@@ -124,10 +124,10 @@ test("renders widgets through the built-in registry without reports", () => {
   assert.deepEqual(reports, []);
   assert.match(html, /class="widget PageList"/);
   assert.match(html, /<ul class="pagelist">/);
-  assert.match(html, /<a href="https:\/\/preview\.example\.com\/p\/about\.html">About<\/a>/);
+  assert.match(html, /<a href="http:\/\/localhost:3000\/p\/about\.html">About<\/a>/);
   assert.match(html, /<ul class="label-list">/);
   assert.match(html, /A deterministic mock text widget\./);
-  assert.match(html, /<img alt="Mock image"[^>]*src="https:/);
+  assert.match(html, /<img alt="Mock image"[^>]*src="data:image\/svg\+xml;base64,/);
   assert.match(html, /class="powered-by">Powered by Blogger<\/span>/);
 });
 

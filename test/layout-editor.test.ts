@@ -82,6 +82,34 @@ test("extracts CSS from skin, template skin and style elements", () => {
   assert.match(css.combined, /margin:4px/);
 });
 
+test("extracts nested page structure for the layout canvas", () => {
+  const nested = TEMPLATE.replace(
+    /<body>[\s\S]*<\/body>/,
+    `<body>
+      <div id='content-wrapper' class='row'>
+        <div id='main-wrapper'>
+          <b:section id='main'></b:section>
+        </div>
+        <b:if cond='data:view.isHomepage'>
+          <b:section id='sidebar'></b:section>
+        </b:if>
+      </div>
+      <div id='empty-wrapper'><p>no sections here</p></div>
+    </body>`
+  );
+  const structure = extractLayout(nested).structure;
+  assert.ok(structure);
+  assert.equal(structure.length, 1);
+  const content = structure[0];
+  assert.equal(content.id, "content-wrapper");
+  assert.equal(content.className, "row");
+  assert.deepEqual(content.children.map((node) => node.id), ["main-wrapper", undefined]);
+  assert.equal(content.children[0]?.children[0]?.sectionId, "main");
+  const conditional = content.children[1];
+  assert.equal(conditional?.cond, "data:view.isHomepage");
+  assert.equal(conditional?.children[0]?.sectionId, "sidebar");
+});
+
 test("no operations produce byte-identical XML", () => {
   assert.equal(serializeLayout(TEMPLATE).xml, TEMPLATE);
 });
@@ -104,6 +132,19 @@ test("respects showaddelement and section widget limits", () => {
     () => apply({ kind: "addWidget", sectionId: "sidebar", widgetType: "HTML" }),
     (error: unknown) => error instanceof LayoutError && error.code === "BLOGGER_LAYOUT_LIMIT"
   );
+});
+
+test("treats a negative maxwidgets value as unlimited", () => {
+  const unlimitedTemplate = TEMPLATE.replace(
+    "id='sidebar' class='sidebar section' maxwidgets='1'",
+    "id='sidebar' class='sidebar section' maxwidgets='-1'"
+  );
+  const { model } = applyLayoutOperations(
+    unlimitedTemplate,
+    [{ kind: "addWidget", sectionId: "sidebar", widgetType: "HTML" }],
+    "unlimited-template.xml"
+  );
+  assert.equal(model.sections[2]?.widgets.length, 2);
 });
 
 test("removes a widget and refuses to remove locked widgets", () => {

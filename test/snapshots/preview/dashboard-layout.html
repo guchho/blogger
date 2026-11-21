@@ -18,6 +18,15 @@ a:hover{text-decoration:underline}
 .nav-item:hover,.nav-item.active{background:#e8f0fe;text-decoration:none;color:var(--accent)}
 .content{padding:28px 32px;max-width:1180px}
 .layout[data-screen="layout"] .content{max-width:1320px}
+.layout[data-screen="layout"]{grid-template-columns:220px minmax(0,1fr);background:#f1f3f4}
+.layout[data-screen="layout"] .sidebar{position:sticky;top:0;height:calc(100vh - 56px);overflow:auto;padding:22px 12px}
+.layout[data-screen="layout"] .content{width:100%;max-width:none;padding:30px clamp(22px,4vw,64px)}
+.layout[data-screen="layout"] .topbar{height:64px;background:#fff;color:#5f6368;border-bottom:1px solid #dadce0;padding:0 28px;box-shadow:0 1px 2px rgba(60,64,67,.12)}
+.layout[data-screen="layout"] .brand{color:#4285f4;font-size:20px;font-weight:600}
+.layout[data-screen="layout"] .badge{background:#e8f0fe;color:#1967d2}
+.layout[data-screen="layout"] .top-link{color:#1967d2;border-color:#dadce0}
+.layout[data-screen="layout"] .blog{color:#5f6368;border-color:#dadce0}
+.layout[data-screen="layout"] .nav-item.active{border-radius:0 22px 22px 0;background:#e8f0fe;color:#1967d2;font-weight:600}
 h1{margin:0 0 4px;font-size:24px}
 h2{margin:0 0 12px;font-size:16px}
 .subtitle{margin:0 0 22px;color:var(--muted)}
@@ -66,13 +75,13 @@ h2{margin:0 0 12px;font-size:16px}
 .note{color:var(--muted);font-size:12px;margin-top:8px}
 .base-style{margin-top:24px}
 .base-style h2{margin-bottom:10px}
-.layout-editor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.layout-editor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:20px;padding-bottom:17px;border-bottom:1px solid #dadce0}
 .layout-editor-heading{display:flex;flex-direction:column;gap:2px}
-.layout-editor-eyebrow{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
-.layout-editor-head h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.layout-editor-eyebrow{color:#5f6368;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none}
+.layout-editor-head h1{margin:0;font-size:26px;font-weight:400;letter-spacing:0}
 .layout-editor-head .subtitle{margin:2px 0 0;max-width:760px}
-.layout-editor-summary{flex:none;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-size:12px;box-shadow:var(--shadow)}
-.layout-editor-toolbar{position:sticky;top:12px;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);background:rgba(255,255,255,.94);box-shadow:var(--shadow)}
+.layout-editor-summary{flex:none;padding:6px 10px;border:1px solid #dadce0;border-radius:4px;background:#fff;color:#5f6368;font-size:12px;box-shadow:none}
+.layout-editor-toolbar{position:sticky;top:10px;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:10px 12px;border:1px solid #dadce0;border-radius:4px;background:rgba(255,255,255,.97);box-shadow:0 1px 2px rgba(60,64,67,.12)}
 .layout-editor-toolbar .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:88px;border-radius:7px;font-weight:600;transition:transform .12s ease,border-color .12s ease,background .12s ease}
 .layout-editor-toolbar .btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .layout-editor-toolbar .btn:hover{transform:translateY(-1px)}
@@ -85,7 +94,7 @@ h2{margin:0 0 12px;font-size:16px}
 .layout-editor-message{margin:0 0 16px;padding:11px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:#fff;color:var(--ink);box-shadow:var(--shadow)}
 .layout-editor-message.error{border-left-color:#dc2626;background:#fef2f2;color:#991b1b}
 .layout-editor-message.ok{border-left-color:#12b76a;background:#f0fdf4;color:#166534}
-.layout-editor-canvas{margin-top:8px;min-height:280px;padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,#fbfcfe,#f7f9fc);box-shadow:inset 0 1px 0 #fff}
+.layout-editor-canvas{margin-top:8px;min-height:320px;padding:20px;border:1px solid #dadce0;border-radius:4px;background:#e8eaed;box-shadow:none}
 .layout-editor-dialog{width:min(440px,calc(100vw - 32px));padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.24);overflow:hidden}
 .layout-editor-dialog::backdrop{background:rgba(15,23,42,.5)}
 .layout-editor-dialog-head{padding:18px 20px;border-bottom:1px solid var(--line-soft);background:#fafbfc}
@@ -98,8 +107,8 @@ h2{margin:0 0 12px;font-size:16px}
 .layout-editor-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin:0;padding:14px 20px 18px;border-top:1px solid var(--line-soft);background:#fafbfc}
 [hidden]{display:none!important}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.stats{grid-template-columns:1fr}}
-</style></head><body><header class="topbar"><span class="brand">Blogger</span><span class="badge">Preview</span><span class="spacer"></span><a class="top-link" href="/">View blog</a><span class="blog">Guchho Blogger Preview</span></header><div class="layout" data-guchho-preview="dashboard-screen" data-screen="layout"><aside class="sidebar"><div class="group"><div class="group-title">Blog</div><a class="nav-item" href="/__preview/dashboard/">Overview</a><a class="nav-item" href="/__preview/dashboard/posts/">Posts</a><a class="nav-item" href="/__preview/dashboard/pages/">Pages</a><a class="nav-item" href="/__preview/dashboard/comments/">Comments</a></div><div class="group"><div class="group-title">Design</div><a class="nav-item active" href="/__preview/dashboard/layout/" aria-current="page">Layout</a><a class="nav-item" href="/__preview/dashboard/theme/">Theme</a></div><div class="group"><div class="group-title">Preview</div><a class="nav-item" href="/">View blog</a><a class="nav-item" href="/__preview/widgets/">Widgets showcase</a></div><div class="group"><div class="group-title">Settings</div><a class="nav-item" href="/__preview/dashboard/settings/">Settings</a></div></aside><main class="content"><div class="layout-editor-head"><div class="layout-editor-heading"><span class="layout-editor-eyebrow">Design / Layout</span><h1>Layout</h1><p class="subtitle">Sections and widgets loaded from template.xml. 4 sections, 4 widgets.</p></div><span class="layout-editor-summary">4 sections · 4 widgets</span></div><div class="layout-editor-toolbar toolbar"><button type="button" class="btn btn-primary" id="layout-editor-save" data-guchho-preview="layout-save" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v6h7V4"/><rect x="8" y="13" width="8" height="6"/></svg><span>Save</span></button><button type="button" class="btn" id="layout-editor-reset" data-guchho-preview="layout-reset" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/></svg><span>Reset</span></button><span class="pill layout-editor-status" id="layout-editor-status" data-guchho-preview="layout-status" data-state="saved">All changes saved</span><span class="note">Drag widgets to reorder or move them between sections.</span></div><p class="layout-editor-message" id="layout-editor-message" data-guchho-preview="layout-message" hidden></p><div class="layout-editor-canvas" id="layout-editor-shadow-host" data-guchho-preview="layout-canvas"></div><dialog class="layout-editor-dialog" id="le-gadget-dialog" data-guchho-preview="layout-dialog"><form id="le-gadget-form"><div class="layout-editor-dialog-head"><h2>Add a gadget</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Section</span><input class="field" id="le-gadget-section" type="hidden"></label><label class="layout-editor-field"><span>Gadget</span><select class="field" id="le-gadget-type"><option value="Attribution">Attribution</option><option value="Blog">Blog</option><option value="BlogArchive">BlogArchive</option><option value="BlogSearch">BlogSearch</option><option value="ContactForm">ContactForm</option><option value="FeaturedPost">FeaturedPost</option><option value="FollowByEmail">FollowByEmail</option><option value="Followers">Followers</option><option value="HTML">HTML</option><option value="Header">Header</option><option value="Image">Image</option><option value="Label">Label</option><option value="LinkList">LinkList</option><option value="PageList">PageList</option><option value="PopularPosts">PopularPosts</option><option value="Profile">Profile</option><option value="ReportAbuse">ReportAbuse</option><option value="Search">Search</option><option value="Stats">Stats</option><option value="Subscribe">Subscribe</option><option value="Text">Text</option><option value="Translate">Translate</option></select></label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-gadget-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-widget-dialog" data-guchho-preview="layout-dialog"><form id="le-widget-form"><div class="layout-editor-dialog-head"><h2>Edit widget</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Id</span><input class="field" id="le-widget-id" type="text" readonly></label><label class="layout-editor-field"><span>Title</span><input class="field" id="le-widget-title" type="text"></label><label class="layout-editor-field"><span>Version</span><input class="field" id="le-widget-version" type="text"></label><label class="layout-editor-check"><input id="le-widget-locked" type="checkbox"> Locked</label><label class="layout-editor-check"><input id="le-widget-visible" type="checkbox"> Visible</label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-widget-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-section-dialog" data-guchho-preview="layout-dialog"><form id="le-section-form"><div class="layout-editor-dialog-head"><h2>Section settings</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Id</span><input class="field" id="le-section-id" type="text" readonly></label><label class="layout-editor-field"><span>Name</span><input class="field" id="le-section-name" type="text"></label><label class="layout-editor-field"><span>Class</span><input class="field" id="le-section-class" type="text"></label><label class="layout-editor-field"><span>Max widgets</span><input class="field" id="le-section-maxwidgets" type="number" min="0"></label><label class="layout-editor-field"><span>Growth</span><input class="field" id="le-section-growth" type="text"></label><label class="layout-editor-check"><input id="le-section-showaddelement" type="checkbox"> Show add element</label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-section-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-confirm-dialog" data-guchho-preview="layout-dialog"><form id="le-confirm-form"><div class="layout-editor-dialog-head"><h2>Remove widget</h2></div><div class="layout-editor-dialog-body"><p id="le-confirm-text"></p></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-confirm-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><script type="application/json" id="layout-editor-payload" data-guchho-preview="layout-payload">{"model":{"entryPath":"template.xml","sections":[{"id":"header","name":"Header","className":"header","showaddelement":true,"span":{"start":530,"end":842},"startTagSpan":{"start":530,"end":582},"endTagSpan":{"start":830,"end":842},"attributes":[{"name":"class","value":"header","quote":"'","valueSpan":{"start":548,"end":554},"span":{"start":541,"end":555}},{"name":"id","value":"header","quote":"'","valueSpan":{"start":560,"end":566},"span":{"start":556,"end":567}},{"name":"name","value":"Header","quote":"'","valueSpan":{"start":574,"end":580},"span":{"start":568,"end":581}}],"widgets":[{"id":"Header1","type":"Header","title":"Guchho Blogger Preview","locked":false,"visible":true,"sectionId":"header","span":{"start":585,"end":829},"attributes":[{"name":"id","value":"Header1","quote":"'","valueSpan":{"start":599,"end":606},"span":{"start":595,"end":607}},{"name":"title","value":"Guchho Blogger Preview","quote":"'","valueSpan":{"start":615,"end":637},"span":{"start":608,"end":638}},{"name":"type","value":"Header","quote":"'","valueSpan":{"start":645,"end":651},"span":{"start":639,"end":652}}],"includables":["main"]}]},{"id":"main","name":"Main","className":"main","showaddelement":true,"span":{"start":843,"end":2352},"startTagSpan":{"start":843,"end":889},"endTagSpan":{"start":2340,"end":2352},"attributes":[{"name":"class","value":"main","quote":"'","valueSpan":{"start":861,"end":865},"span":{"start":854,"end":866}},{"name":"id","value":"main","quote":"'","valueSpan":{"start":871,"end":875},"span":{"start":867,"end":876}},{"name":"name","value":"Main","quote":"'","valueSpan":{"start":883,"end":887},"span":{"start":877,"end":888}}],"widgets":[{"id":"Blog1","type":"Blog","title":"Posts","locked":false,"visible":true,"sectionId":"main","span":{"start":892,"end":2339},"attributes":[{"name":"id","value":"Blog1","quote":"'","valueSpan":{"start":906,"end":911},"span":{"start":902,"end":912}},{"name":"title","value":"Posts","quote":"'","valueSpan":{"start":920,"end":925},"span":{"start":913,"end":926}},{"name":"type","value":"Blog","quote":"'","valueSpan":{"start":933,"end":937},"span":{"start":927,"end":938}}],"includables":["main","postSummary","singlePost"]}]},{"id":"sidebar","name":"Sidebar","className":"sidebar","showaddelement":true,"span":{"start":2353,"end":2805},"startTagSpan":{"start":2353,"end":2408},"endTagSpan":{"start":2793,"end":2805},"attributes":[{"name":"class","value":"sidebar","quote":"'","valueSpan":{"start":2371,"end":2378},"span":{"start":2364,"end":2379}},{"name":"id","value":"sidebar","quote":"'","valueSpan":{"start":2384,"end":2391},"span":{"start":2380,"end":2392}},{"name":"name","value":"Sidebar","quote":"'","valueSpan":{"start":2399,"end":2406},"span":{"start":2393,"end":2407}}],"widgets":[{"id":"Label1","type":"Label","title":"Labels","locked":false,"visible":true,"sectionId":"sidebar","span":{"start":2411,"end":2792},"attributes":[{"name":"id","value":"Label1","quote":"'","valueSpan":{"start":2425,"end":2431},"span":{"start":2421,"end":2432}},{"name":"title","value":"Labels","quote":"'","valueSpan":{"start":2440,"end":2446},"span":{"start":2433,"end":2447}},{"name":"type","value":"Label","quote":"'","valueSpan":{"start":2454,"end":2459},"span":{"start":2448,"end":2460}}],"includables":["main"]}]},{"id":"footer","name":"Footer","className":"footer","showaddelement":true,"span":{"start":2806,"end":3048},"startTagSpan":{"start":2806,"end":2858},"endTagSpan":{"start":3036,"end":3048},"attributes":[{"name":"class","value":"footer","quote":"'","valueSpan":{"start":2824,"end":2830},"span":{"start":2817,"end":2831}},{"name":"id","value":"footer","quote":"'","valueSpan":{"start":2836,"end":2842},"span":{"start":2832,"end":2843}},{"name":"name","value":"Footer","quote":"'","valueSpan":{"start":2850,"end":2856},"span":{"start":2844,"end":2857}}],"widgets":[{"id":"Attribution1","type":"Attribution","title":"","locked":false,"visible":true,"sectionId":"footer","span":{"start":2861,"end":3035},"attributes":[{"name":"id","value":"Attribution1","quote":"'","valueSpan":{"start":2875,"end":2887},"span":{"start":2871,"end":2888}},{"name":"type","value":"Attribution","quote":"'","valueSpan":{"start":2895,"end":2906},"span":{"start":2889,"end":2907}}],"includables":["main"]}]}],"css":{"skin":"","templateSkin":"","style":"","combined":""},"hash":"55610c322e69af0a241454f058d91b8a1a4a5a9160c383ce2362c64d640828b0"},"saveUrl":"http://localhost:3001/api/layout/save","statusUrl":"http://localhost:3001/api/layout/status","widgetTypes":["Attribution","Blog","BlogArchive","BlogSearch","ContactForm","FeaturedPost","FollowByEmail","Followers","HTML","Header","Image","Label","LinkList","PageList","PopularPosts","Profile","ReportAbuse","Search","Stats","Subscribe","Text","Translate"]}</script><script data-guchho-preview="layout-editor-script">(function () {
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.stats{grid-template-columns:1fr}.layout[data-screen="layout"] .sidebar{position:static;height:auto}.layout[data-screen="layout"] .content{padding:22px 16px}.layout[data-screen="layout"] .topbar{padding:0 14px}}
+</style></head><body><header class="topbar"><span class="brand">Blogger</span><span class="badge">Preview</span><span class="spacer"></span><a class="top-link" href="/">View blog</a><span class="blog">Guchho Blogger Preview</span></header><div class="layout" data-guchho-preview="dashboard-screen" data-screen="layout"><aside class="sidebar"><div class="group"><div class="group-title">Blog</div><a class="nav-item" href="/__preview/dashboard/">Overview</a><a class="nav-item" href="/__preview/dashboard/posts/">Posts</a><a class="nav-item" href="/__preview/dashboard/pages/">Pages</a><a class="nav-item" href="/__preview/dashboard/comments/">Comments</a></div><div class="group"><div class="group-title">Design</div><a class="nav-item active" href="/__preview/dashboard/layout/" aria-current="page">Layout</a><a class="nav-item" href="/__preview/dashboard/theme/">Theme</a></div><div class="group"><div class="group-title">Preview</div><a class="nav-item" href="/">View blog</a><a class="nav-item" href="/__preview/widgets/">Widgets showcase</a></div><div class="group"><div class="group-title">Settings</div><a class="nav-item" href="/__preview/dashboard/settings/">Settings</a></div></aside><main class="content"><div class="layout-editor-head"><div class="layout-editor-heading"><span class="layout-editor-eyebrow">Theme › Layout</span><h1>Layout</h1><p class="subtitle">Arrange the sections and gadgets that make up your blog. Changes are saved to template.xml.</p></div><span class="layout-editor-summary">4 sections · 4 widgets</span></div><div class="layout-editor-toolbar toolbar"><button type="button" class="btn btn-primary" id="layout-editor-save" data-guchho-preview="layout-save" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v6h7V4"/><rect x="8" y="13" width="8" height="6"/></svg><span>Save</span></button><button type="button" class="btn" id="layout-editor-reset" data-guchho-preview="layout-reset" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/></svg><span>Reset</span></button><span class="pill layout-editor-status" id="layout-editor-status" data-guchho-preview="layout-status" data-state="saved">All changes saved</span><span class="note">Drag widgets to reorder or move them between sections.</span></div><p class="layout-editor-message" id="layout-editor-message" data-guchho-preview="layout-message" hidden></p><div class="layout-editor-canvas" id="layout-editor-shadow-host" data-guchho-preview="layout-canvas"></div><dialog class="layout-editor-dialog" id="le-gadget-dialog" data-guchho-preview="layout-dialog"><form id="le-gadget-form"><div class="layout-editor-dialog-head"><h2>Add a gadget</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Section</span><input class="field" id="le-gadget-section" type="hidden"></label><label class="layout-editor-field"><span>Gadget</span><select class="field" id="le-gadget-type"><option value="Attribution">Attribution</option><option value="Blog">Blog</option><option value="BlogArchive">BlogArchive</option><option value="BlogSearch">BlogSearch</option><option value="ContactForm">ContactForm</option><option value="FeaturedPost">FeaturedPost</option><option value="FollowByEmail">FollowByEmail</option><option value="Followers">Followers</option><option value="HTML">HTML</option><option value="Header">Header</option><option value="Image">Image</option><option value="Label">Label</option><option value="LinkList">LinkList</option><option value="PageList">PageList</option><option value="PopularPosts">PopularPosts</option><option value="Profile">Profile</option><option value="ReportAbuse">ReportAbuse</option><option value="Search">Search</option><option value="Stats">Stats</option><option value="Subscribe">Subscribe</option><option value="Text">Text</option><option value="Translate">Translate</option></select></label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-gadget-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-widget-dialog" data-guchho-preview="layout-dialog"><form id="le-widget-form"><div class="layout-editor-dialog-head"><h2>Edit widget</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Id</span><input class="field" id="le-widget-id" type="text" readonly></label><label class="layout-editor-field"><span>Title</span><input class="field" id="le-widget-title" type="text"></label><label class="layout-editor-field"><span>Version</span><input class="field" id="le-widget-version" type="text"></label><label class="layout-editor-check"><input id="le-widget-locked" type="checkbox"> Locked</label><label class="layout-editor-check"><input id="le-widget-visible" type="checkbox"> Visible</label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-widget-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-section-dialog" data-guchho-preview="layout-dialog"><form id="le-section-form"><div class="layout-editor-dialog-head"><h2>Section settings</h2></div><div class="layout-editor-dialog-body"><label class="layout-editor-field"><span>Id</span><input class="field" id="le-section-id" type="text" readonly></label><label class="layout-editor-field"><span>Name</span><input class="field" id="le-section-name" type="text"></label><label class="layout-editor-field"><span>Class</span><input class="field" id="le-section-class" type="text"></label><label class="layout-editor-field"><span>Max widgets</span><input class="field" id="le-section-maxwidgets" type="number" min="0"></label><label class="layout-editor-field"><span>Growth</span><input class="field" id="le-section-growth" type="text"></label><label class="layout-editor-check"><input id="le-section-showaddelement" type="checkbox"> Show add element</label></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-section-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><dialog class="layout-editor-dialog" id="le-confirm-dialog" data-guchho-preview="layout-dialog"><form id="le-confirm-form"><div class="layout-editor-dialog-head"><h2>Remove widget</h2></div><div class="layout-editor-dialog-body"><p id="le-confirm-text"></p></div><div class="layout-editor-dialog-actions"><button type="button" class="btn" data-le-close="le-confirm-dialog">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div></form></dialog><script type="application/json" id="layout-editor-payload" data-guchho-preview="layout-payload">{"model":{"entryPath":"template.xml","sections":[{"id":"header","name":"Header","className":"header","showaddelement":true,"span":{"start":530,"end":842},"startTagSpan":{"start":530,"end":582},"endTagSpan":{"start":830,"end":842},"attributes":[{"name":"class","value":"header","quote":"'","valueSpan":{"start":548,"end":554},"span":{"start":541,"end":555}},{"name":"id","value":"header","quote":"'","valueSpan":{"start":560,"end":566},"span":{"start":556,"end":567}},{"name":"name","value":"Header","quote":"'","valueSpan":{"start":574,"end":580},"span":{"start":568,"end":581}}],"widgets":[{"id":"Header1","type":"Header","title":"Guchho Blogger Preview","locked":false,"visible":true,"sectionId":"header","span":{"start":585,"end":829},"attributes":[{"name":"id","value":"Header1","quote":"'","valueSpan":{"start":599,"end":606},"span":{"start":595,"end":607}},{"name":"title","value":"Guchho Blogger Preview","quote":"'","valueSpan":{"start":615,"end":637},"span":{"start":608,"end":638}},{"name":"type","value":"Header","quote":"'","valueSpan":{"start":645,"end":651},"span":{"start":639,"end":652}}],"includables":["main"]}]},{"id":"main","name":"Main","className":"main","showaddelement":true,"span":{"start":843,"end":2352},"startTagSpan":{"start":843,"end":889},"endTagSpan":{"start":2340,"end":2352},"attributes":[{"name":"class","value":"main","quote":"'","valueSpan":{"start":861,"end":865},"span":{"start":854,"end":866}},{"name":"id","value":"main","quote":"'","valueSpan":{"start":871,"end":875},"span":{"start":867,"end":876}},{"name":"name","value":"Main","quote":"'","valueSpan":{"start":883,"end":887},"span":{"start":877,"end":888}}],"widgets":[{"id":"Blog1","type":"Blog","title":"Posts","locked":false,"visible":true,"sectionId":"main","span":{"start":892,"end":2339},"attributes":[{"name":"id","value":"Blog1","quote":"'","valueSpan":{"start":906,"end":911},"span":{"start":902,"end":912}},{"name":"title","value":"Posts","quote":"'","valueSpan":{"start":920,"end":925},"span":{"start":913,"end":926}},{"name":"type","value":"Blog","quote":"'","valueSpan":{"start":933,"end":937},"span":{"start":927,"end":938}}],"includables":["main","postSummary","singlePost"]}]},{"id":"sidebar","name":"Sidebar","className":"sidebar","showaddelement":true,"span":{"start":2353,"end":2805},"startTagSpan":{"start":2353,"end":2408},"endTagSpan":{"start":2793,"end":2805},"attributes":[{"name":"class","value":"sidebar","quote":"'","valueSpan":{"start":2371,"end":2378},"span":{"start":2364,"end":2379}},{"name":"id","value":"sidebar","quote":"'","valueSpan":{"start":2384,"end":2391},"span":{"start":2380,"end":2392}},{"name":"name","value":"Sidebar","quote":"'","valueSpan":{"start":2399,"end":2406},"span":{"start":2393,"end":2407}}],"widgets":[{"id":"Label1","type":"Label","title":"Labels","locked":false,"visible":true,"sectionId":"sidebar","span":{"start":2411,"end":2792},"attributes":[{"name":"id","value":"Label1","quote":"'","valueSpan":{"start":2425,"end":2431},"span":{"start":2421,"end":2432}},{"name":"title","value":"Labels","quote":"'","valueSpan":{"start":2440,"end":2446},"span":{"start":2433,"end":2447}},{"name":"type","value":"Label","quote":"'","valueSpan":{"start":2454,"end":2459},"span":{"start":2448,"end":2460}}],"includables":["main"]}]},{"id":"footer","name":"Footer","className":"footer","showaddelement":true,"span":{"start":2806,"end":3048},"startTagSpan":{"start":2806,"end":2858},"endTagSpan":{"start":3036,"end":3048},"attributes":[{"name":"class","value":"footer","quote":"'","valueSpan":{"start":2824,"end":2830},"span":{"start":2817,"end":2831}},{"name":"id","value":"footer","quote":"'","valueSpan":{"start":2836,"end":2842},"span":{"start":2832,"end":2843}},{"name":"name","value":"Footer","quote":"'","valueSpan":{"start":2850,"end":2856},"span":{"start":2844,"end":2857}}],"widgets":[{"id":"Attribution1","type":"Attribution","title":"","locked":false,"visible":true,"sectionId":"footer","span":{"start":2861,"end":3035},"attributes":[{"name":"id","value":"Attribution1","quote":"'","valueSpan":{"start":2875,"end":2887},"span":{"start":2871,"end":2888}},{"name":"type","value":"Attribution","quote":"'","valueSpan":{"start":2895,"end":2906},"span":{"start":2889,"end":2907}}],"includables":["main"]}]}],"structure":[{"tag":"b:section","id":"header","className":"header","sectionId":"header","children":[]},{"tag":"b:section","id":"main","className":"main","sectionId":"main","children":[]},{"tag":"b:section","id":"sidebar","className":"sidebar","sectionId":"sidebar","children":[]},{"tag":"b:section","id":"footer","className":"footer","sectionId":"footer","children":[]}],"css":{"skin":"","templateSkin":"","style":"","combined":""},"hash":"55610c322e69af0a241454f058d91b8a1a4a5a9160c383ce2362c64d640828b0"},"saveUrl":"http://localhost:3001/api/layout/save","statusUrl":"http://localhost:3001/api/layout/status","widgetTypes":["Attribution","Blog","BlogArchive","BlogSearch","ContactForm","FeaturedPost","FollowByEmail","Followers","HTML","Header","Image","Label","LinkList","PageList","PopularPosts","Profile","ReportAbuse","Search","Stats","Subscribe","Text","Translate"]}</script><script data-guchho-preview="layout-editor-script">(function () {
   'use strict';
   var payloadNode = document.getElementById('layout-editor-payload');
   var host = document.getElementById('layout-editor-shadow-host');
@@ -166,58 +175,123 @@ h2{margin:0 0 12px;font-size:16px}
     if (reset) reset.disabled = operations.length === 0;
   }
 
-  function sectionHtml(section, index) {
+  function sectionHtml(section) {
     var label = section.name || section.id;
-    var meta = [];
-    if (section.className) meta.push('class=' + section.className);
-    if (section.maxwidgets !== undefined && section.maxwidgets !== null) meta.push('maxwidgets=' + section.maxwidgets);
-    if (!section.showaddelement) meta.push('showaddelement=false');
-    if (section.growth) meta.push('growth=' + section.growth);
-    if (section.widgets.length > 0) meta.push(section.widgets.length + (section.widgets.length === 1 ? ' widget' : ' widgets'));
-    var chips = '';
-    for (var m = 0; m < meta.length; m++) chips += '<span class="le-chip">' + esc(meta[m]) + '</span>';
     var widgets = '';
     for (var i = 0; i < section.widgets.length; i++) {
       var widget = section.widgets[i];
-      widgets += widgetHtml(widget, section.id);
+      widgets += widgetHtml(widget, section.id) + '<div class="dropregion dropregion_v" aria-hidden="true"></div>';
     }
-    var empty = section.widgets.length === 0 ? '<p class="le-empty">No widgets in this section yet.</p>' : '';
     var canAdd = section.showaddelement !== false &&
-      (section.maxwidgets === undefined || section.maxwidgets === null || section.widgets.length < section.maxwidgets);
+      (section.maxwidgets === undefined || section.maxwidgets === null || section.maxwidgets < 0 || section.widgets.length < section.maxwidgets);
     var add = canAdd
-      ? '<button type="button" class="le-add" data-action="add-gadget" data-section-id="' + esc(section.id) + '">' + icon('plus') + '<span>+ Add a Gadget</span></button>'
-      : '<span class="le-add-disabled">+ Add a Gadget (disabled by section settings)</span>';
-    return '<section class="le-section ' + esc(section.className || '') + '" data-section-id="' + esc(section.id) + '">' +
-      '<div class="le-section-header">' +
-      '<span class="le-section-index">' + (index < 9 ? '0' : '') + (index + 1) + '</span>' +
-      '<span class="le-section-title-wrap"><span class="le-section-title">' + esc(label) + '</span>' +
-      '<span class="le-section-subtitle">id: ' + esc(section.id) + '</span></span>' +
-      '<span class="le-section-meta">' + chips + '</span><span class="le-spacer"></span>' +
-      '<button type="button" class="le-icon-btn" data-action="section-settings" data-section-id="' + esc(section.id) + '">' +
-      icon('settings') + '<span>Settings</span></button></div>' +
-      '<div class="le-widgets" data-section-id="' + esc(section.id) + '">' + widgets + empty + add + '</div></section>';
+      ? '<div class="add_widget"><span class="add-icon">+</span><button type="button" class="le-add" data-action="add-gadget" data-section-id="' + esc(section.id) + '">Add a Gadget</button></div>'
+      : '';
+    var classes = ['section', 'le-section'];
+    if (section.className) classes.push(section.className);
+    if (section.widgets.length === 0) classes.push('no-items');
+    var attrs = ' id="' + esc(section.id) + '" data-section-id="' + esc(section.id) + '" name="' + esc(label) + '"';
+    if (section.growth) attrs += ' growth="' + esc(section.growth) + '"';
+    if (section.maxwidgets !== undefined && section.maxwidgets !== null) attrs += ' maxwidgets="' + esc(section.maxwidgets) + '"';
+    attrs += ' showaddelement="' + (section.showaddelement ? 'true' : 'false') + '"';
+    var settings = '<button type="button" class="le-section-settings" data-action="section-settings" data-section-id="' + esc(section.id) + '" title="Section settings" aria-label="Settings for ' + esc(label) + '">' + icon('settings') + '</button>';
+    var dropStart = '<div class="dropregion dropregion_v" aria-hidden="true"></div>';
+    return '<div class="' + esc(classes.join(' ')) + '"' + attrs + '>' +
+      '<h4>' + esc(label) + settings + '</h4>' + add +
+      '<div class="le-widgets" data-section-id="' + esc(section.id) + '">' + dropStart + widgets + '</div></div>';
   }
 
   function widgetHtml(widget, sectionId) {
-    var initials = (widget.type || 'W').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'W';
-    var badges = '<span class="le-pill">' + esc(widget.type) + '</span>';
-    if (widget.locked) badges += '<span class="le-pill le-locked">Locked</span>';
-    if (!widget.visible) badges += '<span class="le-pill le-hidden">Hidden</span>';
-    var remove = widget.locked ? '' : '<button type="button" class="le-btn le-danger" data-action="remove-widget" data-widget-id="' + esc(widget.id) + '">' + icon('trash') + '<span>Remove</span></button>';
-    return '<article class="le-widget ' + esc(widget.type) + '" draggable="' + (widget.locked ? 'false' : 'true') + '"' +
-      ' data-widget-id="' + esc(widget.id) + '" data-section-id="' + esc(sectionId) + '">' +
-      '<span class="le-grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' +
-      '<span class="le-widget-icon">' + esc(initials) + '</span>' +
-      '<span class="le-widget-body"><span class="le-widget-title">' + esc(widget.title || widget.type) + '</span>' +
-      '<span class="le-widget-meta">' + esc(widget.id) + ' · ' + esc(widget.version || '') + '</span></span>' +
-      '<span class="le-widget-badges">' + badges + '</span>' +
-      '<span class="le-actions"><button type="button" class="le-btn" data-action="edit-widget" data-widget-id="' + esc(widget.id) + '">' +
-      icon('edit') + '<span>Edit</span></button>' + remove + '</span>' +
-      '</article>';
+    var remove = widget.locked ? '' : '<button type="button" class="le-btn le-danger" data-action="remove-widget" data-widget-id="' + esc(widget.id) + '" title="Remove gadget">' + icon('trash') + '</button>';
+    return '<div class="widget le-widget ' + esc(widget.type) + (widget.locked ? ' locked-widget' : ' draggable-widget') + '" draggable="' + (widget.locked ? 'false' : 'true') + '"' +
+      ' data-version="' + esc(widget.version || '2') + '" data-widget-id="' + esc(widget.id) + '" data-section-id="' + esc(sectionId) + '">' +
+      '<div class="widget-wrap1"><div class="widget-wrap2"><div class="widget-wrap3"><div class="widget-content visibility">' +
+      '<div class="layout-widget-state ' + (widget.visible ? 'visible' : 'not-visible') + '" title="' + (widget.visible ? 'Currently visible' : 'Currently hidden') + '"></div>' +
+      '<div class="layout-title">' + esc(widget.title || widget.type) + '</div>' +
+      '<div class="layout-widget-description">' + esc(widget.type) + ' gadget</div>' +
+      '<span class="le-actions"><button type="button" class="le-btn" data-action="edit-widget" data-widget-id="' + esc(widget.id) + '" title="Edit gadget">' + icon('edit') + '</button>' + remove + '</span>' +
+      '</div></div></div></div></div>';
+  }
+
+  function nodeHtml(node) {
+    if (!node) return '';
+    if (node.sectionId) {
+      var section = byId(model.sections, node.sectionId);
+      if (!section) return '';
+      return sectionHtml(section);
+    }
+    var children = '';
+    for (var i = 0; i < node.children.length; i++) children += nodeHtml(node.children[i]);
+    if (children === '') return '';
+    var id = node.id ? ' id="' + esc(node.id) + '"' : '';
+    var classes = ['le-wrapper'];
+    if (node.className) classes.push(node.className);
+    var tag = /^[a-z][a-z0-9-]*$/.test(node.tag || '') ? node.tag : 'div';
+    return '<' + tag + ' class="' + esc(classes.join(' ')) + '"' + id + '>' + children + '</' + tag + '>';
+  }
+
+  function structureHtml() {
+    var nodes = clone(model.structure || []);
+    var present = {};
+    countSections(nodes, function (node) { present[node.sectionId] = true; });
+    for (var i = 0; i < model.sections.length; i++) {
+      var section = model.sections[i];
+      if (present[section.id]) continue;
+      nodes.push({ tag: 'b:section', id: section.id, className: section.className || '', sectionId: section.id, children: [] });
+    }
+    var html = '';
+    for (var n = 0; n < nodes.length; n++) html += nodeHtml(nodes[n]);
+    return html;
+  }
+
+  function countSections(nodes, visit) {
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].sectionId) visit(nodes[i]);
+      countSections(nodes[i].children || [], visit);
+    }
   }
 
   function editorCss() {
-    return '.le-canvas{--le-bg:#fff;--le-line:#dbe3ee;--le-ink:#0f172a;--le-muted:#64748b;--le-accent:#1a73e8;--le-radius:10px;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--le-ink)}.le-canvas-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 14px}.le-canvas-title{font-weight:700;font-size:14px;letter-spacing:-.01em}.le-canvas-hint{color:var(--le-muted);font-size:11px}.le-section{display:block;margin:0 0 16px;border:1px solid var(--le-line);border-radius:var(--le-radius);background:var(--le-bg);box-shadow:0 1px 2px rgba(15,23,42,.05);overflow:hidden;position:relative}.le-section:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--le-accent);opacity:.65}.le-section.le-drop-active{border-color:var(--le-accent);box-shadow:0 0 0 3px rgba(26,115,232,.14)}.le-section-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid #eef1f5;background:linear-gradient(180deg,#fbfcfe,#f7f9fc)}.le-section-index{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:#e8f0fe;color:var(--le-accent);font-size:10px;font-weight:700;letter-spacing:.04em}.le-section-title-wrap{display:flex;flex-direction:column;min-width:0}.le-section-title{font-weight:700;font-size:14px;color:var(--le-ink)}.le-section-subtitle{color:var(--le-muted);font-size:10px}.le-section-meta{display:flex;gap:6px;flex-wrap:wrap}.le-chip{display:inline-block;padding:3px 8px;border:1px solid #e2e8f0;border-radius:999px;background:#fff;color:#475569;font-size:10px;font-weight:600}.le-spacer{flex:1;min-width:12px}.le-icon-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #dbe3ee;border-radius:6px;background:#fff;color:#475569;cursor:pointer;font:11px/1.4 inherit;font-weight:600}.le-icon-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.le-icon-btn:hover{border-color:var(--le-accent);color:var(--le-accent)}.le-widgets{display:flex;flex-direction:column;gap:8px;min-height:52px;padding:12px}.le-widget{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;box-shadow:0 1px 1px rgba(15,23,42,.03);cursor:grab;position:relative}.le-widget:hover{border-color:#b8c7db;box-shadow:0 3px 10px rgba(15,23,42,.06)}.le-widget[draggable="false"]{cursor:not-allowed;opacity:.72}.le-widget.le-dragging{opacity:.4}.le-widget.le-drop-before:before{content:"";position:absolute;left:8px;right:8px;top:-6px;height:3px;border-radius:2px;background:var(--le-accent)}.le-widget.le-drop-after:after{content:"";position:absolute;left:8px;right:8px;bottom:-6px;height:3px;border-radius:2px;background:var(--le-accent)}.le-grip{display:grid;grid-template-columns:repeat(2,3px);gap:2px;flex:none;opacity:.7}.le-grip i{width:3px;height:3px;border-radius:50%;background:#94a3b8}.le-widget-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:8px;background:#eef4ff;color:var(--le-accent);font-size:10px;font-weight:800;letter-spacing:.04em}.le-widget-body{display:flex;flex-direction:column;flex:1;min-width:0}.le-widget-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.le-widget-meta{color:var(--le-muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.le-widget-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.le-pill{display:inline-block;padding:2px 7px;border-radius:999px;background:#e8f0fe;color:var(--le-accent);font-size:9px;font-weight:700;letter-spacing:.02em}.le-pill.le-locked{background:#fff7e6;color:#b54708}.le-pill.le-hidden{background:#f1f5f9;color:#475569}.le-actions{display:flex;gap:6px;flex:none}.le-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid #dbe3ee;border-radius:6px;background:#fff;color:#334155;cursor:pointer;font:11px/1.4 inherit;font-weight:600}.le-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.le-btn:hover{border-color:var(--le-accent);color:var(--le-accent)}.le-btn.le-danger:hover{border-color:#dc2626;color:#dc2626}.le-add{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:7px 11px;border:1px dashed #94a3b8;border-radius:7px;background:#f8fbff;color:var(--le-accent);cursor:pointer;font:11px/1.4 inherit;font-weight:700}.le-add svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.le-add:hover{border-color:var(--le-accent);background:#e8f0fe}.le-add-disabled{color:#94a3b8;font:11px/1.4 inherit;padding:7px 0}.le-empty{margin:2px 0 6px;color:var(--le-muted);font-size:11px;font-style:italic}.le-empty-state{padding:32px 16px;text-align:center;color:var(--le-muted);font-size:12px}@media(max-width:640px){.le-canvas-head{align-items:flex-start;flex-direction:column}.le-widget{flex-wrap:wrap}.le-actions{width:100%;justify-content:flex-end}.le-widget-badges{justify-content:flex-start}}';
+    return [
+      'body#layout.blogger-layout-page{box-sizing:border-box;width:800px;max-width:100%;min-height:320px;margin:0 auto;padding:18px 12px;background:#f1f3f4;color:#3c4043;font:13px/1.45 Arial,sans-serif;overflow:visible}',
+      'body#layout.blogger-layout-page #outer-wrapper,body#layout.blogger-layout-page .row{width:auto;max-width:100%;padding:0}',
+      'body#layout.blogger-layout-page .hidden-widgets{display:block!important;visibility:visible!important;opacity:1!important}',
+      'body#layout.blogger-layout-page #content-wrapper{display:flow-root!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:180px!important;overflow:visible!important;clear:both!important;margin:14px 0!important}',
+      'body#layout.blogger-layout-page #content-wrapper>.container{display:flow-root!important;visibility:visible!important;height:auto!important;min-height:160px!important;width:100%!important;overflow:visible!important;margin:0!important}',
+      'body#layout.blogger-layout-page #main-wrapper,body#layout.blogger-layout-page #sidebar-wrapper{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:120px!important}',
+      'body#layout.blogger-layout-page .le-section,body#layout.blogger-layout-page .le-widget{visibility:visible!important;opacity:1!important}',
+      '.le-wrapper{position:relative;box-sizing:border-box;border:0;border-radius:0;padding:0;min-height:0}',
+      '.le-wrapper:hover{border-color:transparent;background:transparent}',
+      'body#layout.blogger-layout-page div.le-section{position:relative;display:block!important;box-sizing:border-box;min-height:44px;margin:0 5px 10px!important;padding:16px 16px 18px!important;border:1px solid #c4c4c4;border-radius:0;background:#e7e7e7;box-shadow:none}',
+      '.le-section h4{margin:0 0 12px!important;padding:0;color:#333;font-size:14px;font-weight:600;line-height:20px}',
+      '.le-section-settings{float:right;display:inline-flex;align-items:center;justify-content:center;padding:2px 5px;border:0;background:transparent;color:#777;cursor:pointer}',
+      '.le-section-settings svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+      '.le-widgets{display:contents}',
+      '.le-widget{position:relative;display:block!important;box-sizing:border-box;min-height:40px;margin:0 0 6px;padding:0;border:1px solid #c9c9c9;border-radius:2px;background:#fff;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.08)}',
+      '.le-widget.le-dragging{opacity:.45}',
+      '.widget-wrap1,.widget-wrap2,.widget-wrap3{display:block;min-height:inherit}',
+      '.le-widget-content.visibility{display:flex!important;align-items:center;gap:9px;min-height:40px;padding:7px 10px;background:#fff}',
+      '.le-actions{display:flex;gap:6px;opacity:.35;transition:opacity .12s ease}',
+      '.le-widget:hover .le-actions,.le-widget:focus-within .le-actions{opacity:1}',
+      '.layout-widget-state{width:10px;height:10px;flex:none;border:1px solid #777;border-radius:50%;background:#fff}',
+      '.layout-widget-state.visible{background:#6aa84f;border-color:#6aa84f}',
+      '.layout-title{flex:1;color:#333;font-size:13px;font-weight:500}',
+      '.layout-widget-description{display:none}',
+      '.le-btn{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;padding:4px;border:1px solid transparent;border-radius:2px;background:transparent;color:#666;cursor:pointer}',
+      '.le-btn:hover{border-color:#bbb;background:#f5f5f5}',
+      '.le-danger{color:#a33}',
+      '.le-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+      '.add_widget{display:flex;align-items:center;justify-content:center;gap:6px;min-height:30px;margin:0 auto 8px;color:#666}',
+      '.le-add{width:auto;margin:0;padding:3px 7px;border:0;background:transparent;color:#666;font:12px/1.4 Arial,sans-serif;cursor:pointer}',
+      '.le-add:hover{color:#1a73e8;text-decoration:underline}',
+      '.add-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid #888;border-radius:50%;font-size:13px;line-height:1}',
+      '.dropregion{display:block;clear:both;height:9px;margin:0 0 2px;border:1px dashed transparent}',
+      '.dropregion:hover,.le-drop-active .dropregion{border-color:#4285f4;background:rgba(66,133,244,.06)}',
+      '.le-drop-before{box-shadow:0 -3px 0 #4285f4}',
+      '.le-drop-after{box-shadow:0 3px 0 #4285f4}',
+      '.le-empty-state{padding:30px;border:1px dashed #aaa;background:#fff;color:#666;text-align:center}',
+      '@media(max-width:760px){body#layout.blogger-layout-page{width:100%;padding:12px}body#layout.blogger-layout-page #main-wrapper,body#layout.blogger-layout-page #sidebar-wrapper{float:none!important;width:100%!important}.le-section{margin-left:0!important;margin-right:0!important}}'
+    ].join('');
   }
 
   function render() {
@@ -225,15 +299,14 @@ h2{margin:0 0 12px;font-size:16px}
     var style = document.createElement('style');
     style.textContent = (model.css.combined || '') + '\n' + editorCss();
     shadow.appendChild(style);
-    var canvas = document.createElement('div');
-    canvas.className = 'le-canvas';
-    var html = '';
-    for (var i = 0; i < model.sections.length; i++) html += sectionHtml(model.sections[i], i);
-    var head = '<div class="le-canvas-head"><span class="le-canvas-title">Page structure</span>' +
-      '<span class="le-canvas-hint">Drag widgets to reorder or move them between sections</span></div>';
-    var body = html === '' ? '<p class="le-empty-state">No b:section elements were found in template.xml.</p>' : html;
-    canvas.innerHTML = head + body;
-    shadow.appendChild(canvas);
+    var html = structureHtml();
+    var page = document.createElement('body');
+    page.id = 'layout';
+    page.className = 'blogger-layout-page';
+    page.innerHTML = html === ''
+      ? '<p class="le-empty-state">No b:section elements were found in template.xml.</p>'
+      : html;
+    shadow.appendChild(page);
   }
 
   function simulate(operation) {
@@ -244,7 +317,7 @@ h2{margin:0 0 12px;font-size:16px}
         section = byId(next.sections, operation.sectionId);
         if (!section) return { error: 'Section not found' };
         if (section.showaddelement === false) return { error: 'This section does not allow adding widgets' };
-        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
+        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.maxwidgets >= 0 && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
         if (payload.widgetTypes.indexOf(operation.widgetType) < 0) return { error: 'Unknown widget type' };
         var used = {};
         for (var i = 0; i < next.sections.length; i++) for (var j = 0; j < next.sections[i].widgets.length; j++) used[next.sections[i].widgets[j].id] = true;
@@ -266,7 +339,7 @@ h2{margin:0 0 12px;font-size:16px}
         if (target.widget.locked) return { error: 'Locked widgets cannot be moved' };
         section = operation.kind === 'moveWidget' ? byId(next.sections, operation.sectionId) : target.section;
         if (!section) return { error: 'Section not found' };
-        if (section.maxwidgets !== undefined && section.maxwidgets !== null &&
+        if (section.maxwidgets !== undefined && section.maxwidgets !== null && section.maxwidgets >= 0 &&
             (operation.kind === 'moveWidget' || section !== target.section) && section.widgets.length >= section.maxwidgets) return { error: 'Section widget limit reached' };
         target.section.widgets.splice(target.section.widgets.indexOf(target.widget), 1);
         index = Math.max(0, Math.min(operation.index, section.widgets.length));

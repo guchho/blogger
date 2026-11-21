@@ -249,7 +249,7 @@ metadata includes `pageName`, `searchUrl`, `analytics4` and
 
 Posts use deterministic authors (Ada Lovelace, Grace Hopper), titles, labels,
 comment threads, image URLs and dates. The blog URL is
-`https://preview.example.com/`.
+`http://localhost:3000/`.
 
 ## Known differences from Blogger
 

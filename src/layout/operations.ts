@@ -173,6 +173,7 @@ function assertCapacity(section: XmlElement, count: number, moving: boolean): vo
   const raw = valueOf(section, "maxwidgets");
   if (raw === undefined || raw.trim() === "") return;
   const limit = Number(raw);
+  if (Number.isFinite(limit) && limit < 0) return;
   if (!Number.isFinite(limit) || count <= limit) return;
   throw new LayoutError(
     "BLOGGER_LAYOUT_LIMIT",

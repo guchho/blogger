@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { Script } from "node:vm";
 
@@ -15,6 +16,29 @@ const TEMPLATE = `<?xml version="1.0" encoding="UTF-8" ?>
   </b:widget>
 </b:section>
 </body></html>`;
+
+const EXAMPLE_TEMPLATE = readFileSync(
+  new URL("../examples/src/template.xml", import.meta.url),
+  "utf8"
+);
+
+interface StructureTestNode {
+  id?: string;
+  sectionId?: string;
+  children: StructureTestNode[];
+}
+
+function findStructureNode(
+  nodes: StructureTestNode[],
+  id: string
+): StructureTestNode | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const nested = findStructureNode(node.children, id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
 
 const SCREENS = [
   ["dashboard.html", "overview", "Dashboard"],
@@ -228,13 +252,14 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     "layout-editor-eyebrow",
     "layout-editor-summary",
     'data-state="saved"',
-    "le-canvas-title",
-    "le-section-header",
-    "le-section-index",
-    "le-widget-icon",
+    "body#layout.blogger-layout-page",
+    "layout-widget-state",
+    "layout-title",
+    "dropregion_v",
   ]) {
     assert.ok(screen.html.includes(marker), `missing editor marker: ${marker}`);
   }
+  assert.equal(screen.html.includes("Page structure"), false);
   assert.equal(screen.html.includes("layout-preview"), false);
   assert.equal(screen.html.includes("<iframe"), false);
   assert.equal(screen.html.includes("srcdoc="), false);
@@ -257,6 +282,73 @@ test("Layout editor client script is valid JavaScript", () => {
   assert.doesNotThrow(() => new Script(match[1] as string));
 });
 
+const NESTED_LAYOUT = `<?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head><b:template-skin><![CDATA[body#layout #main-wrapper{width:66%}]]></b:template-skin></head>
+<body>
+<div id='content-wrapper' class='row'>
+  <div id='main-wrapper'>
+    <b:section id='main' name='Main'>
+      <b:widget id='Blog1' type='Blog' title='Posts'>
+        <b:includable id='main'><div class='post-title'><data:blog.title/></div></b:includable>
+      </b:widget>
+    </b:section>
+  </div>
+</div>
+</body></html>`;
+
+test("Layout payload carries nested structure for the Blogger layout renderer", () => {
+  const result = buildPreview({
+    entryPath: "nested-layout.xml",
+    xml: NESTED_LAYOUT,
+    layoutXml: NESTED_LAYOUT,
+    banner: false,
+  });
+  const screen = result.pages.find((item) => item.file === "dashboard-layout.html");
+  assert.ok(screen);
+  const match = /<script type="application\/json" id="layout-editor-payload"[^>]*>([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(match);
+  const payload = JSON.parse(match[1] as string);
+  const structure = payload.model.structure;
+  assert.equal(structure[0].id, "content-wrapper");
+  assert.equal(structure[0].children[0].id, "main-wrapper");
+  assert.equal(structure[0].children[0].children[0].sectionId, "main");
+  assert.equal("content" in payload.model.sections[0].widgets[0], false);
+  assert.match(screen.html, /page\.id = 'layout'/);
+  assert.match(screen.html, /page\.className = 'blogger-layout-page'/);
+  assert.match(screen.html, /body#layout\.blogger-layout-page #content-wrapper/);
+  assert.match(screen.html, /body#layout\.blogger-layout-page \.le-widget\{position:relative;display:block!important/);
+  assert.equal(screen.html.includes("Page structure"), false);
+});
+
+test("real example layout preserves Blogger wrapper positions and visibility", () => {
+  const result = buildPreview({
+    entryPath: "examples/src/template.xml",
+    xml: EXAMPLE_TEMPLATE,
+    layoutXml: EXAMPLE_TEMPLATE,
+    banner: false,
+  });
+  const screen = result.pages.find((item) => item.file === "dashboard-layout.html");
+  assert.ok(screen);
+  const match = /<script type="application\/json" id="layout-editor-payload"[^>]*>([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(match);
+  const payload = JSON.parse(match[1] as string) as { model: { structure: StructureTestNode[]; sections: unknown[] } };
+  const structure = payload.model.structure;
+  assert.ok(findStructureNode(structure, "outer-wrapper"));
+  assert.ok(findStructureNode(structure, "content-wrapper"));
+  assert.ok(findStructureNode(structure, "main-wrapper"));
+  assert.ok(findStructureNode(structure, "sidebar-wrapper"));
+  assert.ok(findStructureNode(structure, "footer-wrapper"));
+  assert.ok(payload.model.sections.length > 4);
+  assert.match(screen.html, /\.hidden-widgets\{display:block!important/);
+  assert.equal(screen.html.includes("Page structure"), false);
+  assert.equal(screen.html.includes("https://www.blogger.com/static/v1/layouts/"), false);
+});
+
 test("Layout editor chrome is applied after template CSS", () => {
   const result = buildPreview({
     entryPath: "chrome-template.xml",
@@ -269,8 +361,8 @@ test("Layout editor chrome is applied after template CSS", () => {
     screen.html,
     /style\.textContent = \(model\.css\.combined \|\| ''\) \+ '\\n' \+ editorCss\(\);/
   );
-  assert.match(screen.html, /\.le-section-header\{/);
-  assert.match(screen.html, /\.le-widget-icon\{/);
+  assert.match(screen.html, /body#layout\.blogger-layout-page div\.le-section/);
+  assert.match(screen.html, /\.layout-widget-state\.visible\{/);
 });
 
 test("Theme shows decoded, escaped template base style", () => {

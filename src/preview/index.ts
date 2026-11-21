@@ -16,6 +16,7 @@ import {
 } from "./dashboard.js";
 import { previewFeedEntries, previewFeedScript } from "./feeds.js";
 import type { PreviewScenario } from "./data/types.js";
+import { withImageFallback } from "./render/image-fallback.js";
 import { renderTemplate, type RenderReportDetail } from "./render/renderer.js";
 import { buildShowcaseTemplate } from "./render/showcase.js";
 import {
@@ -140,7 +141,7 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
           });
         },
       }, registry);
-      html = result.html;
+      html = withImageFallback(result.html);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       reports.push({

@@ -27,6 +27,7 @@ import {
 } from "../values.js";
 import { expandLinks, widgetDataFor } from "../data/mock.js";
 import { builtinIncludables } from "./builtins.js";
+import { withImageFallback } from "./image-fallback.js";
 import {
   buildWidgetRegistry,
   type WidgetRegistry,
@@ -68,8 +69,20 @@ interface ResolvedIncludable {
 
 interface Branch {
   cond?: string;
+  isElse?: boolean;
   node: XmlElement;
   body: XmlNode[];
+}
+
+function staticImageSrc(nodes: readonly XmlNode[]): string | undefined {
+  let result: string | undefined;
+  walk(nodes, (node) => {
+    if (result !== undefined || !isElement(node) || node.name !== "img") return;
+    if (attribute(node, "src") === undefined) return;
+    const value = attribute(node, "src")?.value;
+    if (value !== undefined && value !== "") result = decodeEntities(value);
+  });
+  return result;
 }
 
 interface CaseBranch {
@@ -132,6 +145,21 @@ export class TemplateRenderer {
     const env: RenderEnv = { includables: new Map(), widgetType: "Common" };
     this.renderNodes(this.document.children, root, env, out);
     return { html: out.join(""), reports: this.reports };
+  }
+
+  /** Renders each widget's main includable for the Layout Editor canvas. */
+  renderWidgetMarkups(): Map<string, string> {
+    const result = new Map<string, string>();
+    const root = Scope.root(this.data);
+    walk(this.document.children, (node) => {
+      if (!isElement(node) || node.name !== "b:widget") return;
+      const id = this.attrValue(node, "id");
+      if (id === undefined || result.has(id)) return;
+      const out: string[] = [];
+      this.renderWidget(node, root, out);
+      result.set(id, out.join(""));
+    });
+    return result;
   }
 
   private report(code: string, message: string, node?: XmlNode): void {
@@ -679,15 +707,26 @@ export class TemplateRenderer {
   ): number {
     const ifNode = nodes[index] as XmlElement;
     const branches = this.splitIfBranches(ifNode);
-    for (const branch of branches) {
-      if (
+    const chosen = branches.findIndex(
+      (branch) =>
         branch.cond === undefined ||
         isTruthy(this.evaluateSource(branch.cond, scope, branch.node))
-      ) {
-        this.renderNodes(branch.body, scope, env, out);
-        break;
-      }
+    );
+    const branch = branches[chosen];
+    if (branch === undefined) return index + 1;
+
+    const fallback =
+      chosen === 0
+        ? staticImageSrc(branches.find((candidate) => candidate.isElse)?.body ?? [])
+        : undefined;
+    if (fallback === undefined) {
+      this.renderNodes(branch.body, scope, env, out);
+      return index + 1;
     }
+
+    const rendered: string[] = [];
+    this.renderNodes(branch.body, scope, env, rendered);
+    out.push(withImageFallback(rendered.join(""), fallback));
     return index + 1;
   }
 
@@ -700,7 +739,7 @@ export class TemplateRenderer {
         current = { cond: attribute(child, "cond")?.value, node: child, body: [] };
       } else if (isElement(child) && child.name === "b:else") {
         branches.push(current);
-        current = { node: child, body: [] };
+        current = { isElse: true, node: child, body: [] };
       } else {
         current.body.push(child);
       }
@@ -905,4 +944,18 @@ export function renderTemplate(
   widgetRegistry?: WidgetRegistry
 ): RenderResult {
   return new TemplateRenderer(document, data, host, widgetRegistry).render();
+}
+
+export function renderWidgetMarkups(
+  document: XmlDocument,
+  data: ValueMap,
+  host: RenderHost,
+  widgetRegistry?: WidgetRegistry
+): Map<string, string> {
+  return new TemplateRenderer(
+    document,
+    data,
+    host,
+    widgetRegistry
+  ).renderWidgetMarkups();
 }

@@ -3,10 +3,31 @@
 
 import { BloggerDate, HtmlString, type ValueMap } from "../values.js";
 
-export const PREVIEW_BLOG_URL = "https://preview.example.com/";
+export const PREVIEW_BLOG_URL = "http://localhost:3000/";
 export const PREVIEW_FAVICON = "favicon.ico";
-export const PREVIEW_IMAGE =
-  "https://blogger.googleusercontent.com/img/preview/s1600/preview.png";
+
+function svgDataUri(svg: string): string {
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
+export function previewImage(label: string, size = 1600, hue = 202): string {
+  const safeLabel = label.replace(/[<>&"']/g, "").slice(0, 24);
+  const fontSize = Math.max(14, Math.round(size / 12));
+  return svgDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">` +
+      `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+      `<stop offset="0" stop-color="hsl(${hue},78%,88%)"/>` +
+      `<stop offset="1" stop-color="hsl(${(hue + 38) % 360},72%,66%)"/>` +
+      `</linearGradient></defs>` +
+      `<rect width="100%" height="100%" fill="url(#g)"/>` +
+      `<text x="50%" y="50%" fill="hsl(${hue},58%,24%)" font-family="Arial,sans-serif" ` +
+      `font-size="${fontSize}" font-weight="700" text-anchor="middle" dominant-baseline="middle">` +
+      `${safeLabel}</text></svg>`
+  );
+}
+
+export const PREVIEW_IMAGE = previewImage("Preview");
+export const PREVIEW_FALLBACK_IMAGE = previewImage("No image", 480, 218);
 
 export const SHARING_PLATFORMS: ValueMap[] = [
   { key: "blogThis", name: "BlogThis!" },
