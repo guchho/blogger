@@ -61,6 +61,7 @@ test("banner includes an escaped dashboard button by default", () => {
   const home = result.pages.find((item) => item.file === "index.html");
   assert.ok(home);
   assert.match(home.html, /data-guchho-preview="banner"/);
+  assert.ok(home.html.includes("Mock preview — Sample content, not a live Blogger page."));
   assert.match(home.html, /data-guchho-preview="dashboard-button"/);
   assert.match(home.html, /role="button"/);
   assert.ok(home.html.includes("Open dashboard"));
