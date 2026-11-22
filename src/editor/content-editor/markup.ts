@@ -55,31 +55,29 @@ export function contentEditorMarkup(data: ContentEditorData): string {
   return (
     `<div data-guchho-content="editor" data-kind="${escapeHtml(data.kind)}">` +
     `<form id="content-editor-form" data-guchho-content="form">` +
-    `<div class="layout-editor-head"><div class="layout-editor-heading">` +
-    `<span class="layout-editor-eyebrow">Content › ${data.kind === "post" ? "Posts" : "Pages"}</span>` +
+    `<div class="page-head"><div>` +
+    `<p class="eyebrow">Editor · ${data.kind === "post" ? "Posts" : "Pages"}</p>` +
     `<h1 id="content-editor-heading">${data.existing ? "Edit" : "New"} ${escapeHtml(data.kind)}</h1>` +
-    `<p class="subtitle">Saved as JSON in the configured ${escapeHtml(data.kind)}s directory.</p>` +
-    `</div><span class="layout-editor-summary" id="content-id" data-guchho-content="id">` +
-    `${data.existing ? escapeHtml(data.item.id) : "Not saved yet"}</span></div>` +
-    `<div class="toolbar" data-guchho-content="toolbar">` +
-    `<button type="button" class="btn btn-primary" id="content-save-draft" data-guchho-content="save-draft">Save draft</button>` +
-    `<button type="button" class="btn" id="content-publish" data-guchho-content="publish">Publish</button>` +
-    `<button type="button" class="btn" id="content-schedule" data-guchho-content="schedule">Schedule</button>` +
-    `<button type="button" class="btn" id="content-source-toggle" data-guchho-content="source-toggle">` +
-    `<span id="content-source-label">HTML source</span></button>` +
-    `<button type="button" class="btn" id="content-trash" data-guchho-content="trash"${data.existing ? "" : " disabled"}>Trash</button>` +
-    `<button type="button" class="btn" id="content-delete" data-guchho-content="delete"${data.existing ? "" : " disabled"}>Delete forever</button>` +
-    `<span class="pill" id="content-editor-status" data-guchho-content="status" data-state="${data.existing ? "saved" : "new"}">` +
-    `${data.existing ? "All changes saved" : "Not saved yet"}</span></div>` +
-    `<div class="grid2"><div><div class="panel">` +
+    `<p class="subtitle">Compose and publish ${escapeHtml(data.kind)} content with file-based storage.</p></div>` +
+    `<div class="page-head-actions"><span class="pill" id="content-editor-status" data-guchho-content="status" data-state="${data.existing ? "saved" : "new"}">` +
+    `${data.existing ? "All changes saved" : "Not saved yet"}</span></div></div>` +
+    `<div class="toolbar panel" data-guchho-content="toolbar" style="padding:14px 16px">` +
+    `<button type="button" class="btn btn-primary" id="content-save-draft" data-guchho-content="save-draft"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5V4zm2 0v5h8V4M8 15h8"/></svg>Save draft</button>` +
+    `<button type="button" class="btn" id="content-publish" data-guchho-content="publish"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Publish</button>` +
+    `<button type="button" class="btn" id="content-schedule" data-guchho-content="schedule"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Schedule</button>` +
+    `<button type="button" class="btn" id="content-source-toggle" data-guchho-content="source-toggle"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3M14 7l-4 10"/></svg><span id="content-source-label">HTML source</span></button>` +
+    `<span style="flex:1"></span>` +
+    `<button type="button" class="btn" id="content-trash" data-guchho-content="trash"${data.existing ? "" : " disabled"}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M8 7l1 12h6l1-12"/></svg>Trash</button>` +
+    `<button type="button" class="btn" id="content-delete" data-guchho-content="delete"${data.existing ? "" : " disabled"}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Delete forever</button></div>` +
+    `<div class="grid2"><div><section class="panel"><div class="panel-head"><div><h2>Content</h2><p class="panel-sub">Title, slug, and body.</p></div><span class="layout-editor-summary" id="content-id" data-guchho-content="id">${data.existing ? escapeHtml(data.item.id) : "Not saved yet"}</span></div>` +
     `<input class="field editor-title" id="content-title" type="text" placeholder="Title" aria-label="Title" ` +
     `value="${escapeHtml(data.item.title)}" data-guchho-content="title">` +
-    `<input class="field" id="content-slug" type="text" placeholder="Slug" aria-label="Slug" ` +
-    `value="${escapeHtml(data.item.slug)}" data-guchho-content="slug">` +
-    `<div class="toolbar" data-guchho-content="body-toolbar"><span class="note">Rich text body</span></div>` +
-    `<div class="panel" id="content-body-preview" contenteditable="true" data-guchho-content="body-preview">${body}</div>` +
+    `<label class="layout-editor-field"><span>Slug</span><input class="field" id="content-slug" type="text" placeholder="slug" aria-label="Slug" ` +
+    `value="${escapeHtml(data.item.slug)}" data-guchho-content="slug"></label>` +
+    `<label class="layout-editor-field"><span>Body</span></label>` +
+    `<div class="panel" id="content-body-preview" contenteditable="true" data-guchho-content="body-preview" style="min-height:320px;box-shadow:none">${body}</div>` +
     `<textarea class="field textarea" id="content-body-source" aria-label="Body" hidden data-guchho-content="body-source">` +
-    `${escapeHtml(data.item.content)}</textarea></div></div><div>` +
+    `${escapeHtml(data.item.content)}</textarea></section></div><div>` +
     (post !== null
       ? `<div class="panel"><h3>Excerpt &amp; labels</h3>` +
         `<textarea class="field" id="content-excerpt" aria-label="Excerpt" data-guchho-content="excerpt">${escapeHtml(post.excerpt)}</textarea>` +

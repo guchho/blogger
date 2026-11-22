@@ -12,6 +12,7 @@ import {
   contentPostsBody,
   type ContentDashboardOptions,
 } from "../dashboard/content/screen-data.js";
+import { DASHBOARD_NAV_SCRIPT } from "../dashboard/navigation-script.js";
 import { extractLayout } from "../layout/extract.js";
 import { editorPayload } from "../layout/serialize.js";
 import {
@@ -95,13 +96,30 @@ a:hover{text-decoration:underline}
 .spacer{flex:1}
 .blog{padding:4px 10px;border:1px solid #5f6368;border-radius:4px;color:#e8eaed;font-size:12px}
 .top-link{color:#e8eaed;border:1px solid #5f6368;border-radius:4px;padding:4px 10px;font-size:12px}
-.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}
-.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:18px 12px}
+.nav-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;padding:0;border:1px solid #5f6368;border-radius:4px;background:transparent;color:inherit;cursor:pointer}
+.nav-toggle:hover{background:rgba(255,255,255,.12)}
+.nav-toggle:focus-visible{outline:2px solid #8ab4f8;outline-offset:2px}
+.nav-toggle-bars{position:relative;display:block;width:16px;height:12px}
+.nav-toggle-bars span{position:absolute;left:0;width:16px;height:2px;border-radius:1px;background:currentColor;transition:top .18s ease,opacity .18s ease,transform .18s ease}
+.nav-toggle-bars span:nth-child(1){top:0}
+.nav-toggle-bars span:nth-child(2){top:5px}
+.nav-toggle-bars span:nth-child(3){top:10px}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars span:nth-child(1){top:5px;transform:rotate(45deg)}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars span:nth-child(3){top:5px;transform:rotate(-45deg)}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 56px);transition:grid-template-columns .2s ease}
+.layout[data-nav="closed"],.layout[data-screen="layout"][data-nav="closed"]{grid-template-columns:0 minmax(0,1fr)}
+.layout[data-nav="closed"] .sidebar{padding-left:0;padding-right:0;border-right:0;overflow:hidden}
+.layout[data-nav="closed"] .sidebar>*{visibility:hidden}
+.nav-backdrop{display:none}
+.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:18px 12px;overflow:auto}
 .group{margin-bottom:18px}
 .group-title{padding:0 10px;margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
-.nav-item{display:block;padding:8px 10px;border-radius:5px;color:var(--ink)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:5px;color:var(--ink)}
 .nav-item:hover,.nav-item.active{background:#e8f0fe;text-decoration:none;color:var(--accent)}
-.content{padding:28px 32px;max-width:1180px}
+.nav-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex:none;opacity:.75}
+.nav-item.active .nav-icon{opacity:1}
+.content{padding:32px 36px 40px;max-width:1240px}
 .layout[data-screen="layout"] .content{max-width:1320px}
 .layout[data-screen="layout"]{grid-template-columns:220px minmax(0,1fr);background:#f1f3f4}
 .layout[data-screen="layout"] .sidebar{position:sticky;top:0;height:calc(100vh - 56px);overflow:auto;padding:22px 12px}
@@ -112,38 +130,92 @@ a:hover{text-decoration:underline}
 .layout[data-screen="layout"] .top-link{color:#1967d2;border-color:#dadce0}
 .layout[data-screen="layout"] .blog{color:#5f6368;border-color:#dadce0}
 .layout[data-screen="layout"] .nav-item.active{border-radius:0 22px 22px 0;background:#e8f0fe;color:#1967d2;font-weight:600}
-h1{margin:0 0 4px;font-size:24px}
-h2{margin:0 0 12px;font-size:16px}
-.subtitle{margin:0 0 22px;color:var(--muted)}
+h1{margin:0 0 6px;font-size:30px;line-height:1.2;letter-spacing:-.02em}
+h2{margin:0 0 14px;font-size:17px;letter-spacing:-.01em}
+.subtitle{margin:0 0 24px;color:var(--muted);font-size:14px}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:24px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
 .stat-value{font-size:22px;font-weight:700}
 .stat-label{color:var(--muted);font-size:12px}
 .section-title{margin:0 0 12px;font-size:16px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px}
-.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;color:var(--ink)}
-.card:hover{border-color:var(--accent);text-decoration:none}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;color:var(--ink);box-shadow:var(--shadow);transition:border-color .15s ease,transform .15s ease}
+.card:hover{border-color:#b8d3ff;text-decoration:none;transform:translateY(-1px)}
 .card-title{font-weight:600;margin-bottom:6px}
 .card-route{color:var(--muted);font-size:12px;word-break:break-all}
 .recent{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:24px}
 .recent-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .recent-item:last-child{border-bottom:0}
 .recent-meta{color:var(--muted);font-size:12px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:0 0 22px;margin-bottom:24px;border-bottom:1px solid var(--line)}
+.page-head .subtitle{margin:0;max-width:640px}
+.eyebrow{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.page-head-actions{display:flex;gap:10px;flex:none}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;box-shadow:var(--shadow)}
+.kpi-card:after{content:"";position:absolute;right:-28px;top:-28px;width:96px;height:96px;border-radius:50%;background:var(--tint);opacity:.5}
+.kpi-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.kpi-icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:var(--tint);color:var(--tone)}
+.kpi-flag{color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.kpi-value{font-size:30px;font-weight:750;line-height:1;letter-spacing:-.03em}
+.kpi-label{margin-top:6px;color:var(--muted);font-size:12px;font-weight:600}
+.kpi-foot{margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:11px}
+.kpi-blue{--tone:#1a73e8;--tint:#e8f0fe}
+.kpi-green{--tone:#12b76a;--tint:#e7f7ef}
+.kpi-amber{--tone:#b06000;--tint:#fef7e0}
+.kpi-purple{--tone:#7b4dd8;--tint:#f1ebfd}
+.overview-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.panel-head h2{margin:0}
+.panel-sub{margin:4px 0 0;color:var(--muted);font-size:12px}
+.panel-link{flex:none;font-size:12px;font-weight:600}
+.activity-list{border-top:1px solid var(--line-soft)}
+.activity-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.activity-item:last-child{border-bottom:0}
+.activity-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border-radius:8px;background:#eef2f7;color:var(--muted)}
+.activity-body{min-width:0;flex:1}
+.activity-title{display:block;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-meta{display:block;margin-top:2px;color:var(--muted);font-size:11px}
+.activity-status{flex:none}
+.route-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.route-card{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line-soft);border-radius:8px;background:#fafbfc;color:var(--ink)}
+.route-card:hover{border-color:var(--accent);background:#f5f9ff;text-decoration:none}
+.route-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border-radius:6px;background:#e8f0fe;color:var(--accent)}
+.route-name{display:block;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.route-path{display:block;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick-list{display:grid;gap:8px}
+.quick-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line-soft);border-radius:8px;background:#fafbfc;color:var(--ink);font-size:13px;font-weight:600}
+.quick-item:hover{border-color:var(--accent);background:#f5f9ff;text-decoration:none}
+.status-row{padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.status-row:last-child{border-bottom:0}
+.status-label{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;color:var(--muted);font-size:12px}
+.status-value{color:var(--ink);font-weight:700}
+.status-bar{height:6px;border-radius:99px;background:#eef1f5;overflow:hidden}
+.status-fill{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.tip{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.btn{font:inherit;padding:7px 14px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font:inherit;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer;font-weight:600;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+.btn:hover{background:#f6f9ff;border-color:#b8d3ff;text-decoration:none;transform:translateY(-1px)}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+.btn-ghost{padding:5px 8px;border-color:transparent;background:transparent;color:var(--muted);font-size:12px}
+.btn-ghost:hover{background:#f0f5ff;border-color:#d9e7ff;color:var(--accent);transform:none}
+.btn-ghost.danger:hover{background:#fff1f1;border-color:#ffd7d7;color:#c62828}
 .search{padding:7px 10px;border:1px solid var(--line);border-radius:4px;font:inherit;min-width:220px;background:var(--panel)}
-.tabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.tab{padding:8px 2px;color:var(--muted);border-bottom:2px solid transparent}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tabs{display:inline-flex;gap:4px;padding:4px;margin-bottom:16px;border:1px solid var(--line);border-radius:10px;background:#f7f9fc}
+.tab{appearance:none;border:0;background:transparent;padding:8px 14px;border-radius:7px;color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s ease,color .15s ease,box-shadow .15s ease}
+.tab:hover{color:var(--ink);background:#eef3fb}
+.tab.active{color:var(--accent);background:var(--panel);box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.tab:focus-visible{outline:2px solid #8ab4f8;outline-offset:1px}
 .table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:24px}
 .table th,.table td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.table th{color:var(--muted);font-size:12px;font-weight:600;background:#fafbfc}
+.table th{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;background:#fafbfc}
+.table tbody tr:hover td{background:#fbfdff}
 .table tr:last-child td{border-bottom:0}
 .pill{display:inline-block;padding:2px 8px;border-radius:10px;background:#e8f0fe;color:var(--accent);font-size:11px}
 .pill.draft{background:#fef7e0;color:#b06000}
 .actions{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
 .panel h3{margin:0 0 10px;font-size:14px}
 .grid2{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
 .field{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel);margin-bottom:12px}
@@ -191,18 +263,100 @@ h2{margin:0 0 12px;font-size:16px}
 .layout-editor-check input{width:16px;height:16px;accent-color:var(--accent)}
 .layout-editor-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin:0;padding:14px 20px 18px;border-top:1px solid var(--line-soft);background:#fafbfc}
 [hidden]{display:none!important}
+@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.stats{grid-template-columns:1fr}.layout[data-screen="layout"] .sidebar{position:static;height:auto}.layout[data-screen="layout"] .content{padding:22px 16px}.layout[data-screen="layout"] .topbar{padding:0 14px}}
+@media(max-width:760px){.layout,.layout[data-screen="layout"]{display:block;grid-template-columns:1fr}.sidebar,.layout[data-screen="layout"] .sidebar,.layout[data-nav="closed"] .sidebar{position:fixed;z-index:30;top:56px;bottom:0;left:0;width:min(280px,82vw);height:auto;padding:18px 12px;border-right:1px solid var(--line);border-bottom:0;box-shadow:var(--shadow);transform:translateX(-100%);transition:transform .2s ease}.layout[data-nav="open"] .sidebar{transform:none}.layout[data-nav="open"] .nav-backdrop{display:block;position:fixed;z-index:29;inset:56px 0 0;background:rgba(15,23,42,.4)}.stats{grid-template-columns:1fr}.page-head{display:block}.page-head-actions{margin-top:14px;flex-wrap:wrap}.kpi-grid,.stats{grid-template-columns:1fr}.route-grid{grid-template-columns:1fr 1fr}.layout[data-screen="layout"] .content{padding:22px 16px}.layout[data-screen="layout"] .topbar{padding:0 14px}}
 `;
 
 interface NavEntry {
   label: string;
   route: string;
   active: boolean;
+  icon: string;
+}
+
+const NAV_ICONS: Record<string, string> = {
+  overview: "M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z",
+  posts: "M6 3h9l4 4v14H6V3zm9 0v5h4M9 12h7M9 16h7",
+  pages: "M7 3h8l4 4v14H7V3zm8 0v5h4M10 12h6M10 16h6",
+  comments: "M4 5h16v11H9l-5 4V5z",
+  layout: "M4 4h16v16H4V4zm6 0v16",
+  theme: "M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.6-1.4-.4-.4-.6-.9-.6-1.4 0-1.1.9-2 2-2h1.8A4.4 4.4 0 0 0 21 10.6C21 6.4 16.9 3 12 3z",
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8-3l2-1-2-3-2 1-2-1V5l-3-1-1 2-2 1-2-1-2 3 2 1v2l-2 1 2 3 2-1 2 1v3l3 1 1-2 2-1 2 1 2-3-2-1v-2z",
+  "view-blog": "M14 4h6v6M20 4l-9 9M18 14v5H5V6h5",
+  widgets: "M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0z",
+};
+
+function navIcon(name: string): string {
+  const path = NAV_ICONS[name] ?? NAV_ICONS.overview;
+  return (
+    `<span class="nav-icon" aria-hidden="true">` +
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ` +
+    `stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>` +
+    `</span>`
+  );
 }
 
 function routeFor(pages: readonly DashboardPageRef[], title: string): string {
   return pages.find((page) => page.title === title)?.route ?? "/";
+}
+
+function pageHead(
+  eyebrow: string,
+  title: string,
+  subtitle: string,
+  actions = ""
+): string {
+  return (
+    `<div class="page-head"><div>` +
+    `<p class="eyebrow">${escapeHtml(eyebrow)}</p>` +
+    `<h1>${escapeHtml(title)}</h1>` +
+    `<p class="subtitle">${escapeHtml(subtitle)}</p></div>` +
+    (actions ? `<div class="page-head-actions">${actions}</div>` : "") +
+    `</div>`
+  );
+}
+
+function uiIcon(name: string): string {
+  const paths: Record<string, string> = {
+    posts: "M6 4h9l3 3v13H6V4zm9 0v4h4M9 11h6M9 15h6",
+    pages: "M7 4h8l3 3v13H7V4zm8 0v4h4M10 11h5M10 15h5",
+    views: "M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6zm10 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+    pulse: "M3 12h4l2-5 4 10 2-5h6",
+    add: "M12 5v14M5 12h14",
+    arrow: "M7 17 17 7M9 7h8v8",
+    quick: "M13 3 6 14h5l-1 7 8-11h-5z",
+  };
+  return (
+    `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" ` +
+    `stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name] ?? paths.posts}"/></svg>`
+  );
+}
+
+function kpiCard(
+  tone: string,
+  icon: string,
+  flag: string,
+  value: string,
+  label: string,
+  foot: string
+): string {
+  return (
+    `<div class="kpi-card ${tone}">` +
+    `<div class="kpi-head"><span class="kpi-icon">${uiIcon(icon)}</span>` +
+    `<span class="kpi-flag">${escapeHtml(flag)}</span></div>` +
+    `<div class="kpi-value">${escapeHtml(value)}</div>` +
+    `<div class="kpi-label">${escapeHtml(label)}</div>` +
+    `<div class="kpi-foot">${escapeHtml(foot)}</div></div>`
+  );
+}
+
+function panel(title: string, subtitle = "", action = ""): string {
+  return (
+    `<div class="panel-head"><div><h2>${escapeHtml(title)}</h2>` +
+    (subtitle ? `<p class="panel-sub">${escapeHtml(subtitle)}</p>` : "") +
+    `</div>${action}</div>`
+  );
 }
 
 function textOf(node: XmlNode): string {
@@ -245,6 +399,7 @@ function navGroups(
     label,
     route: SCREEN_ROUTES[key],
     active: active === key,
+    icon: key,
   });
   return [
     {
@@ -263,8 +418,8 @@ function navGroups(
     {
       title: "Preview",
       items: [
-        { label: "View blog", route: routeFor(pages, "Home"), active: false },
-        { label: "Widgets showcase", route: routeFor(pages, "Widgets"), active: false },
+        { label: "View blog", route: routeFor(pages, "Home"), active: false, icon: "view-blog" },
+        { label: "Widgets showcase", route: routeFor(pages, "Widgets"), active: false, icon: "widgets" },
       ],
     },
     {
@@ -299,7 +454,7 @@ function shell(
             (item) =>
               `<a class="nav-item${item.active ? " active" : ""}" ` +
               `href="${escapeHtml(item.route)}"${item.active ? ' aria-current="page"' : ""}>` +
-              `${escapeHtml(item.label)}</a>`
+              `${navIcon(item.icon)}${escapeHtml(item.label)}</a>`
           )
           .join("") +
         `</div>`
@@ -311,12 +466,19 @@ function shell(
     `<meta name="viewport" content="width=device-width,initial-scale=1">` +
     `<link rel="icon" href="${escapeHtml(faviconHref(favicon))}">` +
     `<title>${escapeHtml(title)} — ${escapeHtml(BLOG_TITLE)}</title><style>${STYLE}</style></head><body>` +
-    `<header class="topbar"><span class="brand">Blogger</span>` +
+    `<header class="topbar">` +
+    `<button type="button" class="nav-toggle" data-guchho-preview="nav-toggle" ` +
+    `aria-label="Toggle sidebar" aria-controls="dashboard-sidebar" aria-expanded="false">` +
+    `<span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span><span></span></span>` +
+    `</button><span class="brand">Blogger</span>` +
     `<span class="badge">Preview</span><span class="spacer"></span>` +
     `<a class="top-link" href="${escapeHtml(routeFor(pages, "Home"))}">View blog</a>` +
     `<span class="blog">${escapeHtml(BLOG_TITLE)}</span></header>` +
-    `<div class="layout" data-guchho-preview="dashboard-screen" data-screen="${key}">` +
-    `<aside class="sidebar">${nav}</aside><main class="content">${body}</main></div>` +
+    `<div class="layout" data-guchho-preview="dashboard-screen" data-screen="${key}" data-nav="open">` +
+    `<aside class="sidebar" id="dashboard-sidebar">${nav}</aside>` +
+    `<div class="nav-backdrop" data-guchho-preview="nav-backdrop"></div>` +
+    `<main class="content">${body}</main></div>` +
+    `<script data-guchho-preview="nav-script">${DASHBOARD_NAV_SCRIPT}</script>` +
     `</body></html>`
   );
 }
@@ -367,26 +529,61 @@ function overviewBody(pages: readonly DashboardPageRef[]): string {
     .join("");
 
   const recent = mockPosts()
-    .slice(0, 3)
+    .slice(0, 4)
     .map((post) => {
       const title = toText(post["title"] ?? "");
       const url = toText(post["url"] ?? "");
+      const date = toText(post["date"] ?? "");
       return (
-        `<div class="recent-item"><a href="${escapeHtml(url)}">${escapeHtml(title)}</a>` +
-        `<span class="recent-meta">Published · Mock content</span></div>`
+        `<div class="activity-item">` +
+        `<span class="activity-icon">${uiIcon("posts")}</span>` +
+        `<div class="activity-body"><a class="activity-title" href="${escapeHtml(url)}">${escapeHtml(title)}</a>` +
+        `<span class="activity-meta">Post · ${escapeHtml(date)}</span></div>` +
+        `<span class="activity-status pill">Published</span></div>`
       );
     })
     .join("");
 
+  const postCount = mockPosts().length;
+  const previewCount = pages.length;
+  const quick = (
+    `<div class="quick-list">` +
+    `<a class="quick-item" href="${SCREEN_ROUTES["post-new"]}">${uiIcon("add")} New post</a>` +
+    `<a class="quick-item" href="${SCREEN_ROUTES["page-new"]}">${uiIcon("add")} New page</a>` +
+    `<a class="quick-item" href="${routeFor(pages, "Home")}">${uiIcon("arrow")} View blog</a>` +
+    `</div>`
+  );
+  const status = (
+    `<div class="status-row"><div class="status-label"><span>Published posts</span><span class="status-value">${postCount}</span></div>` +
+    `<div class="status-bar"><span class="status-fill" style="width:${postCount ? 100 : 0}%"></span></div></div>` +
+    `<div class="status-row"><div class="status-label"><span>Preview pages</span><span class="status-value">${previewCount}</span></div>` +
+    `<div class="status-bar"><span class="status-fill" style="width:${Math.min(100, previewCount * 14)}%"></span></div></div>`
+  );
+
   return (
-    header("Dashboard", "Mock preview workspace — rendered from deterministic sample data.") +
-    `<div class="stats">` +
-    `<div class="stat"><div class="stat-value">${pages.length}</div><div class="stat-label">Preview pages</div></div>` +
-    `<div class="stat"><div class="stat-value">${mockPosts().length}</div><div class="stat-label">Posts</div></div>` +
-    `<div class="stat"><div class="stat-value">Ready</div><div class="stat-label">Preview status</div></div>` +
-    `</div><h2>Preview pages</h2><div class="cards">${cards}</div>` +
-    `<h2>Recent posts</h2><div class="recent">${recent}</div>` +
-    `<div class="toolbar">${button("New post", true)}${button("New page")}</div>`
+    pageHead(
+      "Workspace",
+      "Dashboard",
+      "A clean overview of your preview workspace, content, and key actions.",
+      `<a class="btn btn-primary" href="${SCREEN_ROUTES["post-new"]}">New post</a>` +
+      `<a class="btn" href="${routeFor(pages, "Home")}">View blog</a>`
+    ) +
+    `<div class="kpi-grid" data-guchho-preview="kpis">` +
+    kpiCard("kpi-blue", "posts", "Content", String(postCount), "Total posts", "Mock preview data") +
+    kpiCard("kpi-green", "pages", "Pages", String(mockPages().length), "Total pages", "Static pages ready") +
+    kpiCard("kpi-amber", "views", "Preview", String(previewCount), "Preview routes", "Generated scenarios") +
+    kpiCard("kpi-purple", "pulse", "Health", "Ready", "Workspace status", "No build issues") +
+    `</div>` +
+    `<div class="overview-grid"><div>` +
+    `<section class="panel" data-guchho-preview="recent">` +
+    panel("Recent posts", "Latest items in your content feed.", `<a class="panel-link" href="${SCREEN_ROUTES.posts}">All posts</a>`) +
+    `<div class="activity-list">${recent}</div></section>` +
+    `<section class="panel">` +
+    panel("Preview routes", "All generated pages available in this build.") +
+    `<div class="cards">${cards}</div></section></div>` +
+    `<div><section class="panel">${panel("Quick actions", "Common tasks for this workspace.")}${quick}</section>` +
+    `<section class="panel">${panel("Content status", "At-a-glance workspace metrics.")}${status}</section>` +
+    `<section class="panel">${panel("Workspace tip")}<p class="tip">Use the sidebar to jump into posts, pages, layout, and theme. The hamburger keeps the workspace focused on smaller screens.</p></section></div></div>`
   );
 }
 

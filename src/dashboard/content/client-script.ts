@@ -54,6 +54,7 @@ export const CONTENT_DASHBOARD_SCRIPT = `(function () {
     var status = effective(item);
     var label = status.charAt(0).toUpperCase() + status.slice(1);
     var trash = !!item.trashedAt;
+    var icon = function (path) { return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + path + '"/></svg>'; };
     var cells = '<td><input type="checkbox" class="content-check" value="' + esc(item.id) + '" aria-label="Select ' + esc(item.title) + '"></td>' +
       '<td><a href="' + esc(item.path) + '">' + esc(item.title) + '</a><div class="recent-meta">/' + esc(item.slug) + '</div></td>';
     if (kind === 'post') {
@@ -61,13 +62,13 @@ export const CONTENT_DASHBOARD_SCRIPT = `(function () {
     }
     cells += '<td>' + esc(String(item.createdAt).slice(0, 10)) + '</td>' +
       '<td><span class="pill' + (status === 'draft' || status === 'trash' ? ' draft' : '') + '">' + esc(label) + '</span></td>' +
-      '<td><div class="actions"><a href="/__preview/dashboard/' + kind + 's/new/?id=' + encodeURIComponent(item.id) + '">Edit</a>';
+      '<td><div class="actions"><a class="btn btn-ghost" href="/__preview/dashboard/' + kind + 's/new/?id=' + encodeURIComponent(item.id) + '">' + icon('M4 20h4l10.5-10.5a1.5 1.5 0 0 0 0-2L16 5a1.5 1.5 0 0 0-2 0L3.5 15.5V20z') + 'Edit</a>';
     if (trash) {
-      cells += '<button type="button" class="btn" data-content-action="restore" data-id="' + esc(item.id) + '">Restore</button>' +
-        '<button type="button" class="btn" data-content-action="delete" data-id="' + esc(item.id) + '">Delete forever</button>';
+      cells += '<button type="button" class="btn btn-ghost" data-content-action="restore" data-id="' + esc(item.id) + '">' + icon('M3 12a9 9 0 1 0 3-6.7M3 4v5h5') + 'Restore</button>' +
+        '<button type="button" class="btn btn-ghost danger" data-content-action="delete" data-id="' + esc(item.id) + '">' + icon('M6 6l12 12M18 6 6 18') + 'Delete</button>';
     } else {
-      cells += '<a href="' + esc(item.path) + '">View</a>' +
-        '<button type="button" class="btn" data-content-action="trash" data-id="' + esc(item.id) + '">Trash</button>';
+      cells += '<a class="btn btn-ghost" href="' + esc(item.path) + '">' + icon('M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6zm10 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z') + 'View</a>' +
+        '<button type="button" class="btn btn-ghost" data-content-action="trash" data-id="' + esc(item.id) + '">' + icon('M4 7h16M9 7V5h6v2M8 7l1 12h6l1-12') + 'Trash</button>';
     }
     return '<tr data-content-row="' + esc(item.id) + '">' + cells + '</div></td></tr>';
   }

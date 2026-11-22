@@ -168,6 +168,35 @@ test("every sidebar admin link resolves to a generated route", () => {
   }
 });
 
+test("dashboard has a hamburger toggle and icons on every nav item", () => {
+  const result = build();
+  const screen = result.pages.find((item) => item.file === "dashboard.html");
+  assert.ok(screen);
+  for (const marker of [
+    'data-guchho-preview="nav-toggle"',
+    'aria-label="Toggle sidebar"',
+    'aria-controls="dashboard-sidebar"',
+    '<aside class="sidebar" id="dashboard-sidebar">',
+    'data-guchho-preview="nav-backdrop"',
+    'data-guchho-preview="nav-script"',
+    'viewBox="0 0 24 24"',
+  ]) {
+    assert.ok(screen.html.includes(marker), `missing marker: ${marker}`);
+  }
+  assert.ok(screen.html.includes('data-guchho-preview="kpis"'), "kpi grid missing");
+  assert.ok(screen.html.includes('data-guchho-preview="recent"'), "recent panel missing");
+  const items = [...screen.html.matchAll(/<a class="nav-item[^>]*>([\s\S]*?)<\/a>/g)];
+  assert.ok(items.length >= 9);
+  for (const item of items) {
+    assert.match(item[1] as string, /^<span class="nav-icon"/);
+  }
+  const match = /<script data-guchho-preview="nav-script">([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(match);
+  assert.doesNotThrow(() => new Script(match[1] as string));
+});
+
 test("content screens use deterministic mock data", () => {
   const result = build();
   const content: Record<string, string[]> = {
