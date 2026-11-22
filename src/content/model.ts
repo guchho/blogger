@@ -64,10 +64,6 @@ export function isPublished(item: ContentItem, now: Date = new Date()): boolean 
   return effectiveStatus(item, now) === "published";
 }
 
-export function isScheduled(item: ContentItem, now: Date = new Date()): boolean {
-  return effectiveStatus(item, now) === "scheduled";
-}
-
 export function timestamp(date: Date = new Date()): string {
   return date.toISOString();
 }

@@ -85,7 +85,7 @@ class Parser {
   private parseTernary(): ExprNode {
     const test = this.parseBinary(1);
     if (this.isPunct("?:")) {
-      const token = this.next();
+      this.next();
       const right = this.parseTernary();
       return { kind: "coalesce", left: test, right, start: test.start, end: right.end };
     }

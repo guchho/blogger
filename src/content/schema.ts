@@ -108,21 +108,3 @@ export function validatePage(value: unknown): Page {
   }
   return { ...common, type: "page" };
 }
-
-export function isPostPayload(value: unknown): value is Post {
-  try {
-    validatePost(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function isPagePayload(value: unknown): value is Page {
-  try {
-    validatePage(value);
-    return true;
-  } catch {
-    return false;
-  }
-}

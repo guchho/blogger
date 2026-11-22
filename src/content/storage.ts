@@ -231,7 +231,3 @@ export async function deleteWithBackup(paths: ContentPaths, file: string): Promi
   await fs.rm(target, { force: true });
   return name;
 }
-
-export function hashMatches(value: unknown, expected: string): boolean {
-  return contentHash(value) === expected;
-}

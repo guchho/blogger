@@ -2,13 +2,6 @@ import { ContentError } from "./schema-helpers.js";
 import { normalizedBaseUrl } from "./settings-model.js";
 import type { ContentItem } from "./model.js";
 
-export interface BloggerRoutes {
-  home: string;
-  search: string;
-  dashboard: string;
-  preview: string;
-}
-
 export const RESERVED_ROUTES = new Set([
   "/",
   "/search/",
@@ -20,11 +13,6 @@ export const RESERVED_ROUTES = new Set([
   "/favicon.ico",
   "/template.xml",
 ]);
-
-function pathOf(baseUrl: string, relative: string): string {
-  const base = new URL(normalizedBaseUrl(baseUrl));
-  return new URL(relative.replace(/^\//, ""), base).pathname;
-}
 
 function dateParts(item: ContentItem): { year: string; month: string } {
   const value = item.publishAt ?? item.publishedAt ?? item.createdAt;
@@ -84,10 +72,6 @@ export function routeOf(url: string): string {
   } catch {
     return "/";
   }
-}
-
-export function pathForBaseUrl(baseUrl: string): string {
-  return pathOf(baseUrl, "");
 }
 
 export function assertNoRouteCollisions(

@@ -36,10 +36,6 @@ export interface Invokable {
   invoke(args: Value[]): Value;
 }
 
-export function isHtmlString(value: Value): value is HtmlString {
-  return value instanceof HtmlString;
-}
-
 export function isDate(value: Value): value is BloggerDate {
   return value instanceof BloggerDate;
 }

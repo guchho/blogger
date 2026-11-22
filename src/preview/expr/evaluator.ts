@@ -2,7 +2,6 @@ import type { BinaryOperator, ExprNode } from "./ast.js";
 import { ExpressionError } from "./errors.js";
 import { callFunction, type HelperContext } from "./functions.js";
 import {
-  BloggerDate,
   HtmlString,
   getMember,
   isInvokable,
@@ -324,8 +323,4 @@ function isMember(needle: Value, haystack: Value): boolean {
 function add(left: Value, right: Value): Value {
   if (typeof left === "number" && typeof right === "number") return left + right;
   return toText(left) + toText(right);
-}
-
-export function isDateValue(value: Value): value is BloggerDate {
-  return value instanceof BloggerDate;
 }

@@ -183,7 +183,10 @@ export function contentEditorBody(
   return contentEditorMarkup({
     kind,
     apiBase: `http://localhost:${input.savePort}`,
-    item: kind === "post" ? defaultPost() : defaultPage(),
+    item:
+      kind === "post"
+        ? defaultPost({ id: "", createdAt: "", updatedAt: "" })
+        : defaultPage({ id: "", createdAt: "", updatedAt: "" }),
     hash: null,
     existing: false,
     labels,

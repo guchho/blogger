@@ -314,10 +314,3 @@ export {
   type WidgetRegistry,
 } from "./render/widgets.js";
 export type { PreviewScenario } from "./data/types.js";
-
-/** Diagnostic code prefix the preview engine uses. */
-export const PREVIEW_DIAGNOSTIC_PREFIX = "BLOGGER_PREVIEW";
-
-export function isPreviewDiagnostic(diagnostic: { code: string }): boolean {
-  return diagnostic.code.startsWith(PREVIEW_DIAGNOSTIC_PREFIX);
-}

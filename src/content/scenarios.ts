@@ -8,7 +8,7 @@ import {
   type WidgetSeed,
 } from "../preview/data/mock.js";
 import { isPublished } from "./model.js";
-import { archiveUrl, assertNoRouteCollisions, labelUrl, postUrl, routeOf, searchUrl } from "./routes.js";
+import { archiveUrl, assertNoRouteCollisions, labelUrl, routeOf, searchUrl } from "./routes.js";
 import { slugify } from "./slug.js";
 import type { ContentSnapshot } from "./settings.js";
 import { pageToValueMap, postToValueMap } from "./view-data.js";

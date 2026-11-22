@@ -5,7 +5,6 @@ import { createPageRepository } from "./pages.js";
 import { createPostRepository } from "./posts.js";
 import { loadContent } from "./settings.js";
 import type { ContentPaths } from "./storage.js";
-import type { ContentKind } from "./model.js";
 
 const MAX_CONTENT_BODY_BYTES = 4 * 1024 * 1024;
 const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
@@ -231,8 +230,4 @@ function sendContentJson(
     "cache-control": "no-store",
   });
   response.end(JSON.stringify(body));
-}
-
-export function contentKindFromRoute(pathname: string): ContentKind | null {
-  return pathname.startsWith("/api/posts") ? "post" : pathname.startsWith("/api/pages") ? "page" : null;
 }

@@ -1,4 +1,4 @@
-import { BloggerError, makeLocation, type Span } from "../diagnostics.js";
+import { BloggerError, makeLocation } from "../diagnostics.js";
 import type {
   XmlAttribute,
   XmlDocument,
@@ -400,7 +400,6 @@ export class XmlParser {
   private parseProcessingInstruction(): XmlProcessingInstruction {
     const start = this.index;
     this.index += 2;
-    const targetStart = this.index;
     const target = this.readName();
     if (target === "") {
       this.fail(

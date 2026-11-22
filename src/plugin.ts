@@ -36,7 +36,6 @@ import type {
   BloggerPluginOptions,
   CompiledTemplate,
   Diagnostic,
-  ResourceReference,
 } from "./types.js";
 
 const DEFAULT_ENTRY = "src/template.xml";
@@ -275,7 +274,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_INTERNAL",
         });
-        return null;
       }
 
       if (id === state.fullCarrierId) {
@@ -314,7 +312,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_INTERNAL",
         });
-        return;
       }
 
       const entries = Object.values(bundle);
@@ -330,7 +327,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_CORE_UNSUPPORTED",
         });
-        return;
       }
 
       const hasHtmlEntry = entries.some(
@@ -355,7 +351,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_OUTPUT_INVALID",
         });
-        return;
       }
 
       const cssAssets = entries.filter(
@@ -398,7 +393,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
             id: state.entryPath,
             code: "BLOGGER_OUTPUT_INVALID_XML",
           });
-          return;
         }
       }
 
@@ -412,7 +406,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_OUTPUT_INVALID_XML",
         });
-        return;
       }
 
       deleteCarrierChunks(bundle, state);
@@ -434,7 +427,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           id: state.entryPath,
           code: "BLOGGER_OUTPUT_CONFLICT",
         });
-        return;
       }
 
       this.emitFile({

@@ -332,10 +332,6 @@ function toPlain(value: Value): unknown {
   return null;
 }
 
-export function hasFunction(name: string): boolean {
-  return Object.prototype.hasOwnProperty.call(FUNCTIONS, name);
-}
-
 export function callFunction(
   name: string,
   args: Value[],

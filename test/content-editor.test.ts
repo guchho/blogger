@@ -141,6 +141,21 @@ test("page editor omits post-only fields", async () => {
   });
 });
 
+test("new editor screens are deterministic across rebuilds", async () => {
+  await withContentRoot(async (paths) => {
+    const snapshot = await snapshotWithContent(paths);
+    const first = screens(snapshot);
+    const second = screens(snapshot);
+    for (const file of ["dashboard-post-new.html", "dashboard-page-new.html"]) {
+      const a = first.find((screen) => screen.file === file);
+      const b = second.find((screen) => screen.file === file);
+      assert.ok(a);
+      assert.ok(b);
+      assert.equal(a.html, b.html, file);
+    }
+  });
+});
+
 test("editor markup escapes JSON and visible values", () => {
   const html = contentEditorMarkup({
     kind: "post",
