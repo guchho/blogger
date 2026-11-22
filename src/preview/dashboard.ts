@@ -262,10 +262,55 @@ h2{margin:0 0 14px;font-size:17px;letter-spacing:-.01em}
 .layout-editor-check{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px}
 .layout-editor-check input{width:16px;height:16px;accent-color:var(--accent)}
 .layout-editor-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin:0;padding:14px 20px 18px;border-top:1px solid var(--line-soft);background:#fafbfc}
+.editor-toolbars{position:sticky;top:0;z-index:6;margin:-2px -2px 12px;padding:8px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.97);box-shadow:0 1px 2px rgba(15,23,42,.06);backdrop-filter:blur(6px)}
+.editor-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.editor-toolbar+.editor-toolbar{margin-top:6px;padding-top:6px;border-top:1px solid var(--line-soft)}
+.editor-tool-group{display:flex;align-items:center;gap:2px}
+.editor-tool{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:30px;height:30px;padding:0 6px;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.editor-tool svg{display:block;flex:none}
+.editor-tool:hover:not(:disabled),.editor-tool.active{background:#e8f0fe;border-color:#c6dafc;color:var(--accent);text-decoration:none}
+.editor-tool:focus-visible,.editor-select:focus-visible,.editor-color input:focus-visible{outline:2px solid #8ab4f8;outline-offset:1px}
+.editor-tool:disabled{opacity:.4;cursor:default}
+.editor-view-button{min-width:58px;font-size:12px;font-weight:600}
+.editor-separator{width:1px;height:20px;margin:0 5px;background:var(--line)}
+.editor-select{height:30px;max-width:160px;padding:0 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink);font:inherit;font-size:12px}
+.editor-select-size{width:66px}
+.editor-color{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer;overflow:hidden}
+.editor-color input{position:absolute;right:2px;bottom:1px;left:2px;width:calc(100% - 4px);height:5px;padding:0;border:0;background:transparent;cursor:pointer}
+.editor-color-letter{font-size:13px;font-weight:700;line-height:1}
+.editor-color-highlight{background:linear-gradient(transparent 60%,#fff3b0 60%)}
+.editor-menu{position:relative}
+.editor-menu-button>svg:last-child{width:12px;height:12px;opacity:.7}
+.editor-menu-list{position:absolute;z-index:20;top:calc(100% + 4px);left:0;min-width:190px;max-height:300px;overflow:auto;padding:5px;border:1px solid var(--line);border-radius:7px;background:var(--panel);box-shadow:var(--shadow)}
+.editor-menu-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:5px;background:transparent;color:var(--ink);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.editor-menu-item:hover,.editor-menu-item:focus-visible{background:#e8f0fe;color:var(--accent)}
+.editor-menu-item small{margin-left:auto;color:var(--muted);font-size:10px}
+.editor-heading-sample{font-size:12px}
+.editor-heading-h1{font-size:18px;font-weight:700}
+.editor-heading-h2{font-size:16px;font-weight:700}
+.editor-heading-h3{font-size:14px;font-weight:700}
+.editor-heading-h4,.editor-heading-p,.editor-heading-div{font-size:12px}
+.editor-symbol{font-size:16px}
+.editor-body-panel{min-height:360px;outline:none;line-height:1.7}
+.editor-body-panel:focus{border-color:#b8d3ff;box-shadow:0 0 0 3px rgba(26,115,232,.12)}
+.editor-body-panel img{max-width:100%;height:auto}
+.editor-body-panel iframe{max-width:100%;border:1px solid var(--line);border-radius:6px}
+.editor-source{min-height:360px;margin:0;font:12px/1.6 ui-monospace,SFMono-Regular,monospace}
+[data-editor-view="html"] .editor-body-panel{display:none}
+.editor-dialog{width:min(480px,calc(100vw - 32px));padding:0;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px rgba(15,23,42,.24);overflow:hidden}
+.editor-dialog::backdrop{background:rgba(15,23,42,.5)}
+.editor-dialog h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line-soft);background:#fafbfc;font-size:17px}
+.editor-dialog-fields{padding:16px 18px 4px}
+.editor-dialog-field{display:block;margin-bottom:12px;color:var(--muted);font-size:12px;font-weight:600}
+.editor-dialog-field span{display:block;margin-bottom:5px}
+.editor-dialog-field input,.editor-dialog-field textarea{width:100%;margin:0;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:inherit;background:var(--panel);color:var(--ink)}
+.editor-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin:0;padding:14px 18px 18px;border-top:1px solid var(--line-soft);background:#fafbfc}
 [hidden]{display:none!important}
 @media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 @media(max-width:760px){.layout,.layout[data-screen="layout"]{display:block;grid-template-columns:1fr}.sidebar,.layout[data-screen="layout"] .sidebar,.layout[data-nav="closed"] .sidebar{position:fixed;z-index:30;top:56px;bottom:0;left:0;width:min(280px,82vw);height:auto;padding:18px 12px;border-right:1px solid var(--line);border-bottom:0;box-shadow:var(--shadow);transform:translateX(-100%);transition:transform .2s ease}.layout[data-nav="open"] .sidebar{transform:none}.layout[data-nav="open"] .nav-backdrop{display:block;position:fixed;z-index:29;inset:56px 0 0;background:rgba(15,23,42,.4)}.stats{grid-template-columns:1fr}.page-head{display:block}.page-head-actions{margin-top:14px;flex-wrap:wrap}.kpi-grid,.stats{grid-template-columns:1fr}.route-grid{grid-template-columns:1fr 1fr}.layout[data-screen="layout"] .content{padding:22px 16px}.layout[data-screen="layout"] .topbar{padding:0 14px}}
+@media(max-width:900px){.editor-toolbars{position:static}.editor-select{max-width:130px}}
+@media(max-width:760px){.editor-toolbar{gap:3px}.editor-tool{height:34px}.editor-select-size{width:58px}.editor-separator{margin:0 2px}.editor-menu-list{position:fixed;left:12px;right:12px;top:auto;max-height:50vh}.editor-body-panel,.editor-source{min-height:300px}}
 `;
 
 interface NavEntry {

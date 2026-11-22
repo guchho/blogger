@@ -428,7 +428,7 @@ export class TemplateRenderer {
     const thisData = this.buildWidgetData(id, type, title, settings);
     thisData["posts"] = this.data["posts"] ?? [];
     thisData["labels"] = this.data["labels"] ?? [];
-    const bindings: ValueMap = { ...thisData, this: thisData, title };
+    const bindings: ValueMap = { ...thisData, this: thisData, widget: thisData, title };
     const widgetScope = scope.child(bindings);
     const includables = this.collectIncludables(element);
     const env: RenderEnv = { includables, widgetType: type };

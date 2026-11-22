@@ -116,6 +116,15 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
     options.content === undefined
       ? mockPosts()
       : scenarios.flatMap((scenario) => {
+          const view = scenario.data["view"];
+          if (
+            view !== null &&
+            typeof view === "object" &&
+            !Array.isArray(view) &&
+            (view as ValueMap)["isPage"] === true
+          ) {
+            return [];
+          }
           const post = scenario.data["post"];
           return post !== null && typeof post === "object" && !Array.isArray(post)
             ? [post as ValueMap]

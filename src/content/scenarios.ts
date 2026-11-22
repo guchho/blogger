@@ -125,7 +125,7 @@ export function buildContentScenarios(
       file: `page-${page.slug}.html`,
       route: routeOf(canonical),
       title: page.title,
-      data: base("static_page", canonical, [], undefined, value),
+      data: base("static_page", canonical, [value], value, value),
     });
   }
 

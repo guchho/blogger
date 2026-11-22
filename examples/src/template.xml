@@ -802,12 +802,11 @@ body#layout #outer-wrapper,body#layout .row{ width:auto; padding:0 } body#layout
                 <b:if cond='data:view.isHomepage'>
                   <h3 class='home-title'><span><data:messages.recentPosts/></span></h3>
                 </b:if>
-                <b:tag class='grid-posts' cond='data:view.isMultipleItems' name='div'>
-                  <b:loop index='i' values='data:posts' var='post'>
-                    <b:include data='post' name='postMeta'/>
-                    <b:include data='post' name='postCommentsAndAd'/>
-                  </b:loop>
-                </b:tag>
+                <b:class cond='data:view.isMultipleItems' name='grid-posts'/>
+                <b:loop index='i' values='data:posts' var='post'>
+                  <b:include data='post' name='postMeta'/>
+                  <b:include data='post' name='postCommentsAndAd'/>
+                </b:loop>
               </div>
               <b:include cond='data:view.isMultipleItems' name='indexBlogPager'/>
               <b:include name='feedLinks'/>

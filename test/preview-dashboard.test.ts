@@ -350,6 +350,8 @@ test("Layout payload carries nested structure for the Blogger layout renderer", 
   assert.match(screen.html, /page\.className = 'blogger-layout-page'/);
   assert.match(screen.html, /body#layout\.blogger-layout-page #content-wrapper/);
   assert.match(screen.html, /body#layout\.blogger-layout-page \.le-widget\{position:relative;display:block!important/);
+  assert.match(screen.html, /\.le-widget\{position:relative;display:block!important;float:none!important/);
+  assert.match(screen.html, /\.widget-content\.visibility\{display:flex!important;align-items:center;flex-wrap:nowrap/);
   assert.equal(screen.html.includes("Page structure"), false);
 });
 

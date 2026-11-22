@@ -29,6 +29,12 @@ const TEMPLATE = `<html><body>
 </b:section>
 </body></html>`;
 
+const POST_ONLY_TEMPLATE = `<html><body>
+<b:section id='main'><b:widget id='Blog1' type='Blog'>
+<b:includable id='main'><b:loop values='data:posts' var='post'>
+<article class='post'><h2><data:post.title/></h2><div class='body'><data:post.body/></div></article>
+</b:loop></b:includable></b:widget></b:section></body></html>`;
+
 async function seed(paths: Parameters<typeof loadContent>[0]) {
   const posts = createPostRepository(paths);
   const pages = createPageRepository(paths);
@@ -79,6 +85,27 @@ test("CMS content renders through the Blogger template", async () => {
     assert.ok(page);
     assert.match(post.html, /Real CMS Post/);
     assert.match(page.html, /About from JSON/);
+  });
+});
+
+test("static pages expose title and body as data:post without entering the feed", async () => {
+  await withContentRoot(async (paths) => {
+    const snapshot = await seed(paths);
+    const result = buildPreview({
+      entryPath: "template.xml",
+      xml: POST_ONLY_TEMPLATE,
+      banner: true,
+      dashboard: false,
+      content: snapshot,
+      contentOptions: { baseUrl: "https://example.com/", sanitize: true },
+    });
+    const page = result.pages.find((candidate) => candidate.route === "/p/real-about.html");
+    assert.ok(page);
+    assert.match(page.html, /<h2>Real About Page<\/h2><div class="body"><p>About from JSON<\/p>/);
+    const feed = /var all=(\[.*?\]);/.exec(page.html);
+    assert.ok(feed);
+    const entries = JSON.parse(feed[1] as string) as Array<{ title: { $t: string } }>;
+    assert.equal(entries.some((entry) => entry.title.$t === "Real About Page"), false);
   });
 });
 

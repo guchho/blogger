@@ -24,3 +24,19 @@ test("scripts, handlers and unsafe URLs are removed", () => {
   assert.equal(clean.includes("<strong>"), false);
   assert.match(clean, /^<p>Hi/);
 });
+
+test("editor formatting styles and trusted video embeds survive sanitization", () => {
+  const html =
+    '<p style="color:#ff0000;background-color:rgb(255,255,0);text-align:center">Hi</p>' +
+    '<iframe src="https://www.youtube.com/embed/abc123" width="640" allowfullscreen loading="lazy"></iframe>';
+  assert.equal(
+    sanitizeHtml(html),
+    '<p style="color:#ff0000;background-color:rgb(255,255,0);text-align:center">Hi</p>' +
+    '<iframe src="https://www.youtube.com/embed/abc123" width="640" allowfullscreen="" loading="lazy"></iframe>'
+  );
+});
+
+test("unsafe CSS is dropped while safe declarations remain", () => {
+  const html = '<p style="color:expression(alert(1));background-color:url(javascript:alert(1));color:red">Hi</p>';
+  assert.equal(sanitizeHtml(html), '<p style="color:red">Hi</p>');
+});
