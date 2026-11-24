@@ -19,6 +19,7 @@ export interface SaveServiceOptions {
   projectRoot: string;
   port: number;
   contentPaths?: ContentPaths;
+  allowedWidgetTypes?: string[];
 }
 
 export interface SaveServiceHandle {
@@ -248,7 +249,7 @@ async function handleSave(
       );
       return;
     }
-    const result = serializeLayout(source, operations, entry);
+    const result = serializeLayout(source, operations, entry, options.allowedWidgetTypes ?? []);
     if (result.xml === source) {
       sendJson(response, 200, { hash: currentHash, unchanged: true }, origin);
       return;

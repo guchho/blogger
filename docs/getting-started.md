@@ -74,8 +74,8 @@ npx guchho dev
 Watch mode:
 
 - compiles `src/template.xml` into `dist/template.xml`,
-- writes preview pages to `dist/preview/` and route-shaped copies to the output
-  root,
+- writes preview pages and layout CSS to `dist/preview/` and route-shaped copies
+  to the output root,
 - starts the local dashboard and save service when the dashboard is enabled,
 - watches template, content and data files for changes.
 

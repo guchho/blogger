@@ -3,7 +3,7 @@ import { PREVIEW_FAVICON } from "../data/metadata.js";
 import { readFileSync } from "node:fs";
 
 const WIDGET_SHOWCASE_SCRIPT = readFileSync(
-  new URL("../../scripts/widget-showcase-script.js", import.meta.url),
+  new URL("../../scripts/widget-showcase.js", import.meta.url),
   "utf8"
 );
 import type { WidgetRegistry } from "./widgets.js";

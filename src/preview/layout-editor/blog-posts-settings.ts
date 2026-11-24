@@ -1,4 +1,7 @@
 import {
+  BLOG_POSTS_ADS_DEFAULTS,
+  BLOG_POSTS_ADS_FORMATS,
+  BLOG_POSTS_ADS_SETTING,
   BLOG_POSTS_DATE_FORMAT_VALUES,
   BLOG_POSTS_DATE_FORMATS,
   BLOG_POSTS_DEFAULT_SETTINGS,
@@ -36,6 +39,11 @@ export const BLOG_POSTS_FIELD_IDS = {
   showLocation: "le-blog-show-location",
   showAuthorProfile: "le-blog-show-author-profile",
   items: "le-blog-items",
+  showAds: "le-blog-show-ads",
+  adsSettingsField: "le-blog-ads-settings-field",
+  postsPerAd: "le-blog-posts-per-ad",
+  adFormat: "le-blog-ad-format",
+  adFormatField: "le-blog-ad-format-field",
 } as const;
 
 export const BLOG_POSTS_CLIENT_CONFIG = {
@@ -46,7 +54,9 @@ export const BLOG_POSTS_CLIENT_CONFIG = {
   dateFormatValues: BLOG_POSTS_DATE_FORMAT_VALUES,
   fields: BLOG_POSTS_FIELD_IDS,
   setting: BLOG_POSTS_SETTING,
-  defaults: BLOG_POSTS_DEFAULT_SETTINGS,
+  defaults: { ...BLOG_POSTS_DEFAULT_SETTINGS, ...BLOG_POSTS_ADS_DEFAULTS },
+  adsSetting: BLOG_POSTS_ADS_SETTING,
+  adFormats: BLOG_POSTS_ADS_FORMATS,
   items: BLOG_POSTS_ITEMS,
 } as const;
 
@@ -124,6 +134,22 @@ export function blogPostsSettingsMarkup(): string {
     toggle(ids.showLocation, "Show location") +
     toggle(ids.showAuthorProfile, "Show author profile");
 
+  const ads =
+    toggle(ids.showAds, "Show ads between posts") +
+    `<div class="le-settings-dependent" id="${ids.adsSettingsField}" hidden>` +
+    `<p class="le-settings-hint">AdSense account settings are configured in Blogger and are not available in this preview.</p>` +
+    field(
+      "Number of posts between ads",
+      `<input class="field" id="${ids.postsPerAd}" type="number" min="1" max="10" step="1">`
+    ) +
+    field(
+      "Ad format",
+      `<select class="field" id="${ids.adFormat}">${BLOG_POSTS_ADS_FORMATS.map(
+        (format) => `<option value="${escapeHtml(format.value)}">${escapeHtml(format.label)}</option>`
+      ).join("")}</select>`
+    ) +
+    `</div>`;
+
   const arrange = `<p class="le-settings-hint">Drag the items to arrange how they appear with each post.</p>` +
     `<ul class="le-blog-items" id="${ids.items}">${BLOG_POSTS_ITEMS.map(
       (item) =>
@@ -138,6 +164,7 @@ export function blogPostsSettingsMarkup(): string {
     group("General", general) +
     group("Post Information", postInformation) +
     group("Engagement", engagement) +
+    group("Ads", ads) +
     group("Arrange Items", arrange)
   );
 }

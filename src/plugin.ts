@@ -204,6 +204,7 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
             projectRoot: process.cwd(),
             port: layoutSavePort,
             contentPaths: state.contentPaths,
+            allowedWidgetTypes: Object.keys(options.widgets ?? {}),
           });
         } catch (error) {
           this.warn({
@@ -622,6 +623,24 @@ function emitPreview(
         ? asset.file
         : `${options.previewDir}/${asset.file}`;
     emitPreviewFile(context, emitted, flat, asset.source, false);
+    if (asset.route === undefined) continue;
+
+    let routeFile: string;
+    try {
+      routeFile = previewRouteFile(asset.route);
+    } catch (error) {
+      context.warn({
+        message: `Blogger preview route "${asset.route}" was skipped: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        id: options.entryPath,
+        code: "BLOGGER_PREVIEW_ROUTE_INVALID",
+      });
+      continue;
+    }
+    if (routeFile !== flat) {
+      emitPreviewFile(context, emitted, routeFile, asset.source, false);
+    }
   }
 }
 

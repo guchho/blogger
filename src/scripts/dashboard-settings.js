@@ -1,7 +1,16 @@
-import { DEFAULT_FAVICON_URL } from "../defaults.js";
-
-export const DASHBOARD_SETTINGS_SCRIPT = `(function () {
+(function () {
   'use strict';
+  var defaultFaviconUrl = '';
+  var settingsPayload = document.getElementById('dashboard-settings-payload');
+  if (settingsPayload) {
+    try {
+      defaultFaviconUrl = JSON.parse(settingsPayload.textContent || '{}').faviconUrl || '';
+    } catch (error) {}
+  }
+  if (!defaultFaviconUrl) {
+    var icon = document.querySelector('link[rel="icon"]');
+    defaultFaviconUrl = icon ? icon.getAttribute('href') || '' : '';
+  }
   var storageKey = 'guchho-preview-settings-v1';
   var fields = [
     'settings-title',
@@ -56,9 +65,9 @@ export const DASHBOARD_SETTINGS_SCRIPT = `(function () {
 
   function faviconSrc(value) {
     var source = String(value === null || value === undefined ? '' : value).trim();
-    if (!source) return ${JSON.stringify(DEFAULT_FAVICON_URL)};
-    if (/^(data:image\\/(png|jpeg|gif|webp|svg\\+xml);|https?:\\/\\/|\\/)/i.test(source)) return source;
-    return '/' + source.replace(/^\\.\\//, '');
+    if (!source) return defaultFaviconUrl;
+    if (/^(data:image\/(png|jpeg|gif|webp|svg\+xml);|https?:\/\/|\/)/i.test(source)) return source;
+    return '/' + source.replace(/^\.\//, '');
   }
 
   function setStatus(text, state) {
@@ -146,7 +155,7 @@ export const DASHBOARD_SETTINGS_SCRIPT = `(function () {
     file.addEventListener('change', function () {
       var image = file.files && file.files[0];
       if (!image) return;
-      if (!/^image\\//.test(image.type)) {
+      if (!/^image\//.test(image.type)) {
         setStatus('Choose an image file', 'error');
         return;
       }
@@ -181,4 +190,4 @@ export const DASHBOARD_SETTINGS_SCRIPT = `(function () {
   applyToForm();
   updatePreview();
   if (Object.keys(saved).length > 0) setStatus('Saved draft loaded', 'saved');
-})();`;
+})();

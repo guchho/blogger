@@ -310,6 +310,24 @@ test("CLI dev and watch commands emit preview pages without meta.watchMode", asy
   }
 });
 
+test("layout CSS assets are emitted at their preview routes", async () => {
+  const original = process.argv;
+  try {
+    process.argv = [...original.slice(0, 2), "dev"];
+    const plugin = blogger({ entry: ENTRY, minify: false });
+    const { emitted } = await buildBundle(plugin);
+    for (const name of ["skin.css", "template-skin.css"]) {
+      const flat = emitted.find((file) => file.fileName === `preview/layout/${name}`);
+      const route = emitted.find((file) => file.fileName === `__preview/layout/${name}`);
+      assert.ok(flat, `${name} should be emitted under the preview directory`);
+      assert.ok(route, `${name} should be emitted at its preview route`);
+      assert.equal(route.source, flat.source);
+    }
+  } finally {
+    process.argv = original;
+  }
+});
+
 test("previewDashboard false suppresses dashboard emission", async () => {
   const original = process.argv;
   try {

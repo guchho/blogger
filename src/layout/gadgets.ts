@@ -1,5 +1,16 @@
 import { builtinWidgetTypes } from "../preview/render/widgets.js";
-import { BLOG_POSTS_DEFAULT_SETTINGS, BLOG_POSTS_ITEM_IDS, BLOG_POSTS_SETTING } from "./blog-posts.js";
+import {
+  BLOG_POSTS_ADS_DEFAULTS,
+  BLOG_POSTS_ADS_FORMATS,
+  BLOG_POSTS_ADS_SETTING,
+  BLOG_POSTS_DEFAULT_SETTINGS,
+  BLOG_POSTS_ITEM_IDS,
+  BLOG_POSTS_SETTING,
+} from "./blog-posts.js";
+import { LINKLIST_DEFINITION } from "./linklist/schema.js";
+import { normalizeLinkListSettings } from "./linklist/serialization.js";
+import { validateLinkListSettings } from "./linklist/validation.js";
+import { LINKLIST_WIDGET_TYPE } from "./linklist/types.js";
 
 export type GadgetFieldKind = "text" | "number" | "textarea" | "checkbox" | "toggle" | "radio" | "select" | "url" | "color" | "image" | "multi" | "custom";
 
@@ -24,7 +35,7 @@ export interface GadgetFieldSchema {
   itemOrder?: readonly string[];
 }
 export interface GadgetSectionSchema { id: string; label: string; description?: string; fields: GadgetFieldSchema[]; }
-export interface GadgetCapabilities { configurable: boolean; duplicable: boolean; removable: boolean; movable: boolean; canHide: boolean; maxInstances?: number; }
+export interface GadgetCapabilities { configurable: boolean; duplicable: boolean; removable: boolean; movable: boolean; canHide: boolean; maxInstances?: number; allowedSectionIds?: string[]; }
 export interface GadgetDefinition {
   type: string;
   label: string;
@@ -91,17 +102,18 @@ const BLOG_POSTS_DEFINITION = def("Blog", "Blog Posts", "Content", "Displays blo
     toggle(BLOG_POSTS_SETTING.showAuthorProfile, "Show author profile", undefined, BLOG_POSTS_DEFAULT_SETTINGS[BLOG_POSTS_SETTING.showAuthorProfile]),
   ]},
   { id: "ads", label: "Ads", description: "AdSense configuration is not available in local preview; settings are preserved for Blogger.", fields: [
-    toggle("showAdsBetweenPosts", "Show ads between posts", "Requires AdSense configuration in Blogger.", "false"),
-    number("postsPerAd", "Number of posts between ads", { min: 1, max: 10, step: 1, defaultValue: "1", showIf: { key: "showAdsBetweenPosts", equals: "true" } }),
-    select("adFormat", "Ad format", [{ value: "recommended", label: "Recommended" }, { value: "horizontal", label: "Horizontal" }, { value: "vertical", label: "Vertical" }, { value: "square", label: "Square" }, { value: "responsive", label: "Responsive" }], { defaultValue: "recommended", showIf: { key: "showAdsBetweenPosts", equals: "true" } }),
+    toggle(BLOG_POSTS_ADS_SETTING.showAdsBetweenPosts, "Show ads between posts", "Requires AdSense configuration in Blogger.", BLOG_POSTS_ADS_DEFAULTS[BLOG_POSTS_ADS_SETTING.showAdsBetweenPosts]),
+    number(BLOG_POSTS_ADS_SETTING.postsPerAd, "Number of posts between ads", { min: 1, max: 10, step: 1, defaultValue: BLOG_POSTS_ADS_DEFAULTS[BLOG_POSTS_ADS_SETTING.postsPerAd], showIf: { key: BLOG_POSTS_ADS_SETTING.showAdsBetweenPosts, equals: "true" } }),
+    select(BLOG_POSTS_ADS_SETTING.adFormat, "Ad format", BLOG_POSTS_ADS_FORMATS.map((format) => ({ value: format.value, label: format.label })), { defaultValue: BLOG_POSTS_ADS_DEFAULTS[BLOG_POSTS_ADS_SETTING.adFormat], showIf: { key: BLOG_POSTS_ADS_SETTING.showAdsBetweenPosts, equals: "true" } }),
   ]},
   { id: "arrange", label: "Arrange Items", fields: [
     { kind: "multi", key: BLOG_POSTS_SETTING.postItemOrder, label: "Post item order", description: "Drag to reorder supported post elements.", defaultValue: BLOG_POSTS_DEFAULT_SETTINGS[BLOG_POSTS_SETTING.postItemOrder], itemOrder: BLOG_POSTS_ITEM_IDS },
   ]},
-], { maxInstances: 1, duplicable: false }, { ...BLOG_POSTS_DEFAULT_SETTINGS, showAdsBetweenPosts: "false", postsPerAd: "1", adFormat: "recommended", showWidget: "true" });
+], { maxInstances: 1, duplicable: false }, { ...BLOG_POSTS_DEFAULT_SETTINGS, ...BLOG_POSTS_ADS_DEFAULTS, showWidget: "true" });
 
 const DEFINITIONS: GadgetDefinition[] = [
   BLOG_POSTS_DEFINITION,
+  LINKLIST_DEFINITION,
   def("Header", "Header", "Branding", "Shows your blog title, description, and optional logo.", "header", "full", [
     { id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" }), textarea("description", "Description", { rows: 3, defaultValue: "" }), url("displayUrl", "Image URL", { placeholder: "https://example.com/logo.png", description: "Logo image shown in preview when available." })] },
   ], { maxInstances: 1, duplicable: false }),
@@ -116,7 +128,6 @@ const DEFINITIONS: GadgetDefinition[] = [
   def("HTML", "HTML/JavaScript", "Utilities", "Add custom HTML or JavaScript content.", "code", "full", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" }), textarea("content", "Content", { rows: 10, description: "HTML or JavaScript content. Scripts may be restricted in preview.", defaultValue: "" })] }]),
   def("Text", "Text", "Utilities", "Add plain or formatted text content.", "text", "full", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" }), textarea("content", "Content", { rows: 8, defaultValue: "" })] }]),
   def("Image", "Image", "Branding", "Displays an image with optional caption and link.", "image", "full", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" }), url("sourceUrl", "Image URL", { placeholder: "https://example.com/image.jpg" }), text("altText", "Alt text", { defaultValue: "" }), text("caption", "Caption", { defaultValue: "" }), url("link", "Link URL", { defaultValue: "" })] }]),
-  def("LinkList", "Link List", "Navigation", "Shows a list of custom links.", "link", "full", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Links" }), textarea("links", "Links", { rows: 8, description: "One link per line: Label | https://example.com", defaultValue: "" })] }]),
   def("Profile", "Profile", "Branding", "Shows author/profile information.", "profile", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "About Me" })] }]),
   def("Subscribe", "Subscribe", "Community", "Provides subscription options.", "subscribe", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Subscribe" })] }]),
   def("Followers", "Followers", "Community", "Shows followers information.", "followers", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Followers" })] }], { maxInstances: 1 }),
@@ -124,7 +135,7 @@ const DEFINITIONS: GadgetDefinition[] = [
   def("Translate", "Translate", "Utilities", "Lets visitors translate your blog.", "translate", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Translate" })] }], { maxInstances: 1 }),
   def("ReportAbuse", "Report Abuse", "Community", "Shows a report abuse link.", "report", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Report Abuse" })] }], { maxInstances: 1 }),
   def("ContactForm", "Contact Form", "Community", "Adds a contact form for readers.", "contact", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "Contact Form" })] }], { maxInstances: 1 }),
-  def("Attribution", "Attribution", "Branding", "Shows attribution/powered-by information.", "attribution", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" })] }], { maxInstances: 1, removable: false, duplicable: false }),
+  def("Attribution", "Attribution", "Branding", "Shows attribution/powered-by information.", "attribution", "partial", [{ id: "general", label: "General", fields: [text("title", "Title", { defaultValue: "" })] }], { maxInstances: 1, removable: false, duplicable: false, movable: false, canHide: false }),
 ];
 
 const DEFS_BY_TYPE = new Map(DEFINITIONS.map((d) => [d.type, d]));
@@ -151,6 +162,7 @@ function isFieldVisible(field: GadgetFieldSchema, values: Record<string, string>
 }
 
 export function normalizeGadgetSettings(type: string, settings: Readonly<Record<string, string>> = {}): Record<string, string> {
+  if (type === LINKLIST_WIDGET_TYPE) return normalizeLinkListSettings(settings);
   const defn = getGadgetDefinition(type);
   if (!defn) return { ...settings };
   const out: Record<string, string> = { ...settings };
@@ -182,6 +194,7 @@ export function normalizeGadgetSettings(type: string, settings: Readonly<Record<
 }
 
 export function validateGadgetSettings(type: string, settings: Readonly<Record<string, string>> = {}): GadgetValidationIssue[] {
+  if (type === LINKLIST_WIDGET_TYPE) return validateLinkListSettings(settings);
   const defn = getGadgetDefinition(type);
   if (!defn) return [];
   const normalized = normalizeGadgetSettings(type, settings);
@@ -198,7 +211,7 @@ export function validateGadgetSettings(type: string, settings: Readonly<Record<s
         if (field.max !== undefined && n > field.max) issues.push({ key: field.key, message: `${field.label} must be at most ${field.max}.` });
       }
     }
-    if (field.kind === "url" && value) {
+    if ((field.kind === "url" || field.kind === "image") && value) {
       try { new URL(value); } catch { if (!value.startsWith("/") && !value.startsWith("#")) issues.push({ key: field.key, message: `${field.label} must be a valid URL.` }); }
     }
     if ((field.kind === "select" || field.kind === "radio") && field.options && value && !field.options.some((o) => o.value === value))

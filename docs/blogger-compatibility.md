@@ -199,7 +199,7 @@ fallback exists so a bare `<b:widget type="...">` still renders.
 | `FollowByEmail` | `messages.emailAddress`, `messages.subscribe` |
 | `HTML`, `Text` | `content` |
 | `Image` | `sourceUrl`, `link`, `width`, `height`, `altText`, `caption` |
-| `LinkList` | `links` (also expanded from `text-N` / `link-N` settings) |
+| `LinkList` | `links` (expanded from native `sorting`, `shownum`, `text-N` / `link-N` settings) |
 | `Profile` | `team` |
 | `Subscribe` | `feedUrl` |
 | `Followers` | `totalCount` |
@@ -213,7 +213,8 @@ Every widget also receives `type`, `id`, `title`, `instanceId`,
 `allBylineItems`, `headerByline`, `footerBylines`, `messages`, `sharing`,
 `postDisplay`, `links`, `image`, `height`, `width`, `imagePlacement`,
 `sourceUrl`, `description`, `style`, `display`, `showFreqNumbers` and its
-`b:widget-settings` values. LinkList settings are expanded with `expandLinks`.
+`b:widget-settings` values. LinkList settings are expanded with `expandLinks`,
+including alphabetical/reverse sorting and the `shownum` display limit.
 
 Widgets also appear in `data:widgets`, which is an array that additionally
 carries one key per widget type, so `data:widgets.Blog.first` works like

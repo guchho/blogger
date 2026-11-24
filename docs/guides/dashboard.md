@@ -64,15 +64,25 @@ The Layout screen is distinct from the Blog Preview. It reads sections, widgets
 and CSS from the real `template.xml`, renders widgets into a Shadow DOM canvas
 using the template's own styles, and supports:
 
-- adding widgets,
-- editing widget settings,
-- removing widgets,
-- reordering widgets within a section,
-- moving widgets between sections.
+- browsing a gadget catalog with search, category and support filters,
+- adding gadgets directly or after schema-driven configuration,
+- editing gadget settings, including all Blog Posts general, post information,
+  engagement, ads and item-order options,
+- editing LinkList gadgets with native General/Links/Advanced settings, a
+  `One link per line: Label | URL` textarea, title, visibility, `Sort links` and
+  `Show` fields,
+- collapsing and removing gadgets where supported,
+- reordering within a section and moving between sections by drag.
 
-Section limits and locked widgets are enforced. Changes are serialized back
-into the pristine entry XML; unsupported elements, attributes and formatting are
-preserved.
+The catalog labels each gadget as full support, partial or unsupported and
+disables options that violate instance limits, section compatibility or section
+capacity. Locked gadgets keep their identity and settings editable, but cannot
+be removed or dragged. Unknown `<b:widget-setting>` keys survive
+edits. LinkList saves write native `sorting`, `shownum`, `text-N` and `link-N`
+settings; removing a link also removes its numbered settings. Legacy `links`
+textarea settings are migrated to numbered settings. Changes are serialized back
+into the pristine entry XML; unsupported elements, attributes and formatting
+are preserved.
 
 Each save:
 
@@ -81,7 +91,10 @@ Each save:
 3. validates the resulting XML,
 4. atomically replaces the entry file.
 
-A conflicting external edit returns `BLOGGER_LAYOUT_STALE`.
+A conflicting external edit returns `BLOGGER_LAYOUT_STALE`. Invalid gadget
+operations use `BLOGGER_LAYOUT_SETTING_INVALID`,
+`BLOGGER_LAYOUT_CAPABILITY_UNSUPPORTED`, `BLOGGER_LAYOUT_SECTION_INCOMPATIBLE`,
+`BLOGGER_LAYOUT_MAX_INSTANCES` or `BLOGGER_LAYOUT_DUPLICATE_UNSUPPORTED`.
 
 ## Save service
 

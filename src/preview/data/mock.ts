@@ -19,6 +19,11 @@ import {
   skinData,
   SHARING_PLATFORMS,
 } from "./metadata.js";
+import { linkListSortName } from "../../layout/linklist/serialization.js";
+import {
+  LINKLIST_SETTING,
+  LINKLIST_SORTING,
+} from "../../layout/linklist/types.js";
 
 const IMAGE = (id: number, size = 1600): string =>
   previewImage(`Post ${id}`, size, (id * 47 + 190) % 360);
@@ -378,7 +383,7 @@ export function expandLinks(settings: ValueMap): ValueMap[] {
     const match = /^(?:text|link)-(\d+)$/.exec(key);
     if (match) indices.add(Number.parseInt(match[1] as string, 10));
   }
-  return [...indices]
+  const links = [...indices]
     .sort((a, b) => a - b)
     .map((index) => {
       const rawText = settings[`text-${index}`];
@@ -389,6 +394,19 @@ export function expandLinks(settings: ValueMap): ValueMap[] {
         target: typeof rawLink === "string" ? rawLink : "",
       };
     });
+  const sorting = settings[LINKLIST_SETTING.sorting];
+  if (sorting === LINKLIST_SORTING.alphabetical || sorting === LINKLIST_SORTING.reverseAlphabetical) {
+    const direction = sorting === LINKLIST_SORTING.reverseAlphabetical ? -1 : 1;
+    links.sort((left, right) => {
+      const a = linkListSortName((left.name as HtmlString).value);
+      const b = linkListSortName((right.name as HtmlString).value);
+      if (a < b) return -1 * direction;
+      if (a > b) return 1 * direction;
+      return 0;
+    });
+  }
+  const shownum = Number.parseInt(String(settings[LINKLIST_SETTING.shownum] ?? ""), 10);
+  return Number.isFinite(shownum) && shownum > 0 ? links.slice(0, shownum) : links;
 }
 
 export function mockWidgets(seeds: WidgetSeed[]): ValueMap[] {  const widgets = seeds.map((seed) => ({

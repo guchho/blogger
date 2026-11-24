@@ -166,6 +166,11 @@ test("settings editor script is valid JavaScript and scoped to settings", () => 
   );
   assert.ok(match);
   assert.doesNotThrow(() => new Script(match[1] as string));
+  const payloadMatch = /<script type="application\/json" id="dashboard-settings-payload">([\s\S]*?)<\/script>/.exec(
+    settings.html
+  );
+  assert.ok(payloadMatch);
+  assert.equal(JSON.parse(payloadMatch[1] as string).faviconUrl, PREVIEW_FAVICON);
   const overview = result.pages.find((item) => item.file === "dashboard.html");
   assert.ok(overview);
   assert.equal(overview.html.includes("settings-script"), false);
@@ -325,6 +330,10 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     result.assets.map((asset) => asset.file),
     ["layout/skin.css", "layout/template-skin.css"]
   );
+  assert.deepEqual(
+    result.assets.map((asset) => asset.route),
+    ["/__preview/layout/skin.css", "/__preview/layout/template-skin.css"]
+  );
   assert.match(assetSource(result, "layout/skin.css"), /\.from-skin\{content:"quoted" & more\}/);
   assert.equal(assetSource(result, "layout/template-skin.css").trim(), "");
   const screen = result.pages.find((item) => item.file === "dashboard-layout.html");
@@ -343,6 +352,12 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     "css-template.xml",
     "le-gadget-dialog",
     "le-blog-posts-dialog",
+    "le-linklist-dialog",
+    "le-linklist-links",
+    "One link per line: Label | https://example.com",
+    "le-linklist-advanced-title",
+    "le-linklist-locked",
+    "le-linklist-version",
     "Show this widget",
     "Number of posts on the main page",
     "Post page link text",
@@ -385,6 +400,7 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
   ]) {
     assert.ok(screen.html.includes(marker), `missing editor marker: ${marker}`);
   }
+  assert.equal(screen.html.includes("data-linklist-action"), false);
   assert.equal(screen.html.includes("Page structure"), false);
   assert.equal(screen.html.includes("layout-preview"), false);
   assert.equal(screen.html.includes("<iframe"), false);
@@ -495,10 +511,18 @@ test("Layout editor chrome is applied after template CSS", () => {
   assert.ok(screen);
   assert.match(
     screen.html,
-    /style\.textContent = \(model\.css\.style \|\| ''\) \+ '\\n' \+ "body#layout\.blogger-layout-page/
+    /style\.textContent = \(model\.css\.style \|\| ''\) \+ '\\n' \+ payload\.client\.editorCss/
   );
-  assert.ok(screen.html.includes("skin.href = '/__preview/layout/skin.css'"));
-  assert.ok(screen.html.includes("templateSkin.href = '/__preview/layout/template-skin.css'"));
+  assert.ok(screen.html.includes("skin.href = payload.client.skinCssUrl"));
+  assert.ok(screen.html.includes("templateSkin.href = payload.client.templateSkinCssUrl"));
+  const payloadMatch = /<script type="application\/json" id="layout-editor-payload"[^>]*>([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(payloadMatch);
+  const payload = JSON.parse(payloadMatch[1] as string);
+  assert.match(payload.client.editorCss, /^body#layout\.blogger-layout-page/);
+  assert.equal(payload.client.skinCssUrl, "/__preview/layout/skin.css");
+  assert.equal(payload.client.templateSkinCssUrl, "/__preview/layout/template-skin.css");
   assert.equal(screen.html.includes("function editorCss()"), false);
   const skinAppend = screen.html.indexOf("shadow.appendChild(skin)");
   const templateSkinAppend = screen.html.indexOf("shadow.appendChild(templateSkin)");

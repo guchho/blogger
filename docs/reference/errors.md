@@ -64,6 +64,14 @@ the current `hash`.
 | `BLOGGER_LAYOUT_INTERNAL` | Unexpected save-service failure. |
 | `BLOGGER_LAYOUT_SAVE_UNAVAILABLE` | Port could not be bound or reused by a matching service. |
 | `BLOGGER_LAYOUT_SAVE_STOP_FAILED` | Save service could not be closed cleanly. |
+| `BLOGGER_LAYOUT_WIDGET_TYPE_INVALID` | The gadget type is not built in or registered through `options.widgets`. |
+| `BLOGGER_LAYOUT_SETTING_INVALID` | Gadget configuration failed schema validation. |
+| `BLOGGER_LAYOUT_CAPABILITY_UNSUPPORTED` | The operation is not allowed for that gadget. |
+| `BLOGGER_LAYOUT_SECTION_INCOMPATIBLE` | The gadget cannot be placed in the target section. |
+| `BLOGGER_LAYOUT_MAX_INSTANCES` | Adding or duplicating the gadget would exceed its instance limit. |
+| `BLOGGER_LAYOUT_DUPLICATE_UNSUPPORTED` | The gadget type cannot be duplicated. |
+| `BLOGGER_LAYOUT_ADDELEMENT_DISABLED` | The target section does not allow adding gadgets. |
+| `BLOGGER_LAYOUT_LIMIT` | The target section has reached its `maxwidgets` limit. |
 
 ## Build and preview diagnostics
 

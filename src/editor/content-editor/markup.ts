@@ -4,7 +4,7 @@ import { escapeHtml } from "../../preview/values.js";
 import { readFileSync } from "node:fs";
 
 const CONTENT_EDITOR_SCRIPT = readFileSync(
-  new URL("../../scripts/content-editor-script.js", import.meta.url),
+  new URL("../../scripts/content-editor.js", import.meta.url),
   "utf8"
 );
 

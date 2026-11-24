@@ -447,6 +447,11 @@ body#layout.blogger-layout-page .le-widget.locked-widget {
   color: #1f2937
 }
 
+.le-btn:focus-visible,.le-add:focus-visible,.le-section-settings:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: 2px
+}
+
 .le-danger {
   color: #b42318
 }
@@ -539,6 +544,40 @@ body#layout.blogger-layout-page .le-widget.locked-widget {
 
 .le-drop-after {
   box-shadow: 0 3px 0 #3b82f6
+}
+
+.le-widget-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 0 12px 10px 42px;
+  color: #64748b;
+  font-size: 11px
+}
+
+.le-widget-detail[hidden] {
+  display: none
+}
+
+.le-widget-detail .le-gadget-card-badge {
+  padding: 1px 7px;
+  border: 1px solid #dbe3ee;
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase
+}
+
+.le-section.le-drop-active {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .12) !important
+}
+
+.le-section.le-drop-invalid {
+  border-color: #f97066 !important;
+  box-shadow: 0 0 0 3px rgba(217, 45, 32, .12) !important
 }
 
 .le-empty-state {

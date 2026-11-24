@@ -226,10 +226,16 @@ screen uses the same deterministic sample data as the theme previews; toolbar,
 editor and moderation controls are visual only and no data is sent anywhere.
 The Layout screen is a Blogger-style Layout Editor, not a Blog Preview. It
 reads sections, widgets and CSS from the real `template.xml`, renders widgets in
-a Shadow DOM canvas using the template's own styles, and supports adding,
-editing, removing, reordering and moving widgets. Section limits and locked
-widgets are enforced. Changes are serialized back into the pristine entry XML;
-unsupported elements, attributes and formatting are preserved.
+a Shadow DOM canvas using the template's own styles, and supports a gadget
+catalog with search/category/support filters, schema-driven configuration,
+edit, collapse, remove and drag reorder actions. LinkList gadgets use the native
+General/Links/Advanced editor with a one-link-per-line textarea, title,
+visibility, sorting and maximum displayed items. Gadget status,
+capability limits, section compatibility and lock rules
+are shown in the editor and enforced by the save service. Custom widget types
+registered through `options.widgets` appear in the catalog as partial-support
+gadgets. Changes are serialized back into the pristine entry XML; unknown
+settings, unsupported elements, attributes and formatting are preserved.
 
 During watch builds with the dashboard enabled, the plugin also starts a
 localhost save service on `layoutSavePort` (default `3001`). The editor sends

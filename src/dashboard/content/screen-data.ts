@@ -6,7 +6,7 @@ import { escapeHtml } from "../../preview/values.js";
 import { readFileSync } from "node:fs";
 
 const CONTENT_DASHBOARD_SCRIPT = readFileSync(
-  new URL("../../scripts/content-dashboard-script.js", import.meta.url),
+  new URL("../../scripts/content-dashboard.js", import.meta.url),
   "utf8"
 );
 

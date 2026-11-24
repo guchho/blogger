@@ -20,7 +20,7 @@ export default {
 | `outfile` | string | `template.xml` | Production XML path, relative to the output directory. Paths outside it are rejected. |
 | `minify` | boolean | `false` | Collapse insignificant XML whitespace while preserving raw-text elements. |
 | `mockData` | object or string | unset | Preview data overrides. Objects deep-merge; arrays replace. A string is a JSON fixture path relative to the project. |
-| `widgets` | object | unset | Custom preview widget definitions keyed by Blogger widget type. |
+| `widgets` | object | unset | Custom preview widget definitions keyed by Blogger widget type; also registered as partial-support Layout Editor catalog entries. |
 
 ## Preview options
 
@@ -97,7 +97,9 @@ export default {
 
 Custom widget `markup` may be a `<b:defaultmarkup>` fragment or one or more
 `<b:includable>` elements. The `data` object is merged into that widget's preview
-scope.
+scope. When the preview dashboard is enabled, each registered type is also
+offered in the Layout Editor's Add Gadget catalog as a partial-support gadget
+without a dedicated settings schema.
 
 ## Related references
 

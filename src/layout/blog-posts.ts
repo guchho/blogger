@@ -20,6 +20,26 @@ export const BLOG_POSTS_SETTING = {
   postItemOrder: "postItemOrder",
 } as const;
 
+export const BLOG_POSTS_ADS_SETTING = {
+  showAdsBetweenPosts: "showAdsBetweenPosts",
+  postsPerAd: "postsPerAd",
+  adFormat: "adFormat",
+} as const;
+
+export const BLOG_POSTS_ADS_DEFAULTS: Record<string, string> = {
+  [BLOG_POSTS_ADS_SETTING.showAdsBetweenPosts]: "false",
+  [BLOG_POSTS_ADS_SETTING.postsPerAd]: "1",
+  [BLOG_POSTS_ADS_SETTING.adFormat]: "recommended",
+};
+
+export const BLOG_POSTS_ADS_FORMATS = [
+  { value: "recommended", label: "Recommended" },
+  { value: "horizontal", label: "Horizontal" },
+  { value: "vertical", label: "Vertical" },
+  { value: "square", label: "Square" },
+  { value: "responsive", label: "Responsive" },
+] as const;
+
 export type BlogPostsSettingName =
   (typeof BLOG_POSTS_SETTING)[keyof typeof BLOG_POSTS_SETTING];
 

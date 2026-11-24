@@ -16,6 +16,15 @@ import { SourceFile } from "../xml/source.js";
 import { BLOG_POSTS_SETTING_NAMES, BLOG_POSTS_WIDGET_ID } from "./blog-posts.js";
 import { getGadgetDefinition, normalizeGadgetSettings, validateGadgetSettings } from "./gadgets.js";
 import {
+  isLinkListIndexedKey,
+  linkListWritableSettings,
+  normalizeLinkListSettings,
+  withoutLinkListIndexedSettings,
+} from "./linklist/serialization.js";
+import { sortLinkListLinks } from "./linklist/operations.js";
+import { validateLinkListTitle } from "./linklist/validation.js";
+import { LINKLIST_SETTING, LINKLIST_WIDGET_TYPE } from "./linklist/types.js";
+import {
   allWidgetElements,
   extractLayout,
   findSectionElement,
@@ -33,12 +42,13 @@ export interface ApplyResult {
 export function applyLayoutOperations(
   sourceText: string,
   operations: readonly LayoutOperation[],
-  entryPath = "src/template.xml"
+  entryPath = "src/template.xml",
+  allowedWidgetTypes: readonly string[] = []
 ): ApplyResult {
   let xml = sourceText;
   for (const operation of operations) {
     const document = parseTemplate(xml, entryPath);
-    const edits = operationEdits(document, xml, operation);
+    const edits = operationEdits(document, xml, operation, allowedWidgetTypes);
     xml = applyEdits(xml, edits);
   }
   validateLayoutXml(xml, entryPath);
@@ -70,17 +80,19 @@ export function availableWidgetTypes(): string[] {
 function operationEdits(
   document: XmlDocument,
   text: string,
-  operation: LayoutOperation
+  operation: LayoutOperation,
+  allowedWidgetTypes: readonly string[]
 ): TextEdit[] {
   switch (operation.kind) {
     case "addWidget":
-      return addWidgetEdits(document, text, operation.sectionId, operation.widgetType);
+      return addWidgetEdits(document, text, operation, allowedWidgetTypes);
     case "removeWidget": {
       const found = findWidgetElement(document, operation.widgetId);
       if (found === undefined) {
         throw new LayoutError("BLOGGER_LAYOUT_WIDGET_MISSING", `widget "${operation.widgetId}" was not found`);
       }
       assertUnlocked(found.widget);
+      assertCapability(found.widget, "removable");
       return [removeElementEdit(text, found.widget)];
     }
     case "reorderWidget":
@@ -90,6 +102,7 @@ function operationEdits(
         throw new LayoutError("BLOGGER_LAYOUT_WIDGET_MISSING", `widget "${operation.widgetId}" was not found`);
       }
       assertUnlocked(found.widget);
+      assertCapability(found.widget, "movable");
       const targetId =
         operation.kind === "moveWidget" ? operation.sectionId : valueOf(found.section, "id") ?? "";
       const target =
@@ -99,6 +112,7 @@ function operationEdits(
       if (target === undefined) {
         throw new LayoutError("BLOGGER_LAYOUT_SECTION_MISSING", `section "${targetId}" was not found`);
       }
+      assertAllowedSection(found.widget, targetId);
       const after = directWidgets(target).filter((item) => item !== found.widget);
       assertCapacity(target, after.length + 1, operation.kind === "moveWidget");
       const fragment = text.slice(found.widget.span.start, found.widget.span.end);
@@ -112,23 +126,48 @@ function operationEdits(
       }
       const edits: TextEdit[] = [];
       const { changes } = operation;
+      const widgetType = valueOf(found.widget, "type") ?? "";
+      if (widgetType === LINKLIST_WIDGET_TYPE && changes.title !== undefined) {
+        const issue = validateLinkListTitle(changes.title);
+        if (issue) throw new LayoutError("BLOGGER_LAYOUT_SETTING_INVALID", issue.message);
+      }
+      if (changes.visible !== undefined) assertCapability(found.widget, "canHide");
+      assertAllowedSection(found.widget, valueOf(found.section, "id") ?? "");
       if (changes.title !== undefined) edits.push(...setAttributeEdits(found.widget, "title", changes.title));
       if (changes.locked !== undefined) edits.push(...setAttributeEdits(found.widget, "locked", String(changes.locked)));
       if (changes.visible !== undefined) edits.push(...setAttributeEdits(found.widget, "visible", String(changes.visible)));
       if (changes.version !== undefined) edits.push(...setAttributeEdits(found.widget, "version", changes.version));
-      const widgetType = valueOf(found.widget, "type") ?? "";
       if (changes.imageUrl !== undefined && widgetType === "Header") {
         edits.push(...setWidgetSettingEdits(text, found.widget, "displayUrl", changes.imageUrl));
       }
       if (changes.settings !== undefined) {
+        const isLinkList = widgetType === LINKLIST_WIDGET_TYPE;
+        const existing = isLinkList ? widgetSettingsMap(found.widget) : {};
+        const replacesLinks = Object.keys(changes.settings).some(isLinkListIndexedKey);
+        const input = isLinkList
+          ? { ...(replacesLinks ? withoutLinkListIndexedSettings(existing) : existing), ...changes.settings }
+          : changes.settings;
         const definition = getGadgetDefinition(widgetType);
-        const normalized = normalizeGadgetSettings(widgetType, changes.settings);
-        const issues = validateGadgetSettings(widgetType, normalized);
+        const normalized = normalizeGadgetSettings(widgetType, input);
+        const issues = validateGadgetSettings(widgetType, isLinkList ? input : normalized);
         if (issues.length > 0) {
           throw new LayoutError("BLOGGER_LAYOUT_SETTING_INVALID", issues[0]?.message ?? "invalid gadget setting");
         }
-        const values: Record<string, string> = {};
-        if (definition) {
+        let values: Record<string, string> = {};
+        if (isLinkList) {
+          const previousSorting = normalizeLinkListSettings(existing)[LINKLIST_SETTING.sorting];
+          let next = normalized;
+          if (next[LINKLIST_SETTING.sorting] !== previousSorting) {
+            next = sortLinkListLinks(next, next[LINKLIST_SETTING.sorting]);
+          }
+          values = linkListWritableSettings(next);
+          const removals = Object.keys(existing).filter(
+            (key) =>
+              (isLinkListIndexedKey(key) || key === LINKLIST_SETTING.legacyLinks) &&
+              values[key] === undefined
+          );
+          edits.push(...removeWidgetSettingsEdits(text, found.widget, removals));
+        } else if (definition) {
           for (const key of definition.settingKeys) {
             const value = normalized[key];
             if (typeof value === "string") values[key] = value;
@@ -158,6 +197,7 @@ function operationEdits(
       if (definition && definition.capabilities.duplicable === false) {
         throw new LayoutError("BLOGGER_LAYOUT_DUPLICATE_UNSUPPORTED", `widget type "${widgetType}" cannot be duplicated`);
       }
+      assertInstanceLimit(document, widgetType, 1);
       const section = found.section;
       const siblings = directWidgets(section);
       assertCapacity(section, siblings.length + 1, false);
@@ -216,9 +256,15 @@ function operationEdits(
 function addWidgetEdits(
   document: XmlDocument,
   text: string,
-  sectionId: string,
-  widgetType: string
+  operation: Extract<LayoutOperation, { kind: "addWidget" }>,
+  allowedWidgetTypes: readonly string[]
 ): TextEdit[] {
+  const sectionId = operation.sectionId;
+  const widgetType = operation.widgetType;
+  if (widgetType === LINKLIST_WIDGET_TYPE && operation.title !== undefined) {
+    const issue = validateLinkListTitle(operation.title);
+    if (issue) throw new LayoutError("BLOGGER_LAYOUT_SETTING_INVALID", issue.message);
+  }
   const section = findSectionElement(document, sectionId);
   if (section === undefined) {
     throw new LayoutError("BLOGGER_LAYOUT_SECTION_MISSING", `section "${sectionId}" was not found`);
@@ -230,12 +276,17 @@ function addWidgetEdits(
     );
   }
   assertCapacity(section, directWidgets(section).length + 1, false);
-  if (!availableWidgetTypes().includes(widgetType)) {
+  const supported = new Set([...availableWidgetTypes(), ...allowedWidgetTypes]);
+  if (!supported.has(widgetType)) {
     throw new LayoutError("BLOGGER_LAYOUT_WIDGET_TYPE_INVALID", `unknown widget type "${widgetType}"`);
   }
+  assertAllowedSectionForType(widgetType, sectionId);
+  assertInstanceLimit(document, widgetType, 0);
+  const settings = normalizeSettingsForType(widgetType, operation.settings ?? {});
   const used = new Set(allWidgetElements(document).map((item) => valueOf(item, "id") ?? ""));
   const id = uniqueWidgetId(widgetType, used);
-  const markup = buildWidgetMarkup(id, widgetType);
+  const title = operation.title?.trim() || getGadgetDefinition(widgetType)?.label || widgetType;
+  const markup = buildWidgetMarkup(id, widgetType, title, settings);
   const indent = sectionIndent(text, section);
   const fragment = indentWidgetMarkup(markup, indent);
   return [insertionEdit(text, section, fragment, Number.MAX_SAFE_INTEGER)];
@@ -247,6 +298,75 @@ function assertUnlocked(widget: XmlElement): void {
     "BLOGGER_LAYOUT_LOCKED",
     `widget "${valueOf(widget, "id") ?? ""}" is locked and cannot be changed`
   );
+}
+
+function assertCapability(
+  widget: XmlElement,
+  capability: "removable" | "movable" | "canHide"
+): void {
+  const type = valueOf(widget, "type") ?? "";
+  const definition = getGadgetDefinition(type);
+  if (definition && definition.capabilities[capability] === false) {
+    throw new LayoutError(
+      "BLOGGER_LAYOUT_CAPABILITY_UNSUPPORTED",
+      `widget type "${type}" does not support ${capability}`
+    );
+  }
+}
+
+function assertAllowedSection(widget: XmlElement, sectionId: string): void {
+  assertAllowedSectionForType(valueOf(widget, "type") ?? "", sectionId);
+}
+
+function assertAllowedSectionForType(widgetType: string, sectionId: string): void {
+  const definition = getGadgetDefinition(widgetType);
+  const allowed = definition?.capabilities.allowedSectionIds;
+  if (allowed && allowed.length > 0 && !allowed.includes(sectionId)) {
+    throw new LayoutError(
+      "BLOGGER_LAYOUT_SECTION_INCOMPATIBLE",
+      `widget type "${widgetType}" cannot be placed in section "${sectionId}"`
+    );
+  }
+}
+
+function assertInstanceLimit(
+  document: XmlDocument,
+  widgetType: string,
+  additional: number
+): void {
+  const definition = getGadgetDefinition(widgetType);
+  const limit = definition?.capabilities.maxInstances;
+  if (limit === undefined) return;
+  const count = allWidgetElements(document).filter(
+    (item) => valueOf(item, "type") === widgetType
+  ).length;
+  if (count + additional > limit) {
+    throw new LayoutError(
+      "BLOGGER_LAYOUT_MAX_INSTANCES",
+      `widget type "${widgetType}" allows at most ${limit} instance${limit === 1 ? "" : "s"}`
+    );
+  }
+}
+
+function normalizeSettingsForType(
+  widgetType: string,
+  settings: Readonly<Record<string, string>>
+): Record<string, string> {
+  const normalized = normalizeGadgetSettings(widgetType, settings);
+  const isLinkList = widgetType === LINKLIST_WIDGET_TYPE;
+  const issues = validateGadgetSettings(widgetType, isLinkList ? settings : normalized);
+  if (issues.length > 0) {
+    throw new LayoutError("BLOGGER_LAYOUT_SETTING_INVALID", issues[0]?.message ?? "invalid gadget setting");
+  }
+  if (isLinkList) return linkListWritableSettings(normalized);
+  const definition = getGadgetDefinition(widgetType);
+  const known = definition ? definition.settingKeys : Object.keys(normalized);
+  const values: Record<string, string> = {};
+  for (const key of known) {
+    const value = normalized[key];
+    if (typeof value === "string") values[key] = value;
+  }
+  return values;
 }
 
 function assertCapacity(section: XmlElement, count: number, moving: boolean): void {
@@ -277,12 +397,21 @@ function uniqueWidgetId(type: string, used: ReadonlySet<string>): string {
   throw new LayoutError("BLOGGER_LAYOUT_ID_EXHAUSTED", "unable to generate a unique widget id");
 }
 
-function buildWidgetMarkup(id: string, type: string): string {
+function buildWidgetMarkup(
+  id: string,
+  type: string,
+  title: string,
+  settings: Readonly<Record<string, string>>
+): string {
   const body = widgetDefaultMarkupSource(type) ?? "";
+  const entries = Object.entries(settings);
+  const settingsMarkup = entries.length === 0
+    ? ""
+    : `<b:widget-settings>${entries.map((entry) => widgetSettingMarkup({ name: entry[0], value: entry[1] })).join("")}</b:widget-settings>`;
   return (
     `<b:widget id='${escapeAttribute(id)}' type='${escapeAttribute(type)}' ` +
-    `title='${escapeAttribute(type)}' locked='false' visible='true' version='2'>` +
-    `<b:includable id='main'>${body}</b:includable></b:widget>`
+    `title='${escapeAttribute(title)}' locked='false' visible='true' version='2'>` +
+    `${settingsMarkup}<b:includable id='main'>${body}</b:includable></b:widget>`
   );
 }
 
@@ -329,6 +458,52 @@ function setWidgetSettingsEdits(
     edits.push(...setWidgetSettingValueEdit(setting, entry.value));
   }
   if (missing.length > 0) edits.push(...insertMissingSettingEdits(text, settings, missing));
+  return edits;
+}
+
+function widgetSettingsMap(widget: XmlElement): Record<string, string> {
+  const values: Record<string, string> = {};
+  const settings = widget.children.find(
+    (node): node is XmlElement => isElement(node) && node.name === "b:widget-settings"
+  );
+  if (settings === undefined) return values;
+  for (const setting of settings.children) {
+    if (!isElement(setting) || setting.name !== "b:widget-setting") continue;
+    const name = valueOf(setting, "name");
+    if (name === undefined) continue;
+    const chunks: string[] = [];
+    for (const node of setting.children) {
+      if (node.type === "text" || node.type === "cdata") chunks.push(decodeEntities(node.value));
+    }
+    values[name] = chunks.join("");
+  }
+  return values;
+}
+
+function removeWidgetSettingsEdits(
+  text: string,
+  widget: XmlElement,
+  names: readonly string[]
+): TextEdit[] {
+  if (names.length === 0) return [];
+  const settings = widget.children.find(
+    (node): node is XmlElement => isElement(node) && node.name === "b:widget-settings"
+  );
+  if (settings === undefined) return [];
+  const remove = new Set(names);
+  const edits: TextEdit[] = [];
+  for (const setting of settings.children) {
+    if (!isElement(setting) || setting.name !== "b:widget-setting") continue;
+    const name = valueOf(setting, "name");
+    if (name === undefined || !remove.has(name)) continue;
+    const lineStart = text.lastIndexOf("\n", setting.span.start - 1) + 1;
+    const ownLine = /^[\t ]*$/.test(text.slice(lineStart, setting.span.start));
+    edits.push({
+      start: ownLine ? lineStart : setting.span.start,
+      end: ownLine ? removeFollowingNewline(text, setting.span.end) : setting.span.end,
+      replacement: "",
+    });
+  }
   return edits;
 }
 

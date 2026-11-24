@@ -79,7 +79,7 @@ export interface SectionChanges {
 }
 
 export type LayoutOperation =
-  | { kind: "addWidget"; sectionId: string; widgetType: string }
+  | { kind: "addWidget"; sectionId: string; widgetType: string; title?: string; settings?: Record<string, string> }
   | { kind: "removeWidget"; widgetId: string }
   | { kind: "reorderWidget"; widgetId: string; index: number }
   | { kind: "moveWidget"; widgetId: string; sectionId: string; index: number }
@@ -121,7 +121,15 @@ export interface LayoutGadgetCatalogEntry {
   icon: string;
   implemented: "full" | "partial" | "unsupported";
   configurable: boolean;
-  capabilities: { configurable: boolean; duplicable: boolean; removable: boolean; movable: boolean; canHide: boolean; maxInstances?: number };
+  capabilities: {
+    configurable: boolean;
+    duplicable: boolean;
+    removable: boolean;
+    movable: boolean;
+    canHide: boolean;
+    maxInstances?: number;
+    allowedSectionIds?: string[];
+  };
   sections: LayoutGadgetCatalogSection[];
   defaults: Record<string, string>;
 }
@@ -133,6 +141,7 @@ export interface LayoutEditorPayload {
   widgetTypes: string[];
   widgetTypeLabels?: Record<string, string>;
   gadgetCatalog?: LayoutGadgetCatalogEntry[];
+  allowedWidgetTypes?: string[];
 }
 
 export class LayoutError extends Error {

@@ -21,7 +21,9 @@ import { previewFeedEntries, previewFeedScript } from "./feeds.js";
 import {
   commentLayoutSkinCss,
   LAYOUT_SKIN_CSS_FILE,
+  LAYOUT_SKIN_CSS_URL,
   LAYOUT_TEMPLATE_SKIN_CSS_FILE,
+  LAYOUT_TEMPLATE_SKIN_CSS_URL,
 } from "./layout-editor/skin-css.js";
 import type { PreviewScenario } from "./data/types.js";
 import { withImageFallback } from "./render/image-fallback.js";
@@ -58,6 +60,8 @@ export interface PreviewDiagnostic {
 export interface PreviewAsset {
   /** File name relative to the preview directory. */
   file: string;
+  /** Absolute route used for an additional route-shaped copy. */
+  route?: string;
   source: string;
 }
 
@@ -231,10 +235,12 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
     assets.push(
       {
         file: LAYOUT_SKIN_CSS_FILE,
+        route: LAYOUT_SKIN_CSS_URL,
         source: commentLayoutSkinCss(layoutCss.skin),
       },
       {
         file: LAYOUT_TEMPLATE_SKIN_CSS_FILE,
+        route: LAYOUT_TEMPLATE_SKIN_CSS_URL,
         source: commentLayoutSkinCss(layoutCss.templateSkin),
       }
     );
@@ -248,6 +254,7 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
           entryPath: options.entryPath,
           css: extractBaseStyle(baseDocument),
           savePort: options.layoutSavePort ?? 3001,
+          widgetTypes: options.widgets === undefined ? [] : Object.keys(options.widgets),
         },
         favicon,
         options.content === undefined
