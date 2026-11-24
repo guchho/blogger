@@ -38,6 +38,22 @@ diagnostics.
 
 When the dashboard is enabled, the plugin also generates Blogger-style admin
 screens under `/__preview/dashboard/` and starts a localhost save service.
+Template skin CSS is written to `previewDir` and to route-shaped copies such as
+`/__preview/layout/skin.css`, so the Layout Editor can load it from the dev
+server.
+
+## Built-in package assets
+
+The dashboard, widget showcase and Layout Editor styles are plain CSS files in
+the package's `src/style` directory (`dashboard.css`, `widget-showcase.css` and
+`editor.css`). TypeScript reads them at runtime instead of storing stylesheet
+text in source, and the build copies them to `dist/style/` so compiled modules
+can resolve them. Client-side scripts live in `src/scripts` and are copied to
+`dist/scripts/`.
+
+The `layout/skin.css` and `layout/template-skin.css` preview assets are
+generated from the consuming project's `<b:skin>` and `<b:template-skin>`; they
+are outputs, not source files in `src/style`.
 
 ## Content pipeline
 
