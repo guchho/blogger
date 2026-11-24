@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## Unreleased
+## 0.1.0
 
 ### Added
 
@@ -16,7 +16,5 @@ All notable changes to this project are documented in this file.
 
 - Simplified README with quick start, configuration, component, and example sections.
 - Enforced LF line endings for reproducible golden snapshots on Windows.
-
-## 0.1.0
 
 - Initial release of `@guchho/blogger` with Blogger template compilation, XML assembly, validation, CSS/JS/asset bundling, and preview generation.
