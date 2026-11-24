@@ -75,7 +75,8 @@ Watch mode:
 
 - compiles `src/template.xml` into `dist/template.xml`,
 - writes preview pages and layout CSS to `dist/preview/` and route-shaped copies
-  to the output root,
+  to the output root, including `/__preview/layout/skin.css` and
+  `/__preview/layout/template-skin.css`,
 - starts the local dashboard and save service when the dashboard is enabled,
 - watches template, content and data files for changes.
 
