@@ -9,7 +9,7 @@ import { buildPreview } from "../src/preview/index.js";
 const EXAMPLE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "examples"
+  "example"
 );
 
 test("the example project compiles and renders a clean preview", async () => {

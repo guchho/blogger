@@ -46,7 +46,7 @@ The package has two main jobs:
 ## Project links
 
 - [Repository README](../README.md)
-- [Example project](../examples/README.md)
+- [Example project](../example/README.md)
 
 ## Scope
 

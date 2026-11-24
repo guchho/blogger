@@ -19,7 +19,7 @@ const TEMPLATE = `<?xml version="1.0" encoding="UTF-8" ?>
 </body></html>`;
 
 const EXAMPLE_TEMPLATE = readFileSync(
-  new URL("../examples/src/template.xml", import.meta.url),
+  new URL("../example/src/template.xml", import.meta.url),
   "utf8"
 );
 const NORMALIZED_EDITOR_CSS = readFileSync(
@@ -487,7 +487,7 @@ test("Layout payload carries nested structure for the Blogger layout renderer", 
 
 test("real example layout preserves Blogger wrapper positions and visibility", () => {
   const result = buildPreview({
-    entryPath: "examples/src/template.xml",
+    entryPath: "example/src/template.xml",
     xml: EXAMPLE_TEMPLATE,
     layoutXml: EXAMPLE_TEMPLATE,
     banner: false,

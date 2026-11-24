@@ -29,4 +29,4 @@ Use this file as a compact navigation index for the documentation.
 
 - [Troubleshooting](troubleshooting.md)
 - [Repository README](../README.md)
-- [Example project](../examples/README.md)
+- [Example project](../example/README.md)

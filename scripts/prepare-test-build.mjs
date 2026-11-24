@@ -9,7 +9,7 @@ const copies = [
   ...readdirSync(styleDir)
     .filter((entry) => entry.endsWith(".css"))
     .map((entry) => [`src/style/${entry}`, `src/style/${entry}`]),
-  ["examples/src/template.xml", "examples/src/template.xml"],
+  ["example/src/template.xml", "example/src/template.xml"],
   ["src/scripts/content-dashboard.js", "src/scripts/content-dashboard.js"],
   ["src/scripts/content-editor.js", "src/scripts/content-editor.js"],
   ["src/scripts/dashboard-comments.js", "src/scripts/dashboard-comments.js"],

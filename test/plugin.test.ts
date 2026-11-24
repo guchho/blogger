@@ -25,7 +25,7 @@ function blogger(options: BloggerOptions = {}): ReturnType<typeof createBlogger>
 const EXAMPLE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "examples"
+  "example"
 );
 const ENTRY = path.join(EXAMPLE_ROOT, "src", "template.xml");
 
