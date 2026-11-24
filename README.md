@@ -229,8 +229,8 @@ reads sections, widgets and CSS from the real `template.xml`, renders widgets in
 a Shadow DOM canvas using the template's own styles, and supports a gadget
 catalog with search/category/support filters, schema-driven configuration,
 edit, collapse, remove and drag reorder actions. LinkList gadgets use the native
-General/Links/Advanced editor with a one-link-per-line textarea, title,
-visibility, sorting and maximum displayed items. Gadget status,
+General/Links/Advanced editor with inline-editable link rows, add/delete and
+move up/down actions, title, visibility, sorting and maximum displayed items. Gadget status,
 capability limits, section compatibility and lock rules
 are shown in the editor and enforced by the save service. Custom widget types
 registered through `options.widgets` appear in the catalog as partial-support

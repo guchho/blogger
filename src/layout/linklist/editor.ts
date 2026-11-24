@@ -1,7 +1,6 @@
 import { escapeHtml } from "../../preview/values.js";
 import {
   LINKLIST_DEFAULT_SETTINGS,
-  LINKLIST_LINKS_HINT,
   LINKLIST_SETTING,
   LINKLIST_SORTING_OPTIONS,
   LINKLIST_TITLE_MAX_LENGTH,
@@ -20,8 +19,9 @@ export const LINKLIST_FIELD_IDS = {
   sorting: "le-linklist-sorting",
   shownum: "le-linklist-shownum",
   shownumError: "le-linklist-shownum-error",
-  links: "le-linklist-links",
-  linksHint: "le-linklist-links-hint",
+  linksList: "le-linklist-links",
+  linksEmpty: "le-linklist-links-empty",
+  addLink: "le-linklist-add-link",
   linksError: "le-linklist-links-error",
   advancedTitle: "le-linklist-advanced-title",
   locked: "le-linklist-locked",
@@ -39,7 +39,6 @@ export const LINKLIST_CLIENT_CONFIG = {
   sortingOptions: LINKLIST_SORTING_OPTIONS.map((option) => ({ ...option })),
   defaults: { ...LINKLIST_DEFAULT_SETTINGS },
   titleMaxLength: LINKLIST_TITLE_MAX_LENGTH,
-  linksHint: LINKLIST_LINKS_HINT,
   linksSeparator: "|",
 } as const;
 
@@ -74,13 +73,12 @@ export function linkListSettingsMarkup(): string {
     error(ids.shownumError) +
     `</label>`;
   const links =
-    `<label class="layout-editor-field"><span>Links</span>` +
-    `<small class="le-settings-hint" id="${ids.linksHint}">${escapeHtml(LINKLIST_LINKS_HINT)}</small>` +
-    `<textarea class="field" id="${ids.links}" rows="8" spellcheck="false" placeholder="${escapeHtml(
-      LINKLIST_LINKS_HINT
-    )}" aria-describedby="${ids.linksHint} ${ids.linksError}" style="width:100%;box-sizing:border-box;min-height:160px;resize:vertical;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font:inherit;line-height:1.5"></textarea>` +
+    `<div class="layout-editor-field"><span>Links</span>` +
+    `<div class="le-linklist-links" id="${ids.linksList}"></div>` +
+    `<p class="le-settings-hint" id="${ids.linksEmpty}" hidden>No links yet. Add a new item to create one.</p>` +
+    `<button type="button" class="le-linklist-action" id="${ids.addLink}" data-linklist-action="add" aria-label="Add a new item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Add a new item</button>` +
     error(ids.linksError) +
-    `</label>`;
+    `</div>`;
   const advanced =
     `<details class="le-advanced" id="${LINKLIST_ADVANCED_ID}"><summary>Advanced</summary>` +
     group(

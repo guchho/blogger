@@ -22,7 +22,7 @@ const LAYOUT_EDITOR_SCRIPT = readFileSync(
   new URL("../../scripts/layout-editor.js", import.meta.url),
   "utf8"
 );
-const EDITOR_CSS = readFileSync(new URL("./editor.css", import.meta.url), "utf8");
+const EDITOR_CSS = readFileSync(new URL("../../style/editor.css", import.meta.url), "utf8");
 
 const ICONS = {
   save: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v6h7V4"/><rect x="8" y="13" width="8" height="6"/></svg>',

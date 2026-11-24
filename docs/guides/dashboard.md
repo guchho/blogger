@@ -68,9 +68,10 @@ using the template's own styles, and supports:
 - adding gadgets directly or after schema-driven configuration,
 - editing gadget settings, including all Blog Posts general, post information,
   engagement, ads and item-order options,
-- editing LinkList gadgets with native General/Links/Advanced settings, a
-  `One link per line: Label | URL` textarea, title, visibility, `Sort links` and
-  `Show` fields,
+- editing LinkList gadgets with native General/Links/Advanced settings,
+  inline-editable link rows with add/delete and move up/down actions, title, visibility,
+  `Sort links` and `Show` fields; manually moving a link switches `Sort links`
+  to `Don't sort`,
 - collapsing and removing gadgets where supported,
 - reordering within a section and moving between sections by drag.
 
@@ -80,7 +81,7 @@ capacity. Locked gadgets keep their identity and settings editable, but cannot
 be removed or dragged. Unknown `<b:widget-setting>` keys survive
 edits. LinkList saves write native `sorting`, `shownum`, `text-N` and `link-N`
 settings; removing a link also removes its numbered settings. Legacy `links`
-textarea settings are migrated to numbered settings. Changes are serialized back
+text settings are migrated to numbered settings. Changes are serialized back
 into the pristine entry XML; unsupported elements, attributes and formatting
 are preserved.
 

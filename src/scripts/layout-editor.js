@@ -46,6 +46,8 @@
     if (name === 'copy') return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>';
     if (name === 'move') return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>';
     if (name === 'chevron') return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+    if (name === 'up') return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 15 6-6 6 6"/></svg>';
+    if (name === 'down') return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
     return '';
   }
 
@@ -353,14 +355,6 @@
     return links;
   }
 
-  function linkListTextFromLinks(links) {
-    var lines = [];
-    for (var i = 0; i < links.length; i++) {
-      lines.push(String(links[i].name || '').replace(/\r?\n/g, ' ') + ' ' + LINKLIST.linksSeparator + ' ' + String(links[i].url || '').replace(/\r?\n/g, ' '));
-    }
-    return lines.join('\n');
-  }
-
   function linkListLinksFromSettings(settings) {
     var values = settings || {};
     var indices = {};
@@ -377,12 +371,76 @@
     });
   }
 
-  function linkListTextFromSettings(settings) {
-    var values = settings || {};
-    if (!Object.keys(values).some(linkListIndexedKey) && typeof values[LS.legacyLinks] === 'string') {
-      return values[LS.legacyLinks];
+  function linkListRows() {
+    var list = dialog(LL.linksList);
+    if (!list) return [];
+    return Array.prototype.slice.call(list.querySelectorAll('.le-linklist-row'));
+  }
+
+  function linkListRowMarkup(index) {
+    var errorId = LL.linksList + '-row-error-' + index;
+    return '<label class="layout-editor-field"><span>Site Name</span>' +
+      '<input class="field" type="text" data-linklist-name aria-describedby="' + errorId + '"></label>' +
+      '<label class="layout-editor-field"><span>Site URL</span>' +
+      '<input class="field" type="text" data-linklist-url aria-describedby="' + errorId + '"></label>' +
+      '<span class="le-linklist-actions">' +
+      '<button type="button" class="le-linklist-action le-linklist-delete" data-linklist-action="delete" aria-label="Delete this item" title="Delete this item">' + icon('trash') + '</button>' +
+      '<button type="button" class="le-linklist-action" data-linklist-action="up" aria-label="Move this item up" title="Move this item up">' + icon('up') + '</button>' +
+      '<button type="button" class="le-linklist-action" data-linklist-action="down" aria-label="Move this item down" title="Move this item down">' + icon('down') + '</button>' +
+      '</span>' +
+      '<small class="le-linklist-error" id="' + errorId + '" role="alert" data-linklist-error></small>';
+  }
+
+  function linkListCreateRow(link, index) {
+    var row = document.createElement('div');
+    row.className = 'le-linklist-row';
+    row.setAttribute('data-linklist-index', String(index));
+    row.innerHTML = linkListRowMarkup(index);
+    var name = row.querySelector('[data-linklist-name]');
+    var url = row.querySelector('[data-linklist-url]');
+    if (name) name.value = link.name;
+    if (url) url.value = link.url;
+    return row;
+  }
+
+  function linkListRenderRows(links) {
+    var list = dialog(LL.linksList);
+    if (!list) return;
+    list.textContent = '';
+    for (var i = 0; i < links.length; i++) list.appendChild(linkListCreateRow(links[i], i));
+    linkListRefreshRowButtons();
+  }
+
+  function linkListRefreshRowButtons() {
+    var rows = linkListRows();
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].setAttribute('data-linklist-index', String(i));
+      var errorId = LL.linksList + '-row-error-' + i;
+      var error = rows[i].querySelector('[data-linklist-error]');
+      if (error) error.id = errorId;
+      var inputs = rows[i].querySelectorAll('[data-linklist-name],[data-linklist-url]');
+      for (var j = 0; j < inputs.length; j++) inputs[j].setAttribute('aria-describedby', errorId);
+      var up = rows[i].querySelector('[data-linklist-action="up"]');
+      var down = rows[i].querySelector('[data-linklist-action="down"]');
+      if (up) up.disabled = i === 0;
+      if (down) down.disabled = i === rows.length - 1;
     }
-    return linkListTextFromLinks(linkListLinksFromSettings(values));
+    var empty = dialog(LL.linksEmpty);
+    if (empty) empty.hidden = rows.length > 0;
+  }
+
+  function linkListLinksFromRows() {
+    var rows = linkListRows();
+    var links = [];
+    for (var i = 0; i < rows.length; i++) {
+      var name = rows[i].querySelector('[data-linklist-name]');
+      var url = rows[i].querySelector('[data-linklist-url]');
+      links.push({
+        name: String((name && name.value) || '').trim(),
+        url: String((url && url.value) || '').trim()
+      });
+    }
+    return links;
   }
 
   function linkListSortingValue(value) {
@@ -408,11 +466,74 @@
     }).map(function (item) { return item.link; });
   }
 
+  function linkListSetManualSorting() {
+    var sorting = dialog(LL.sorting);
+    if (!sorting || sorting.value === LINKLIST.defaults[LS.sorting]) return false;
+    sorting.value = LINKLIST.defaults[LS.sorting];
+    return true;
+  }
+
+  function linkListAddRow() {
+    var rows = linkListRows();
+    var row = linkListCreateRow({ name: '', url: '' }, rows.length);
+    var list = dialog(LL.linksList);
+    if (!list) return;
+    list.appendChild(row);
+    linkListRefreshRowButtons();
+    linkListClearErrors();
+    var input = row.querySelector('[data-linklist-name]');
+    if (input) input.focus();
+    announce('New item added.');
+  }
+
+  function linkListFocusRow(row) {
+    if (!row) return;
+    var input = row.querySelector('[data-linklist-name]') || row.querySelector('[data-linklist-url]');
+    if (!input) return;
+    input.focus();
+    if (input.select) input.select();
+  }
+
+  function linkListDeleteRow(row) {
+    var list = dialog(LL.linksList);
+    if (!list || !row) return;
+    var index = linkListRows().indexOf(row);
+    list.removeChild(row);
+    linkListRefreshRowButtons();
+    linkListClearErrors();
+    var rows = linkListRows();
+    var next = rows[Math.min(index, rows.length - 1)];
+    var focusTarget = next ? (next.querySelector('[data-linklist-name]') || next.querySelector('[data-linklist-url]')) : dialog(LL.addLink);
+    if (focusTarget && focusTarget.focus) focusTarget.focus();
+    announce('Item deleted.');
+  }
+
+  function linkListMoveRow(row, direction) {
+    var list = dialog(LL.linksList);
+    if (!list || !row) return;
+    var sibling = direction === 'up' ? row.previousElementSibling : row.nextElementSibling;
+    if (!sibling || !sibling.hasAttribute('data-linklist-index')) return;
+    if (direction === 'up') list.insertBefore(row, sibling);
+    else list.insertBefore(sibling, row);
+    var sortingChanged = linkListSetManualSorting();
+    linkListRefreshRowButtons();
+    linkListClearErrors();
+    var moveButton = row.querySelector('[data-linklist-action="' + direction + '"]');
+    if (moveButton && !moveButton.disabled) moveButton.focus();
+    else linkListFocusRow(row);
+    announce('Item moved ' + direction + (sortingChanged ? '. Sort links set to Don\'t sort.' : ''));
+  }
+
   function linkListClearErrors() {
     var names = [LL.titleError, LL.shownumError, LL.linksError];
     for (var i = 0; i < names.length; i++) {
       var node = dialog(names[i]);
       if (node) node.textContent = '';
+    }
+    var rows = linkListRows();
+    for (var j = 0; j < rows.length; j++) {
+      var rowError = rows[j].querySelector('[data-linklist-error]');
+      if (rowError) rowError.textContent = '';
     }
   }
 
@@ -438,20 +559,26 @@
       shownum.focus();
       return false;
     }
-    var links = linkListLinksFromText(dialog(LL.links) ? dialog(LL.links).value : '');
+    var links = linkListLinksFromRows();
+    var rows = linkListRows();
     var problems = [];
+    var firstInvalid = null;
     for (var i = 0; i < links.length; i++) {
-      var line = i + 1;
-      if (links[i].name.trim() === '') problems.push('Line ' + line + ': Site Name is required.');
-      if (links[i].url.trim() === '') problems.push('Line ' + line + ': Site URL is required.');
-      else if (!linkListValidUrl(links[i].url)) problems.push('Line ' + line + ': Use a relative URL or http:// or https://.');
+      var itemProblems = [];
+      if (links[i].name === '') itemProblems.push('Site Name is required.');
+      if (links[i].url === '') itemProblems.push('Site URL is required.');
+      else if (!linkListValidUrl(links[i].url)) itemProblems.push('Use a relative URL or http:// or https://.');
+      if (itemProblems.length === 0) continue;
+      var rowError = rows[i].querySelector('[data-linklist-error]');
+      if (rowError) rowError.textContent = itemProblems.join(' ');
+      for (var p = 0; p < itemProblems.length; p++) problems.push('Item ' + (i + 1) + ': ' + itemProblems[p]);
+      if (!firstInvalid) firstInvalid = rows[i];
     }
     if (problems.length > 0) {
       var linksError = dialog(LL.linksError);
       if (linksError) linksError.textContent = problems.join(' ');
       message('Fix the highlighted link settings before applying.', 'error');
-      var linksNode = dialog(LL.links);
-      if (linksNode) linksNode.focus();
+      if (firstInvalid) linkListFocusRow(firstInvalid);
       return false;
     }
     return true;
@@ -464,10 +591,9 @@
     }
     var sorting = dialog(LL.sorting);
     var shownum = dialog(LL.shownum);
-    var linksNode = dialog(LL.links);
     var sortingValue = sorting ? sorting.value : LINKLIST.defaults[LS.sorting];
     var previous = linkListSortingValue(found && found.widget.settings ? found.widget.settings[LS.sorting] : LINKLIST.defaults[LS.sorting]);
-    var links = linkListLinksFromText(linksNode ? linksNode.value : '');
+    var links = linkListLinksFromRows();
     if (sortingValue !== previous) links = linkListSortLinks(links, sortingValue);
     settings[LS.sorting] = sortingValue;
     settings[LS.shownum] = shownum ? String(shownum.value || '').trim() : '';
@@ -492,7 +618,7 @@
     dialog(LL.version).value = found ? (found.widget.version || '') : '2';
     dialog(LL.sorting).value = sorting;
     dialog(LL.shownum).value = settings[LS.shownum] === undefined ? '' : settings[LS.shownum];
-    dialog(LL.links).value = linkListTextFromSettings(settings);
+    linkListRenderRows(linkListLinksFromSettings(settings));
     var advanced = dialog(LINKLIST.advancedId);
     if (advanced) advanced.open = false;
     linkListClearErrors();
@@ -1470,8 +1596,22 @@
   linkListMirror(LL.advancedTitle, LL.title, 'input', 'value');
   linkListMirror(LL.visible, LL.advancedVisible, 'change', 'checked');
   linkListMirror(LL.advancedVisible, LL.visible, 'change', 'checked');
-  var linkListLinks = dialog(LL.links);
-  if (linkListLinks) linkListLinks.addEventListener('input', function () {
+  var linkListAdd = dialog(LL.addLink);
+  if (linkListAdd) linkListAdd.addEventListener('click', function () { linkListAddRow(); });
+  var linkListRowsNode = dialog(LL.linksList);
+  if (linkListRowsNode) linkListRowsNode.addEventListener('click', function (event) {
+    var button = event.target.closest ? event.target.closest('[data-linklist-action]') : null;
+    if (!button || !linkListRowsNode.contains(button)) return;
+    var row = button.closest ? button.closest('.le-linklist-row') : null;
+    var action = button.getAttribute('data-linklist-action');
+    if (action === 'delete') linkListDeleteRow(row);
+    else if (action === 'up') linkListMoveRow(row, 'up');
+    else if (action === 'down') linkListMoveRow(row, 'down');
+  });
+  if (linkListRowsNode) linkListRowsNode.addEventListener('input', function (event) {
+    var row = event.target.closest ? event.target.closest('.le-linklist-row') : null;
+    var rowError = row ? row.querySelector('[data-linklist-error]') : null;
+    if (rowError) rowError.textContent = '';
     var error = dialog(LL.linksError);
     if (error) error.textContent = '';
   });

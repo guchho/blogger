@@ -23,7 +23,7 @@ const EXAMPLE_TEMPLATE = readFileSync(
   "utf8"
 );
 const NORMALIZED_EDITOR_CSS = readFileSync(
-  new URL("../src/preview/layout-editor/editor.css", import.meta.url),
+  new URL("../src/style/editor.css", import.meta.url),
   "utf8"
 ).replace(/\s+/g, "");
 
@@ -354,7 +354,16 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     "le-blog-posts-dialog",
     "le-linklist-dialog",
     "le-linklist-links",
-    "One link per line: Label | https://example.com",
+    "le-linklist-links-empty",
+    "le-linklist-add-link",
+    "No links yet.",
+    "Site Name",
+    "Site URL",
+    "Add a new item",
+    "Delete this item",
+    "Move this item up",
+    "Move this item down",
+    "data-linklist-action",
     "le-linklist-advanced-title",
     "le-linklist-locked",
     "le-linklist-version",
@@ -400,7 +409,8 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
   ]) {
     assert.ok(screen.html.includes(marker), `missing editor marker: ${marker}`);
   }
-  assert.equal(screen.html.includes("data-linklist-action"), false);
+  assert.equal(screen.html.includes("One link per line"), false);
+  assert.equal(screen.html.includes("Edit this item"), false);
   assert.equal(screen.html.includes("Page structure"), false);
   assert.equal(screen.html.includes("layout-preview"), false);
   assert.equal(screen.html.includes("<iframe"), false);

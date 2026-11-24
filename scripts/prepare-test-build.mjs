@@ -1,11 +1,14 @@
-import { copyFileSync, mkdirSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const targetRoot = join(root, ".test-build");
+const styleDir = join(root, "src", "style");
 const copies = [
-  ["src/preview/layout-editor/editor.css", "src/preview/layout-editor/editor.css"],
+  ...readdirSync(styleDir)
+    .filter((entry) => entry.endsWith(".css"))
+    .map((entry) => [`src/style/${entry}`, `src/style/${entry}`]),
   ["examples/src/template.xml", "examples/src/template.xml"],
   ["src/scripts/content-dashboard.js", "src/scripts/content-dashboard.js"],
   ["src/scripts/content-editor.js", "src/scripts/content-editor.js"],
