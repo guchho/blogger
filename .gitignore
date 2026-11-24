@@ -4,5 +4,4 @@ dist/
 coverage/
 *.tsbuildinfo
 .DS_Store
-examples/
 todo.md
