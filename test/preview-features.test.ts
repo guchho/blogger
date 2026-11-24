@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Script } from "node:vm";
 
 import { previewRouteFile } from "../src/preview/routes.js";
 import { previewFeedEntries } from "../src/preview/feeds.js";
@@ -179,6 +180,17 @@ test("every built-in widget markup renders without preview diagnostics", () => {
   for (const type of types) {
     assert.match(showcase.html, new RegExp(`class="widget ${type}"`));
   }
+  assert.match(showcase.html, /data-guchho-preview="widget-showcase"/);
+  assert.match(showcase.html, /data-widget-search/);
+  assert.match(showcase.html, /data-widget-filter="All"/);
+  assert.match(showcase.html, /class="widget-card"/);
+  assert.match(showcase.html, /Widget library/);
+  const scriptMatch = /<script data-guchho-preview="widget-showcase-script">([\s\S]*?)<\/script>/.exec(
+    showcase.html
+  );
+  assert.ok(scriptMatch);
+  const script = (scriptMatch[1] as string).replace(/^<!\[CDATA\[|\]\]>$/g, "");
+  assert.doesNotThrow(() => new Script(script));
 });
 
 test("preview pages answer Blogger JSONP feed requests", () => {

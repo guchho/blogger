@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import test from "node:test";
 
 // `formatDate` uses the host locale, so pin the timezone to keep snapshots
@@ -87,7 +86,7 @@ const TEMPLATE = `<?xml version="1.0" encoding="UTF-8" ?>
 </body>
 </html>`;
 
-const SNAPSHOT_DIR = join(dirname(fileURLToPath(import.meta.url)), "snapshots", "preview");
+const SNAPSHOT_DIR = join(process.cwd(), "test", "snapshots", "preview");
 const update = process.env.UPDATE_SNAPSHOTS === "1";
 
 test("preview scenarios match golden snapshots", () => {

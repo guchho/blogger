@@ -1,10 +1,11 @@
 // Static blog and locale metadata for the mock pages, plus the message catalog
 // Blogger exposes as `data:messages`.
 
+import { DEFAULT_FAVICON_URL } from "../../defaults.js";
 import { BloggerDate, HtmlString, type ValueMap } from "../values.js";
 
 export const PREVIEW_BLOG_URL = "http://localhost:3000/";
-export const PREVIEW_FAVICON = "favicon.ico";
+export const PREVIEW_FAVICON = DEFAULT_FAVICON_URL;
 
 function svgDataUri(svg: string): string {
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;

@@ -1,3 +1,5 @@
+import { DEFAULT_FAVICON_URL } from "../defaults.js";
+
 export interface Author {
   name: string;
   profileUrl?: string;
@@ -21,7 +23,7 @@ export function defaultSettings(): SiteSettings {
     title: "Guchho Blog",
     description: "A Guchho Blogger site",
     baseUrl: "http://localhost:3000/",
-    favicon: "favicon.ico",
+    favicon: DEFAULT_FAVICON_URL,
     author: "admin",
     postsPerPage: 10,
     categories: [],

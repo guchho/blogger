@@ -1,4 +1,4 @@
-export const CONTENT_DASHBOARD_SCRIPT = `(function () {
+(function () {
   'use strict';
   var node = document.getElementById('content-dashboard-payload');
   if (!node) return;
@@ -145,4 +145,4 @@ export const CONTENT_DASHBOARD_SCRIPT = `(function () {
     });
   }
   render();
-})();`;
+})();

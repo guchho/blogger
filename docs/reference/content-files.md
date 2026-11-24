@@ -105,7 +105,7 @@ them as `BLOGGER_CONTENT_LOAD_FAILED` warnings.
   "title": "My Blog",
   "description": "A Guchho Blogger site",
   "baseUrl": "https://example.com/",
-  "favicon": "favicon.ico",
+  "favicon": "https://guchho.js.org/favicon.ico",
   "author": "admin",
   "postsPerPage": 10
 }

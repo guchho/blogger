@@ -239,12 +239,13 @@ test("production build emits rendered HTML from CMS content", async () => {
   }
 });
 
-test("plugin emits the default favicon asset", async () => {
+test("plugin does not emit a local favicon asset", async () => {
   const plugin = blogger({ entry: ENTRY, preview: false });
   const { emitted } = await buildBundle(plugin);
-  const favicon = emitted.find((file) => file.fileName === "favicon.ico");
-  assert.ok(favicon);
-  assert.ok(favicon.source.length > 0);
+  assert.equal(
+    emitted.some((file) => file.fileName === "favicon.ico"),
+    false
+  );
 });
 
 test("configured XML entries resolve to the empty carrier sibling", async () => {

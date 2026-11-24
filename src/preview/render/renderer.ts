@@ -381,7 +381,10 @@ export class TemplateRenderer {
     out: string[]
   ): void {
     const cond = this.attrValue(element, "cond");
-    if (cond !== undefined && !isTruthy(this.evaluateSource(cond, scope, element))) return;
+    if (cond !== undefined && !isTruthy(this.evaluateSource(cond, scope, element))) {
+      this.renderNodes(element.children, scope, env, out);
+      return;
+    }
     const tagName = this.attrValue(element, "name") ?? "span";
     const attrs = this.buildAttributes(element, scope, env, ["name", "cond"]);
     out.push(`<${tagName}${attrs}>`);
@@ -474,6 +477,13 @@ export class TemplateRenderer {
       id,
       instanceId: id,
     };
+    if (type === "Header") {
+      const imageUrl = settings["displayUrl"];
+      if (typeof imageUrl === "string" && imageUrl.trim() !== "") {
+        data["image"] = imageUrl.trim();
+        data["sourceUrl"] = imageUrl.trim();
+      }
+    }
     if (type === "LinkList") {
       const links = expandLinks(settings);
       if (links.length > 0) data["links"] = links;

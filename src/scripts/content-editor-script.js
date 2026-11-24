@@ -1,4 +1,4 @@
-export const CONTENT_EDITOR_SCRIPT = `(function () {
+(function () {
   'use strict';
   var node = document.getElementById('content-editor-payload');
   if (!node) return;
@@ -54,7 +54,7 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
 
   function slugify(value) {
     return String(value || '').toLowerCase().normalize('NFKD')
-      .replace(/[\\u0300-\\u036f]/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/, '') || 'untitled';
   }
 
@@ -65,23 +65,23 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
 
   function normalizeHtml(html) {
     return String(html === null || html === undefined ? '' : html)
-      .replace(/<font\\b([^>]*)>/gi, function (all, attrs) {
-        var color = /color\\s*=\\s*["']?([^"'\\s>]+)/i.exec(attrs);
-        var size = /size\\s*=\\s*["']?([^"'\\s>]+)/i.exec(attrs);
+      .replace(/<font\b([^>]*)>/gi, function (all, attrs) {
+        var color = /color\s*=\s*["']?([^"'\s>]+)/i.exec(attrs);
+        var size = /size\s*=\s*["']?([^"'\s>]+)/i.exec(attrs);
         var styles = [];
         if (color) styles.push('color:' + color[1]);
         if (size && legacySizes[size[1]]) styles.push('font-size:' + legacySizes[size[1]]);
         return '<span' + (styles.length ? ' style="' + styles.join(';') + '"' : '') + '>';
       })
-      .replace(/<\\/font>/gi, '</span>')
-      .replace(/<strike\\b[^>]*>/gi, '<span style="text-decoration:line-through">')
-      .replace(/<\\/strike>/gi, '</span>');
+      .replace(/<\/font>/gi, '</span>')
+      .replace(/<strike\b[^>]*>/gi, '<span style="text-decoration:line-through">')
+      .replace(/<\/strike>/gi, '</span>');
   }
 
   function cleanPastedHtml(html) {
     return normalizeHtml(String(html === null || html === undefined ? '' : html)
-      .replace(/<(script|style)\\b[^>]*>[\\s\\S]*?<\\/\\1\\s*>/gi, '')
-      .replace(/\\son[a-z]+\\s*=\\s*(?:"[^"]*"|'[^']*'|[^\\s>]+)/gi, '')
+      .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
+      .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
       .replace(/javascript:/gi, ''));
   }
 
@@ -462,8 +462,8 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
   function normalizeUrl(value) {
     var url = String(value === null || value === undefined ? '' : value).trim();
     if (url === '') return '';
-    if (/^(?:https?:|mailto:|\\/|#)/i.test(url)) return url;
-    if (/^[\\w.-]+\\.[a-z]{2,}(?:[\\/?#]|$)/i.test(url)) return 'https://' + url;
+    if (/^(?:https?:|mailto:|\/|#)/i.test(url)) return url;
+    if (/^[\w.-]+\.[a-z]{2,}(?:[\/?#]|$)/i.test(url)) return 'https://' + url;
     return url;
   }
 
@@ -540,8 +540,8 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
 
   function videoMarkup(rawUrl, title) {
     var url = normalizeUrl(rawUrl);
-    var youtube = /(?:youtube\\.com\\/(?:watch\\?v=|embed\\/|shorts\\/)|youtu\\.be\\/)([\\w-]+)/i.exec(url);
-    var vimeo = /vimeo\\.com\\/(?:video\\/)?(\\d+)/i.exec(url);
+    var youtube = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]+)/i.exec(url);
+    var vimeo = /vimeo\.com\/(?:video\/)?(\d+)/i.exec(url);
     if (youtube) {
       return '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(youtube[1]) +
         '" width="640" height="360" title="' + esc(title || 'Embedded video') +
@@ -608,7 +608,7 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
         { name: 'width', label: 'Width (px)', type: 'number' },
       ], 'Insert image', function (values) {
         var url = normalizeUrl(values.url);
-        if (!/^(?:https?:|data:image\\/|\\/)/i.test(url)) return;
+        if (!/^(?:https?:|data:image\/|\/)/i.test(url)) return;
         var attrs = ' src="' + esc(url) + '" alt="' + esc(values.alt || '') + '"';
         if (values.width) attrs += ' width="' + esc(values.width) + '"';
         insertHtml('<img' + attrs + ' />');
@@ -658,7 +658,7 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
       preview.setAttribute('dir', direction);
     }
     var html = bodyValue();
-    var stripped = html.replace(/^<div dir="(?:ltr|rtl)">([\\s\\S]*)<\\/div>$/i, '$1');
+    var stripped = html.replace(/^<div dir="(?:ltr|rtl)">([\s\S]*)<\/div>$/i, '$1');
     setEditorHtml(direction === 'rtl' ? '<div dir="rtl">' + stripped + '</div>' : stripped);
     markDirty();
   }
@@ -843,4 +843,4 @@ export const CONTENT_EDITOR_SCRIPT = `(function () {
   setInterval(poll, 15000);
   loadExisting().then(function () { fill(); syncActions(); });
   syncViewButtons();
-})();`;
+})();

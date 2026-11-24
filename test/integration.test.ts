@@ -4,12 +4,9 @@ import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const packageRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  ".."
-);
+const packageRoot = process.cwd();
 const repo = process.env.GUCHHO_REPO;
 const binary = process.env.GUCHHO_BINARY;
 const skip =

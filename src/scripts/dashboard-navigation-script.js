@@ -1,4 +1,4 @@
-export const DASHBOARD_NAV_SCRIPT = `(function () {
+(function () {
   'use strict';
   var layout = document.querySelector('[data-guchho-preview="dashboard-screen"]');
   var toggle = document.querySelector('[data-guchho-preview="nav-toggle"]');
@@ -45,4 +45,4 @@ export const DASHBOARD_NAV_SCRIPT = `(function () {
   } else if (query && query.addListener) {
     query.addListener(function () { setOpen(!query.matches); });
   }
-})();`;
+})();

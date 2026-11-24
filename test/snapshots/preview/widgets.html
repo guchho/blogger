@@ -1,16 +1,98 @@
 
-<html>
-<head><title>Widget showcase</title></head>
+<html lang="en">
+<head>
+<title>Widget showcase — Guchho Blogger Preview</title>
+<link rel="icon" href="https://guchho.js.org/favicon.ico">
+<style>
+:root{color-scheme:light;--bg:#f5f7fb;--panel:#fff;--line:#e5e9f2;--line-soft:#eef1f7;--ink:#182033;--muted:#667085;--accent:#6d5dfc;--accent-dark:#5848e4;--accent-soft:#efedff;--radius:16px;--shadow:0 1px 2px rgba(16,24,40,.04),0 12px 32px rgba(16,24,40,.08)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 12% -10%,#e9e6ff 0,rgba(233,230,255,0) 32%),radial-gradient(circle at 90% 0,#e6f4ff 0,rgba(230,244,255,0) 28%),var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+a{color:var(--accent-dark);text-decoration:none}
+a:hover{text-decoration:underline}
+.showcase-page{max-width:1280px;margin:0 auto;padding:28px 24px 64px}
+.showcase-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px;padding:28px;background:linear-gradient(135deg,#fff 0%,#fbfbff 100%);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.showcase-eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--accent-dark);font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+.showcase-eyebrow:before{content:'';width:22px;height:2px;border-radius:2px;background:var(--accent)}
+.showcase-hero h1{margin:0 0 8px;font-size:30px;line-height:1.2;letter-spacing:-.03em}
+.showcase-hero p{margin:0;max-width:640px;color:var(--muted);font-size:14px}
+.showcase-actions{display:flex;gap:10px;flex:none}
+.showcase-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-weight:600;white-space:nowrap;cursor:pointer}
+.showcase-button:hover{border-color:#c9cfe0;background:#f9faff;text-decoration:none}
+.showcase-button.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+.showcase-button.primary:hover{border-color:var(--accent-dark);background:var(--accent-dark)}
+.showcase-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.showcase-stat{padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.03)}
+.showcase-stat strong{display:block;font-size:20px;line-height:1.2;letter-spacing:-.02em}
+.showcase-stat span{color:var(--muted);font-size:12px}
+.showcase-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.03)}
+.showcase-search{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:220px}
+.showcase-search:before{content:'';position:absolute;left:12px;width:13px;height:13px;border:2px solid #98a2b3;border-radius:50%}
+.showcase-search:after{content:'';position:absolute;left:23px;width:7px;height:2px;border-radius:2px;background:#98a2b3;transform:rotate(45deg)}
+.showcase-search input{width:100%;height:38px;padding:0 12px 0 36px;border:1px solid var(--line);border-radius:10px;background:#fbfcfe;color:var(--ink);font:inherit}
+.showcase-search input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.showcase-filters{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.showcase-chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid transparent;border-radius:999px;background:#f2f4f8;color:#475467;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.showcase-chip span{color:#98a2b3;font-size:11px}
+.showcase-chip:hover{background:#e9ecf3}
+.showcase-chip[aria-pressed='true']{border-color:#d9d3ff;background:var(--accent-soft);color:var(--accent-dark)}
+.showcase-chip[aria-pressed='true'] span{color:var(--accent)}
+.showcase-status{flex:none;color:var(--muted);font-size:12px;font-weight:600}
+.widget-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;align-items:start}
+.widget-card{overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.widget-card:hover{transform:translateY(-2px);border-color:#d7d2ff;box-shadow:0 16px 38px rgba(16,24,40,.12)}
+.widget-card[hidden],.showcase-empty[hidden]{display:none!important}
+.widget-card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line-soft);background:linear-gradient(135deg,#fff,#faf9ff)}
+.widget-mark{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border-radius:9px;background:var(--accent-soft);color:var(--accent-dark);font-size:13px;font-weight:800}
+.widget-card-title{min-width:0;flex:1}
+.widget-card-title h2{margin:0;font-size:14px;line-height:1.3;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.widget-card-title span{display:block;margin-top:2px;color:var(--muted);font-size:11px}
+.widget-card-group{padding:3px 8px;border-radius:999px;background:#f2f4f8;color:#667085;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.widget-card-body{min-height:96px;padding:14px 16px 16px;background:#fff;font-size:12px}
+.widget-card-body .section.showcase{margin:0;padding:0;border:0;background:transparent}
+.widget-card-body .widget{margin:0}
+.widget-card-body .widget>.title,.widget-card-body h3.title{margin:0 0 8px;color:#344054;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.widget-card-body .post,.widget-card-body .widget-content{padding:10px;border:1px solid var(--line-soft);border-radius:10px;background:#fcfdff}
+.widget-card-body .post-title{font-size:13px}
+.widget-card-body .post-body p{margin:4px 0 0;color:#475467}
+.widget-card-body form{margin:0}
+.widget-card-body input,.widget-card-body textarea,.widget-card-body select{max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font:inherit}
+.widget-card-body ul{margin:0;padding-left:18px}
+.showcase-empty{padding:44px 20px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius);color:var(--muted);text-align:center}
+.showcase-empty strong{display:block;margin-bottom:4px;color:var(--ink);font-size:15px}
+@media(max-width:900px){.showcase-hero{align-items:flex-start;flex-direction:column}.showcase-actions{width:100%}.showcase-button{flex:1}.showcase-toolbar{align-items:flex-start;flex-direction:column}.showcase-search{flex:1 1 auto;width:100%}.showcase-status{padding-left:2px}}
+@media(max-width:600px){.showcase-page{padding:18px 14px 48px}.showcase-hero{padding:20px}.showcase-hero h1{font-size:24px}.showcase-stats{grid-template-columns:1fr}.widget-grid{grid-template-columns:1fr}}
+</style>
+</head>
 <body>
-<h1>Widget showcase</h1>
-<p>Every built-in and custom widget rendered with deterministic preview data.</p>
-<div class="section showcase" id="showcase-1" data-name="Attribution"><div class="widget Attribution" id="Showcase1" data-version="2">
+<div class="showcase-page" data-guchho-preview="widget-showcase">
+  <header class="showcase-hero">
+    <div>
+      <div class="showcase-eyebrow">Widget library</div>
+      <h1>Widget showcase</h1>
+      <p>Every built-in and custom widget rendered with deterministic preview data. Search the library or filter by category to inspect a specific widget.</p>
+    </div>
+    <div class="showcase-actions">
+      <a class="showcase-button" href="/">View blog</a>
+      <a class="showcase-button primary" href="/__preview/dashboard/">Open dashboard</a>
+    </div>
+  </header>
+  <div class="showcase-stats">
+    <div class="showcase-stat"><strong>22</strong><span>Available widgets</span></div>
+    <div class="showcase-stat"><strong>6</strong><span>Widget categories</span></div>
+    <div class="showcase-stat"><strong>Deterministic</strong><span>Mock preview data</span></div>
+  </div>
+  <div class="showcase-toolbar">
+    <label class="showcase-search"><input type="search" data-widget-search="" placeholder="Search widgets..." aria-label="Search widgets"></label>
+    <div class="showcase-filters" role="group" aria-label="Filter widgets by category"><button type="button" class="showcase-chip" data-widget-filter="All" aria-pressed="true">All <span>22</span></button><button type="button" class="showcase-chip" data-widget-filter="Content" aria-pressed="false">Content <span>7</span></button><button type="button" class="showcase-chip" data-widget-filter="Branding" aria-pressed="false">Branding <span>3</span></button><button type="button" class="showcase-chip" data-widget-filter="Navigation" aria-pressed="false">Navigation <span>2</span></button><button type="button" class="showcase-chip" data-widget-filter="Community" aria-pressed="false">Community <span>5</span></button><button type="button" class="showcase-chip" data-widget-filter="Discovery" aria-pressed="false">Discovery <span>2</span></button><button type="button" class="showcase-chip" data-widget-filter="Utilities" aria-pressed="false">Utilities <span>3</span></button></div>
+    <span class="showcase-status" data-widget-status="">22 of 22 widgets</span>
+  </div>
+  <main class="widget-grid"><article class="widget-card" data-group="Branding" data-type="Attribution" data-search="Attribution Branding" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">A</span><div class="widget-card-title"><h2>Attribution</h2><span>Showcase1</span></div><span class="widget-card-group">Branding</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-1" data-name="Attribution"><div class="widget Attribution" id="Showcase1" data-version="2">
     <div class="widget-content attribution">
       <a href="http://localhost:3000/">Guchho Blogger Preview</a>
       <span class="powered-by">Powered by Blogger</span>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-2" data-name="Blog"><div class="widget Blog" id="Showcase2" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="Blog" data-search="Blog Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">B</span><div class="widget-card-title"><h2>Blog</h2><span>Showcase2</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-2" data-name="Blog"><div class="widget Blog" id="Showcase2" data-version="2">
     <h3 class="title">Blog</h3>
     <div class="widget-content">
       
@@ -20,8 +102,8 @@
         </article>
       
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-3" data-name="BlogArchive"><div class="widget BlogArchive" id="Showcase3" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="BlogArchive" data-search="BlogArchive Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">B</span><div class="widget-card-title"><h2>BlogArchive</h2><span>Showcase3</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-3" data-name="BlogArchive"><div class="widget BlogArchive" id="Showcase3" data-version="2">
     <h3 class="title">BlogArchive</h3>
     <div class="widget-content archive">
       <ul>
@@ -30,8 +112,8 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-4" data-name="BlogSearch"><div class="widget BlogSearch" id="Showcase4" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Discovery" data-type="BlogSearch" data-search="BlogSearch Discovery" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">B</span><div class="widget-card-title"><h2>BlogSearch</h2><span>Showcase4</span></div><span class="widget-card-group">Discovery</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-4" data-name="BlogSearch"><div class="widget BlogSearch" id="Showcase4" data-version="2">
     <h3 class="title">BlogSearch</h3>
     <div class="widget-content">
       <form class="search-form" action="http://localhost:3000/search" method="get">
@@ -39,8 +121,8 @@
         <input type="submit" value="Search">
       </form>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-5" data-name="ContactForm"><div class="widget ContactForm" id="Showcase5" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Community" data-type="ContactForm" data-search="ContactForm Community" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">C</span><div class="widget-card-title"><h2>ContactForm</h2><span>Showcase5</span></div><span class="widget-card-group">Community</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-5" data-name="ContactForm"><div class="widget ContactForm" id="Showcase5" data-version="2">
     <h3 class="title">ContactForm</h3>
     <div class="widget-content">
       <form class="contact-form">
@@ -50,8 +132,8 @@
         <input type="submit" value="Message">
       </form>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-6" data-name="FeaturedPost"><div class="widget FeaturedPost" id="Showcase6" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="FeaturedPost" data-search="FeaturedPost Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">F</span><div class="widget-card-title"><h2>FeaturedPost</h2><span>Showcase6</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-6" data-name="FeaturedPost"><div class="widget FeaturedPost" id="Showcase6" data-version="2">
     <h3 class="title">FeaturedPost</h3>
     <div class="widget-content featured-post">
       
@@ -61,8 +143,8 @@
         
       
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-7" data-name="FollowByEmail"><div class="widget FollowByEmail" id="Showcase7" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Community" data-type="FollowByEmail" data-search="FollowByEmail Community" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">F</span><div class="widget-card-title"><h2>FollowByEmail</h2><span>Showcase7</span></div><span class="widget-card-group">Community</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-7" data-name="FollowByEmail"><div class="widget FollowByEmail" id="Showcase7" data-version="2">
     <h3 class="title">FollowByEmail</h3>
     <div class="widget-content">
       <form class="follow-by-email" method="post">
@@ -70,32 +152,32 @@
         <input type="submit" value="Subscribe">
       </form>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-8" data-name="Followers"><div class="widget Followers" id="Showcase8" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Community" data-type="Followers" data-search="Followers Community" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">F</span><div class="widget-card-title"><h2>Followers</h2><span>Showcase8</span></div><span class="widget-card-group">Community</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-8" data-name="Followers"><div class="widget Followers" id="Showcase8" data-version="2">
     <h3 class="title">Followers</h3>
     <div class="widget-content">
       <span class="followers-count">42</span>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-9" data-name="Header"><div class="widget Header" id="Showcase9" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Branding" data-type="Header" data-search="Header Branding" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">H</span><div class="widget-card-title"><h2>Header</h2><span>Showcase9</span></div><span class="widget-card-group">Branding</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-9" data-name="Header"><div class="widget Header" id="Showcase9" data-version="2">
     <div class="header-widget">
       <h1 class="title">Header</h1>
       <p class="description">A deterministic mock widget.</p>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-10" data-name="HTML"><div class="widget HTML" id="Showcase10" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="HTML" data-search="HTML Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">H</span><div class="widget-card-title"><h2>HTML</h2><span>Showcase10</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-10" data-name="HTML"><div class="widget HTML" id="Showcase10" data-version="2">
     <h3 class="title">HTML</h3>
     <div class="widget-content"><p>A deterministic mock HTML widget.</p></div>
-  </div></div>
-<div class="section showcase" id="showcase-11" data-name="Image"><div class="widget Image" id="Showcase11" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Branding" data-type="Image" data-search="Image Branding" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">I</span><div class="widget-card-title"><h2>Image</h2><span>Showcase11</span></div><span class="widget-card-group">Branding</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-11" data-name="Image"><div class="widget Image" id="Showcase11" data-version="2">
     <h3 class="title">Image</h3>
     <div class="widget-content image-widget">
       
         <a href="http://localhost:3000/p/about.html"><img alt="Mock image" height="160" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjE2MDAiIHZpZXdCb3g9IjAgMCAxNjAwIDE2MDAiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iaHNsKDIwMiw3OCUsODglKSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iaHNsKDI0MCw3MiUsNjYlKSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZmlsbD0iaHNsKDIwMiw1OCUsMjQlKSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMzIiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5QcmV2aWV3PC90ZXh0Pjwvc3ZnPg==" width="160"></a>
       
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-12" data-name="Label"><div class="widget Label" id="Showcase12" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="Label" data-search="Label Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">L</span><div class="widget-card-title"><h2>Label</h2><span>Showcase12</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-12" data-name="Label"><div class="widget Label" id="Showcase12" data-version="2">
     <h3 class="title">Label</h3>
     <div class="widget-content">
       <ul class="label-list">
@@ -112,8 +194,8 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-13" data-name="LinkList"><div class="widget LinkList" id="Showcase13" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Navigation" data-type="LinkList" data-search="LinkList Navigation" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">L</span><div class="widget-card-title"><h2>LinkList</h2><span>Showcase13</span></div><span class="widget-card-group">Navigation</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-13" data-name="LinkList"><div class="widget LinkList" id="Showcase13" data-version="2">
     <h3 class="title">LinkList</h3>
     <div class="widget-content">
       <ul class="link-list">
@@ -124,8 +206,8 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-14" data-name="PageList"><div class="widget PageList" id="Showcase14" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Navigation" data-type="PageList" data-search="PageList Navigation" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">P</span><div class="widget-card-title"><h2>PageList</h2><span>Showcase14</span></div><span class="widget-card-group">Navigation</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-14" data-name="PageList"><div class="widget PageList" id="Showcase14" data-version="2">
     <h3 class="title">PageList</h3>
     <div class="widget-content">
       <ul class="pagelist">
@@ -136,8 +218,8 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-15" data-name="PopularPosts"><div class="widget PopularPosts" id="Showcase15" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="PopularPosts" data-search="PopularPosts Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">P</span><div class="widget-card-title"><h2>PopularPosts</h2><span>Showcase15</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-15" data-name="PopularPosts"><div class="widget PopularPosts" id="Showcase15" data-version="2">
     <h3 class="title">PopularPosts</h3>
     <div class="widget-content popular-posts">
       <ul>
@@ -146,8 +228,8 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-16" data-name="Profile"><div class="widget Profile" id="Showcase16" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Community" data-type="Profile" data-search="Profile Community" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">P</span><div class="widget-card-title"><h2>Profile</h2><span>Showcase16</span></div><span class="widget-card-group">Community</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-16" data-name="Profile"><div class="widget Profile" id="Showcase16" data-version="2">
     <h3 class="title">Profile</h3>
     <div class="widget-content">
       <ul class="profile-team">
@@ -160,13 +242,13 @@
         
       </ul>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-17" data-name="ReportAbuse"><div class="widget ReportAbuse" id="Showcase17" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Utilities" data-type="ReportAbuse" data-search="ReportAbuse Utilities" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">R</span><div class="widget-card-title"><h2>ReportAbuse</h2><span>Showcase17</span></div><span class="widget-card-group">Utilities</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-17" data-name="ReportAbuse"><div class="widget ReportAbuse" id="Showcase17" data-version="2">
     <div class="widget-content">
       <a href="http://localhost:3000/report-abuse.html">Report Abuse</a>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-18" data-name="Search"><div class="widget Search" id="Showcase18" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Discovery" data-type="Search" data-search="Search Discovery" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">S</span><div class="widget-card-title"><h2>Search</h2><span>Showcase18</span></div><span class="widget-card-group">Discovery</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-18" data-name="Search"><div class="widget Search" id="Showcase18" data-version="2">
     <h3 class="title">Search</h3>
     <div class="widget-content">
       <form class="search-form" action="http://localhost:3000/search" method="get">
@@ -174,24 +256,64 @@
         <input type="submit" value="Search">
       </form>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-19" data-name="Stats"><div class="widget Stats" id="Showcase19" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Utilities" data-type="Stats" data-search="Stats Utilities" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">S</span><div class="widget-card-title"><h2>Stats</h2><span>Showcase19</span></div><span class="widget-card-group">Utilities</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-19" data-name="Stats"><div class="widget Stats" id="Showcase19" data-version="2">
     <h3 class="title">Stats</h3>
     <div class="widget-content stats">1234</div>
-  </div></div>
-<div class="section showcase" id="showcase-20" data-name="Subscribe"><div class="widget Subscribe" id="Showcase20" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Community" data-type="Subscribe" data-search="Subscribe Community" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">S</span><div class="widget-card-title"><h2>Subscribe</h2><span>Showcase20</span></div><span class="widget-card-group">Community</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-20" data-name="Subscribe"><div class="widget Subscribe" id="Showcase20" data-version="2">
     <h3 class="title">Subscribe</h3>
     <div class="widget-content">
       <a class="subscribe" href="http://localhost:3000/feeds/posts/default">Subscribe</a>
     </div>
-  </div></div>
-<div class="section showcase" id="showcase-21" data-name="Text"><div class="widget Text" id="Showcase21" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Content" data-type="Text" data-search="Text Content" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">T</span><div class="widget-card-title"><h2>Text</h2><span>Showcase21</span></div><span class="widget-card-group">Content</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-21" data-name="Text"><div class="widget Text" id="Showcase21" data-version="2">
     <h3 class="title">Text</h3>
     <div class="widget-content"><p>A deterministic mock text widget.</p></div>
-  </div></div>
-<div class="section showcase" id="showcase-22" data-name="Translate"><div class="widget Translate" id="Showcase22" data-version="2">
+  </div></div></div></article>
+<article class="widget-card" data-group="Utilities" data-type="Translate" data-search="Translate Utilities" data-widget-card=""><div class="widget-card-head"><span class="widget-mark" aria-hidden="true">T</span><div class="widget-card-title"><h2>Translate</h2><span>Showcase22</span></div><span class="widget-card-group">Utilities</span></div><div class="widget-card-body"><div class="section showcase" id="showcase-22" data-name="Translate"><div class="widget Translate" id="Showcase22" data-version="2">
     <h3 class="title">Translate</h3>
     <div class="widget-content" id="google_translate_element"></div>
-  </div></div>
+  </div></div></div></article></main>
+  <div class="showcase-empty" data-widget-empty="" hidden="hidden"><strong>No widgets found</strong><span>Try a different search or category.</span></div>
+</div>
+<script data-guchho-preview="widget-showcase-script">(function () {
+  var root = document.querySelector('[data-guchho-preview="widget-showcase"]');
+  if (!root) return;
+  var cards = Array.prototype.slice.call(root.querySelectorAll('[data-widget-card]'));
+  var search = root.querySelector('[data-widget-search]');
+  var status = root.querySelector('[data-widget-status]');
+  var empty = root.querySelector('[data-widget-empty]');
+  var filters = Array.prototype.slice.call(root.querySelectorAll('[data-widget-filter]'));
+  var active = 'All';
+
+  function sync() {
+    var query = (search && search.value || '').trim().toLowerCase();
+    var visible = 0;
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      var matchesGroup = active === 'All' || card.getAttribute('data-group') === active;
+      var text = (card.getAttribute('data-search') || '').toLowerCase();
+      var matchesQuery = query === '' || text.indexOf(query) !== -1;
+      var show = matchesGroup && matchesQuery;
+      card.hidden = !show;
+      if (show) visible++;
+    }
+    for (var j = 0; j < filters.length; j++) {
+      filters[j].setAttribute('aria-pressed', String(filters[j].getAttribute('data-widget-filter') === active));
+    }
+    if (status) status.textContent = visible + ' of ' + cards.length + ' widgets';
+    if (empty) empty.hidden = visible !== 0;
+  }
+
+  if (search) search.addEventListener('input', sync);
+  for (var k = 0; k < filters.length; k++) {
+    filters[k].addEventListener('click', function () {
+      active = this.getAttribute('data-widget-filter') || 'All';
+      sync();
+    });
+  }
+  sync();
+})();</script>
 </body>
 </html>

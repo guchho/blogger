@@ -75,7 +75,7 @@ export interface BloggerPluginOptions {
   widgets?: BloggerWidgetRegistry;
   /** Local port for the dev-only Layout Editor save service. Defaults to 3001. */
   layoutSavePort?: number;
-  /** Preview favicon URL. Defaults to `favicon.ico`. */
+  /** Preview favicon URL. Defaults to the Guchho favicon URL. */
   favicon?: string;
   /**
    * Enable file-based content and rendered HTML output. Set to false to keep

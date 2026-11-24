@@ -96,6 +96,20 @@ test("renders dynamic classes and attributes", () => {
   assert.match(html, /data-comments="yes"/);
 });
 
+test("renders b:tag children without the wrapper when cond is false", () => {
+  const template = `<?xml version="1.0" encoding="UTF-8" ?>
+  <html xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+  <body>
+    <b:tag cond='data:enabled' class='wrapper' name='div'><p class='kept'>kept</p></b:tag>
+  </body>
+  </html>`;
+  const { html, reports } = render(template, { enabled: false });
+  assert.deepEqual(reports, []);
+  assert.match(html, /<p class="kept">kept<\/p>/);
+  assert.equal(html.includes("wrapper"), false);
+  assert.equal(html.includes("<div"), false);
+});
+
 test("resolves common includables and messages", () => {
   const scenario = buildScenarios()[0];
   assert.ok(scenario);
@@ -129,6 +143,27 @@ test("renders widgets through the built-in registry without reports", () => {
   assert.match(html, /A deterministic mock text widget\./);
   assert.match(html, /<img alt="Mock image"[^>]*src="data:image\/svg\+xml;base64,/);
   assert.match(html, /class="powered-by">Powered by Blogger<\/span>/);
+});
+
+test("uses Header displayUrl as the preview logo image", () => {
+  const headerTemplate = `<?xml version="1.0" encoding="UTF-8" ?>
+  <html xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+  <body>
+  <b:section id='header'>
+    <b:widget id='Header1' type='Header' title='Header'>
+      <b:widget-settings>
+        <b:widget-setting name='displayUrl'>https://example.com/custom-logo.png</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main'><img expr:src='data:image' alt='logo'/></b:includable>
+    </b:widget>
+  </b:section>
+  </body>
+  </html>`;
+  const scenario = buildScenarios()[0];
+  assert.ok(scenario);
+  const { html, reports } = render(headerTemplate, scenario.data);
+  assert.deepEqual(reports, []);
+  assert.match(html, /src="https:\/\/example\.com\/custom-logo\.png"/);
 });
 
 const THEME_PATH = "demo/theme.xml";

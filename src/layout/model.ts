@@ -33,6 +33,7 @@ export interface LayoutWidgetModel {
   span: Span;
   attributes: LayoutAttributeModel[];
   includables: string[];
+  settings: Record<string, string>;
 }
 
 export interface LayoutStructureNode {
@@ -65,6 +66,8 @@ export interface WidgetChanges {
   locked?: boolean;
   visible?: boolean;
   version?: string;
+  imageUrl?: string;
+  settings?: Record<string, string>;
 }
 
 export interface SectionChanges {
@@ -80,14 +83,56 @@ export type LayoutOperation =
   | { kind: "removeWidget"; widgetId: string }
   | { kind: "reorderWidget"; widgetId: string; index: number }
   | { kind: "moveWidget"; widgetId: string; sectionId: string; index: number }
+  | { kind: "duplicateWidget"; widgetId: string }
   | { kind: "editWidget"; widgetId: string; changes: WidgetChanges }
   | { kind: "editSection"; sectionId: string; changes: SectionChanges };
+
+export interface LayoutGadgetCatalogField {
+  kind: string;
+  key: string;
+  label: string;
+  description?: string;
+  placeholder?: string;
+  required?: boolean;
+  defaultValue?: string;
+  options?: Array<{ value: string; label: string }>;
+  min?: number;
+  max?: number;
+  step?: number;
+  rows?: number;
+  maxLength?: number;
+  showIf?: { key: string; equals?: string | boolean; notEquals?: string | boolean; truthy?: boolean; falsy?: boolean };
+  advanced?: boolean;
+  itemOrder?: readonly string[];
+}
+
+export interface LayoutGadgetCatalogSection {
+  id: string;
+  label: string;
+  description?: string;
+  fields: LayoutGadgetCatalogField[];
+}
+
+export interface LayoutGadgetCatalogEntry {
+  type: string;
+  label: string;
+  category: string;
+  description: string;
+  icon: string;
+  implemented: "full" | "partial" | "unsupported";
+  configurable: boolean;
+  capabilities: { configurable: boolean; duplicable: boolean; removable: boolean; movable: boolean; canHide: boolean; maxInstances?: number };
+  sections: LayoutGadgetCatalogSection[];
+  defaults: Record<string, string>;
+}
 
 export interface LayoutEditorPayload {
   model: LayoutModel;
   saveUrl: string;
   statusUrl: string;
   widgetTypes: string[];
+  widgetTypeLabels?: Record<string, string>;
+  gadgetCatalog?: LayoutGadgetCatalogEntry[];
 }
 
 export class LayoutError extends Error {

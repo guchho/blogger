@@ -1,3 +1,4 @@
+import { gadgetCatalog, getGadgetDefinition } from "./gadgets.js";
 import {
   applyLayoutOperations,
   availableWidgetTypes,
@@ -25,11 +26,29 @@ export function editorPayload(
   widgetTypes: string[] = availableWidgetTypes()
 ): LayoutEditorPayload {
   const origin = `http://localhost:${savePort}`;
+  const widgetTypeLabels: Record<string, string> = {};
+  for (const type of widgetTypes) widgetTypeLabels[type] = getGadgetDefinition(type)?.label ?? type;
   return {
     model,
     saveUrl: `${origin}/api/layout/save`,
     statusUrl: `${origin}/api/layout/status`,
     widgetTypes,
+    widgetTypeLabels,
+    gadgetCatalog: gadgetCatalog().map((item) => {
+      const def = getGadgetDefinition(item.type);
+      return {
+        type: item.type,
+        label: item.label,
+        category: item.category,
+        description: item.description,
+        icon: item.icon,
+        implemented: item.implemented,
+        configurable: item.configurable,
+        capabilities: item.capabilities,
+        sections: (def?.sections ?? []).map((section) => ({ ...section, fields: section.fields.map((field) => ({ ...field })) })),
+        defaults: { ...(def?.defaults ?? {}) },
+      };
+    }),
   };
 }
 

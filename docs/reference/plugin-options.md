@@ -30,7 +30,7 @@ export default {
 | `previewDir` | string | `preview` | Preview directory relative to the output directory. Must stay inside it. |
 | `previewDashboard` | boolean or string | `true` | `true` generates the dashboard and button; `false` disables both; a string changes the button URL. |
 | `layoutSavePort` | number | `3001` | Local TCP port for the dev save service. `0` selects an available port. |
-| `favicon` | string | `favicon.ico` | Preview favicon URL, exposed as `data:blog.blogspotFaviconUrl`. |
+| `favicon` | string | `https://guchho.js.org/favicon.ico` | Preview favicon URL, exposed as `data:blog.blogspotFaviconUrl`. |
 
 ## Content options
 
@@ -63,7 +63,7 @@ export default {
       previewDir: "preview",
       previewDashboard: true,
       layoutSavePort: 3001,
-      favicon: "favicon.ico",
+      favicon: "https://guchho.js.org/favicon.ico",
       mockData: "./preview-data.json",
       widgets: {
         Hero: {

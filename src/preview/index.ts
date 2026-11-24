@@ -4,6 +4,7 @@
 
 import { buildContentScenarios, type ContentScenarioOptions } from "../content/scenarios.js";
 import type { ContentSnapshot } from "../content/settings.js";
+import { extractLayout } from "../layout/extract.js";
 import type { BloggerWidgetRegistry } from "../types.js";
 import { parseXml } from "../xml/parser.js";
 import { SourceFile } from "../xml/source.js";
@@ -17,6 +18,11 @@ import {
   PREVIEW_DASHBOARD_ROUTE,
 } from "./dashboard.js";
 import { previewFeedEntries, previewFeedScript } from "./feeds.js";
+import {
+  commentLayoutSkinCss,
+  LAYOUT_SKIN_CSS_FILE,
+  LAYOUT_TEMPLATE_SKIN_CSS_FILE,
+} from "./layout-editor/skin-css.js";
 import type { PreviewScenario } from "./data/types.js";
 import { withImageFallback } from "./render/image-fallback.js";
 import { renderTemplate, type RenderReportDetail } from "./render/renderer.js";
@@ -49,9 +55,16 @@ export interface PreviewDiagnostic {
   hint?: string;
 }
 
+export interface PreviewAsset {
+  /** File name relative to the preview directory. */
+  file: string;
+  source: string;
+}
+
 export interface PreviewBuildResult {
   pages: PreviewPage[];
   diagnostics: PreviewDiagnostic[];
+  assets: PreviewAsset[];
 }
 
 export interface PreviewBuildOptions {
@@ -63,7 +76,7 @@ export interface PreviewBuildOptions {
   layoutXml?: string;
   /** Port published to the Layout Editor for save requests. */
   layoutSavePort?: number;
-  /** Favicon URL exposed as `data:blog.blogspotFaviconUrl`. Defaults to `favicon.ico`. */
+  /** Favicon URL exposed as `data:blog.blogspotFaviconUrl`. Defaults to the Guchho favicon URL. */
   favicon?: string;
   /** Override the scenario set (mainly for tests). */
   scenarios?: PreviewScenario[];
@@ -134,6 +147,7 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
 
   const pages: PreviewPage[] = [];
   const diagnostics: PreviewDiagnostic[] = [];
+  const assets: PreviewAsset[] = [];
   const seen = new Set<string>();
 
   for (const scenario of scenarios) {
@@ -210,6 +224,20 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
   }
 
   if (dashboard === true) {
+    const layoutCss = extractLayout(
+      options.layoutXml ?? options.xml,
+      options.entryPath
+    ).css;
+    assets.push(
+      {
+        file: LAYOUT_SKIN_CSS_FILE,
+        source: commentLayoutSkinCss(layoutCss.skin),
+      },
+      {
+        file: LAYOUT_TEMPLATE_SKIN_CSS_FILE,
+        source: commentLayoutSkinCss(layoutCss.templateSkin),
+      }
+    );
     pages.push(
       ...buildDashboardScreens(
         pages.map(({ file, route, title }) => ({ file, route, title })),
@@ -229,7 +257,7 @@ export function buildPreview(options: PreviewBuildOptions): PreviewBuildResult {
     );
   }
 
-  return { pages, diagnostics };
+  return { pages, diagnostics, assets };
 }
 
 function applyScenarioOverrides(

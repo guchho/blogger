@@ -1,6 +1,5 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import type {
   LoadResult,
@@ -37,11 +36,11 @@ import type {
   CompiledTemplate,
   Diagnostic,
 } from "./types.js";
+import { DEFAULT_FAVICON_URL } from "./defaults.js";
 
 const DEFAULT_ENTRY = "src/template.xml";
 const DEFAULT_OUTFILE = "template.xml";
 const DEFAULT_LAYOUT_SAVE_PORT = 3001;
-const DEFAULT_FAVICON = "favicon.ico";
 const DEFAULT_SITE_URL = "http://localhost:3000/";
 const CARRIER_NAMESPACE = "guchho-blogger";
 const CARRIER_OUTPUT = "guchho-blogger-carrier";
@@ -410,17 +409,6 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
 
       deleteCarrierChunks(bundle, state);
 
-      if (bundle[DEFAULT_FAVICON] === undefined && outfile !== DEFAULT_FAVICON) {
-        const faviconSource = await resolveFaviconSource(process.cwd());
-        if (faviconSource !== undefined) {
-          this.emitFile({
-            type: "asset",
-            fileName: DEFAULT_FAVICON,
-            source: await fs.readFile(faviconSource),
-          });
-        }
-      }
-
       if (bundle[outfile] !== undefined) {
         this.error({
           message: `the Blogger output "${outfile}" collides with another emitted file`,
@@ -442,7 +430,7 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
           entryPath: state.entryPath,
           layoutXml: template.sourceText,
           layoutSavePort: state.saveService?.port ?? layoutSavePort,
-          favicon: options.favicon ?? DEFAULT_FAVICON,
+          favicon: options.favicon ?? DEFAULT_FAVICON_URL,
           hasHtmlEntry,
           existing: new Set(Object.keys(bundle)),
           widgetRegistry: state.widgetRegistry,
@@ -474,7 +462,10 @@ export function blogger(options: BloggerPluginOptions = {}): Plugin {
               ? DEFAULT_SITE_URL
               : state.contentSnapshot.settings.baseUrl),
           sanitize: contentOptions.sanitize ?? true,
-          favicon: options.favicon ?? state.contentSnapshot.settings.favicon ?? DEFAULT_FAVICON,
+          favicon:
+            options.favicon ??
+            state.contentSnapshot.settings.favicon ??
+            DEFAULT_FAVICON_URL,
           hasHtmlEntry,
           existing: new Set(Object.keys(bundle)),
           widgetRegistry: state.widgetRegistry,
@@ -509,26 +500,6 @@ function isWatchBuild(metaWatchMode: boolean): boolean {
     command === "watch" ||
     process.argv.includes("--watch")
   );
-}
-
-async function resolveFaviconSource(projectRoot: string): Promise<string | undefined> {
-  const candidates = [
-    path.join(projectRoot, DEFAULT_FAVICON),
-    path.resolve(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      DEFAULT_FAVICON
-    ),
-  ];
-  for (const candidate of candidates) {
-    try {
-      const stat = await fs.stat(candidate);
-      if (stat.isFile()) return candidate;
-    } catch {
-      continue;
-    }
-  }
-  return undefined;
 }
 
 function normalizeDir(dir: string): string {
@@ -643,6 +614,14 @@ function emitPreview(
       continue;
     }
     emitPreviewFile(context, emitted, routeFile, page.html, routeFile === "index.html");
+  }
+
+  for (const asset of result.assets) {
+    const flat =
+      options.previewDir === ""
+        ? asset.file
+        : `${options.previewDir}/${asset.file}`;
+    emitPreviewFile(context, emitted, flat, asset.source, false);
   }
 }
 

@@ -14,7 +14,6 @@
   },
   "files": [
     "dist/",
-    "favicon.ico",
     "README.md",
     "LICENSE"
   ],
@@ -22,18 +21,18 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-editor-css.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "compile:test": "node scripts/prepare-test-build.mjs && tsc -p tsconfig.test.json",
+    "test": "npm run compile:test && node scripts/run-tests.mjs",
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "guchho": ">=1.0.10"
+    "guchho": ">=1.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "guchho": "^1.0.9",
-    "tsx": "^4.19.0",
+    "guchho": "^1.1.0",
     "typescript": "^5.7.0"
   },
   "keywords": [

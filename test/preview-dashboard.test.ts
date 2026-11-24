@@ -4,6 +4,7 @@ import test from "node:test";
 import { Script } from "node:vm";
 
 import { PREVIEW_DASHBOARD_ROUTE } from "../src/preview/dashboard.js";
+import { PREVIEW_FAVICON } from "../src/preview/data/metadata.js";
 import { buildPreview } from "../src/preview/index.js";
 import type { PreviewBuildOptions } from "../src/preview/index.js";
 
@@ -21,6 +22,16 @@ const EXAMPLE_TEMPLATE = readFileSync(
   new URL("../examples/src/template.xml", import.meta.url),
   "utf8"
 );
+const NORMALIZED_EDITOR_CSS = readFileSync(
+  new URL("../src/preview/layout-editor/editor.css", import.meta.url),
+  "utf8"
+).replace(/\s+/g, "");
+
+function assetSource(result: ReturnType<typeof buildPreview>, file: string): string {
+  const asset = result.assets.find((item) => item.file === file);
+  assert.ok(asset, `missing asset: ${file}`);
+  return asset.source;
+}
 
 interface StructureTestNode {
   id?: string;
@@ -87,13 +98,13 @@ test("all nine Blogger-like admin screens are generated", () => {
   }
 });
 
-test("dashboard uses favicon.ico by default", () => {
+test("dashboard uses the Guchho favicon URL by default", () => {
   const result = build();
   for (const [file] of SCREENS) {
     const screen = result.pages.find((item) => item.file === file);
     assert.ok(screen, `missing screen: ${file}`);
     assert.ok(
-      screen.html.includes('<link rel="icon" href="/favicon.ico">'),
+      screen.html.includes(`<link rel="icon" href="${PREVIEW_FAVICON}">`),
       `${file} has no default favicon link`
     );
   }
@@ -103,10 +114,18 @@ test("dashboard uses favicon.ico by default", () => {
   assert.ok(settings);
   assert.ok(settings.html.includes("Favicon"));
   assert.ok(
-    settings.html.includes('<img src="/favicon.ico" alt="">'),
+    settings.html.includes(`<img src="${PREVIEW_FAVICON}" alt="">`),
     "settings has no favicon preview"
   );
-  assert.ok(settings.html.includes("<span>favicon.ico</span>"));
+  assert.ok(settings.html.includes(`<span>${PREVIEW_FAVICON}</span>`));
+  assert.ok(settings.html.includes("Favicon URL"));
+  assert.ok(settings.html.includes('id="settings-favicon"'));
+  assert.ok(settings.html.includes('id="settings-title"'));
+  assert.ok(settings.html.includes('id="settings-description"'));
+  assert.ok(settings.html.includes('data-guchho-preview="settings-save"'));
+  assert.ok(settings.html.includes('data-guchho-preview="settings-script"'));
+  assert.ok(settings.html.includes("Live preview"));
+  assert.ok(settings.html.includes("More options"));
 });
 
 test("favicon option flows into preview data and dashboard", () => {
@@ -136,6 +155,20 @@ test("favicon option flows into preview data and dashboard", () => {
   assert.ok(settings);
   assert.ok(settings.html.includes('<link rel="icon" href="/brand.png">'));
   assert.ok(settings.html.includes("<span>brand.png</span>"));
+});
+
+test("settings editor script is valid JavaScript and scoped to settings", () => {
+  const result = build();
+  const settings = result.pages.find((item) => item.file === "dashboard-settings.html");
+  assert.ok(settings);
+  const match = /<script data-guchho-preview="settings-script">([\s\S]*?)<\/script>/.exec(
+    settings.html
+  );
+  assert.ok(match);
+  assert.doesNotThrow(() => new Script(match[1] as string));
+  const overview = result.pages.find((item) => item.file === "dashboard.html");
+  assert.ok(overview);
+  assert.equal(overview.html.includes("settings-script"), false);
 });
 
 test("overview links to every preview scenario", () => {
@@ -218,6 +251,33 @@ test("content screens use deterministic mock data", () => {
   }
 });
 
+test("comments studio offers search, status tabs, bulk moderation and scoped scripting", () => {
+  const result = build();
+  const screen = result.pages.find((item) => item.file === "dashboard-comments.html");
+  assert.ok(screen);
+  for (const marker of [
+    'data-guchho-preview="comments-studio"',
+    'data-comment-search',
+    'data-comment-select-all',
+    'data-comment-delete-selected',
+    'data-comment-tab="all"',
+    'data-comment-tab="awaiting"',
+    'data-comment-row',
+    "Comments studio",
+    "Moderation queue",
+    "Delete selected",
+    "Export CSV",
+  ]) {
+    assert.ok(screen.html.includes(marker), `missing marker: ${marker}`);
+  }
+  const match = /<script data-guchho-preview="comments-script">([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(match);
+  assert.doesNotThrow(() => new Script(match[1] as string));
+  assert.equal(screen.html.includes('data-guchho-preview="theme-script"'), false);
+});
+
 test("dashboard: false removes the button and every admin screen", () => {
   const result = build({ dashboard: false });
   assert.equal(result.pages.some((item) => item.file.startsWith("dashboard")), false);
@@ -261,6 +321,12 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     layoutSavePort: 3001,
   });
   assert.equal(result.diagnostics.length, 0);
+  assert.deepEqual(
+    result.assets.map((asset) => asset.file),
+    ["layout/skin.css", "layout/template-skin.css"]
+  );
+  assert.match(assetSource(result, "layout/skin.css"), /\.from-skin\{content:"quoted" & more\}/);
+  assert.equal(assetSource(result, "layout/template-skin.css").trim(), "");
   const screen = result.pages.find((item) => item.file === "dashboard-layout.html");
   assert.ok(screen);
   for (const marker of [
@@ -276,7 +342,37 @@ test("Layout renders a real editor from template.xml without a blog preview", ()
     ".from-style{color:red}",
     "css-template.xml",
     "le-gadget-dialog",
+    "le-blog-posts-dialog",
+    "Show this widget",
+    "Number of posts on the main page",
+    "Post page link text",
+    "Show date header",
+    "Post Information",
+    "Show author",
+    "Author prefix",
+    "Show publish time",
+    "Publish time prefix",
+    "Date format",
+    "Engagement",
+    "Show comment count",
+    "Comment link text",
+    "Show labels with prefix",
+    "Email post link",
+    "Share buttons",
+    "Show location",
+    "Show author profile",
+    "Arrange Items",
+    "Date Header",
+    "Post Title",
+    "Post Body",
+    "Comments",
+    "Email Post Link",
+    "Labels",
+    "Location",
+    "Author Profile",
     "le-widget-dialog",
+    "le-widget-image-url",
+    "Image URL",
     "le-section-dialog",
     "layout-editor-head",
     "layout-editor-eyebrow",
@@ -348,10 +444,18 @@ test("Layout payload carries nested structure for the Blogger layout renderer", 
   assert.equal("content" in payload.model.sections[0].widgets[0], false);
   assert.match(screen.html, /page\.id = 'layout'/);
   assert.match(screen.html, /page\.className = 'blogger-layout-page'/);
-  assert.match(screen.html, /body#layout\.blogger-layout-page #content-wrapper/);
-  assert.match(screen.html, /body#layout\.blogger-layout-page \.le-widget\{position:relative;display:block!important/);
-  assert.match(screen.html, /\.le-widget\{position:relative;display:block!important;float:none!important/);
-  assert.match(screen.html, /\.widget-content\.visibility\{display:flex!important;align-items:center;flex-wrap:nowrap/);
+  assert.match(assetSource(result, "layout/template-skin.css"), /body#layout #main-wrapper\{width:66%\}/);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-page#content-wrapper/);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-page\.le-wrapper\{display:block!important;float:none!important/);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-pagediv\.le-section\{position:relative;display:block!important;float:none!important/);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-page\.le-widget\{position:relative;display:block!important/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.widget-content\.visibility\{display:flex!important;align-items:center;flex-wrap:nowrap/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.widget-content\{display:flex;flex-direction:column\}/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.le-section-count/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.le-widget-row/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.le-grip/);
+  assert.match(screen.html, /data-label="/);
+  assert.match(NORMALIZED_EDITOR_CSS, /#content-wrapper>\.container>#main-wrapper\{flex:21460px!important/);
   assert.equal(screen.html.includes("Page structure"), false);
 });
 
@@ -376,7 +480,7 @@ test("real example layout preserves Blogger wrapper positions and visibility", (
   assert.ok(findStructureNode(structure, "sidebar-wrapper"));
   assert.ok(findStructureNode(structure, "footer-wrapper"));
   assert.ok(payload.model.sections.length > 4);
-  assert.match(screen.html, /\.hidden-widgets\{display:block!important/);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-page\.hidden-widgets\{display:block!important/);
   assert.equal(screen.html.includes("Page structure"), false);
   assert.equal(screen.html.includes("https://www.blogger.com/static/v1/layouts/"), false);
 });
@@ -391,12 +495,20 @@ test("Layout editor chrome is applied after template CSS", () => {
   assert.ok(screen);
   assert.match(
     screen.html,
-    /style\.textContent = \(model\.css\.combined \|\| ''\) \+ '\\n' \+ editorCss\(\);/
+    /style\.textContent = \(model\.css\.style \|\| ''\) \+ '\\n' \+ "body#layout\.blogger-layout-page/
   );
-  assert.match(screen.html, /body#layout\.blogger-layout-page div\.le-section/);
-  assert.match(screen.html, /\.layout-widget-state\.visible\{/);
-  assert.match(screen.html, /\.layout-widget-state svg\{/);
-  assert.match(screen.html, /icon\(widget\.visible \? 'eye' : 'eye-off'\)/);
+  assert.ok(screen.html.includes("skin.href = '/__preview/layout/skin.css'"));
+  assert.ok(screen.html.includes("templateSkin.href = '/__preview/layout/template-skin.css'"));
+  assert.equal(screen.html.includes("function editorCss()"), false);
+  const skinAppend = screen.html.indexOf("shadow.appendChild(skin)");
+  const templateSkinAppend = screen.html.indexOf("shadow.appendChild(templateSkin)");
+  const styleAppend = screen.html.indexOf("shadow.appendChild(style)");
+  assert.ok(skinAppend >= 0 && skinAppend < templateSkinAppend);
+  assert.ok(templateSkinAppend < styleAppend);
+  assert.match(NORMALIZED_EDITOR_CSS, /body#layout\.blogger-layout-pagediv\.le-section/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.layout-widget-state\.visible\{/);
+  assert.match(NORMALIZED_EDITOR_CSS, /\.layout-widget-statesvg\{/);
+  assert.match(screen.html, /icon\(widget\.visible !== false \? 'eye' : 'eye-off'\)/);
 });
 
 test("Theme shows decoded, escaped template base style", () => {
@@ -427,6 +539,29 @@ test("Theme base style panel truncates long CSS and reports the total length", (
   assert.ok(screen);
   assert.match(screen.html, /Showing first 12000 of \d+ characters\./);
   assert.equal(screen.html.includes("No base style found"), false);
+});
+
+test("Theme studio offers source tabs, search, copy and scoped scripting", () => {
+  const result = build();
+  const screen = result.pages.find((item) => item.file === "dashboard-theme.html");
+  assert.ok(screen);
+  assert.ok(screen.html.includes('data-guchho-preview="theme-studio"'));
+  assert.ok(screen.html.includes('data-theme-tab="xml"'));
+  assert.ok(screen.html.includes('data-theme-tab="style"'));
+  assert.ok(screen.html.includes("data-theme-search"));
+  assert.ok(screen.html.includes("data-theme-copy"));
+  assert.ok(screen.html.includes('data-theme-panel="style"'));
+  assert.ok(screen.html.includes("Theme studio"));
+  assert.ok(screen.html.includes("Quick actions"));
+  assert.ok(screen.html.includes('href="/__preview/widgets/"'));
+  const scriptMatch = /<script data-guchho-preview="theme-script">([\s\S]*?)<\/script>/.exec(
+    screen.html
+  );
+  assert.ok(scriptMatch);
+  assert.doesNotThrow(() => new Script(scriptMatch[1] as string));
+  const overview = result.pages.find((item) => item.file === "dashboard.html");
+  assert.ok(overview);
+  assert.equal(overview.html.includes("theme-script"), false);
 });
 
 test("Layout editor still renders its template sections with no preview scenarios", () => {

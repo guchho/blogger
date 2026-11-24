@@ -1,7 +1,12 @@
 import { isPost, type ContentItem } from "../../content/model.js";
 import { sanitizeHtml } from "../../content/sanitize.js";
 import { escapeHtml } from "../../preview/values.js";
-import { CONTENT_EDITOR_SCRIPT } from "./client-script.js";
+import { readFileSync } from "node:fs";
+
+const CONTENT_EDITOR_SCRIPT = readFileSync(
+  new URL("../../scripts/content-editor-script.js", import.meta.url),
+  "utf8"
+);
 
 export interface ContentEditorData {
   kind: "post" | "page";

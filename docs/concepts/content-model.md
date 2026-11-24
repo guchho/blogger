@@ -79,7 +79,7 @@ suffix such as `hello-world-2`.
 | `title` | string | `Guchho Blog` |
 | `description` | string | `A Guchho Blogger site` |
 | `baseUrl` | string | `http://localhost:3000/` |
-| `favicon` | string | `favicon.ico` |
+| `favicon` | string | `https://guchho.js.org/favicon.ico` |
 | `author` | string | `admin` |
 | `postsPerPage` | positive integer | `10` |
 

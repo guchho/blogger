@@ -5,6 +5,7 @@ import { applyLayoutOperations, validateLayoutXml } from "../src/layout/operatio
 import { extractLayout } from "../src/layout/extract.js";
 import { LayoutError, type LayoutOperation } from "../src/layout/model.js";
 import { serializeLayout } from "../src/layout/serialize.js";
+import { commentLayoutSkinCss } from "../src/preview/layout-editor/skin-css.js";
 
 const TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
@@ -18,6 +19,9 @@ const TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
 <body>
 <b:section id='header' class='header section' showaddelement='false' maxwidgets='2'>
   <b:widget id='Header1' type='Header' title='Header' locked='true' visible='true' version='2'>
+    <b:widget-settings>
+      <b:widget-setting name='displayUrl'>https://example.com/old-logo.png</b:widget-setting>
+    </b:widget-settings>
     <b:includable id='main'><h1><data:title/></h1></b:includable>
   </b:widget>
 </b:section>
@@ -69,6 +73,9 @@ test("extracts widgets with all supported attributes", () => {
   assert.equal(blog.visible, true);
   assert.equal(blog.version, "2");
   assert.deepEqual(blog.includables, ["main"]);
+  assert.deepEqual(model.sections[0]?.widgets[0]?.settings, {
+    displayUrl: "https://example.com/old-logo.png",
+  });
   assert.equal(model.sections[0]?.widgets[0]?.locked, true);
   assert.equal(model.sections[1]?.widgets[1]?.visible, false);
 });
@@ -80,6 +87,36 @@ test("extracts CSS from skin, template skin and style elements", () => {
   assert.match(css.style, /body\{background:#fff\}/);
   assert.match(css.combined, /color:red/);
   assert.match(css.combined, /margin:4px/);
+});
+
+test("comments layout-breaking declarations in skin CSS copies", () => {
+  const css = `.a{background:#000;background-color:#fff;box-sizing:border-box;transition:all .2s, color .1s;-webkit-transition:all .2s;transform-origin:center;outline:0;word-wrap:break-word;-webkit-appearance:none;-moz-appearance:none;appearance:none;color:red}`;
+  const result = commentLayoutSkinCss(css);
+  for (const declaration of [
+    "background:#000;",
+    "box-sizing:border-box;",
+    "transition:all .2s, color .1s;",
+    "-webkit-transition:all .2s;",
+    "transform-origin:center;",
+    "outline:0;",
+    "word-wrap:break-word;",
+    "-webkit-appearance:none;",
+    "-moz-appearance:none;",
+    "appearance:none;",
+  ]) {
+    assert.ok(result.includes(`/* ${declaration} */`), `missing comment: ${declaration}`);
+  }
+  assert.match(result, /background-color:#fff/);
+  assert.match(result, /color:red/);
+});
+
+test("keeps comments, strings and nested values intact when commenting skin CSS", () => {
+  const css = `.a::after{content:"background:red; appearance:none";background:url(data:image/svg+xml;base64,AAA)}/* background:blue; */@media screen and (min-width: 10px){.b{word-wrap:break-word}}`;
+  const result = commentLayoutSkinCss(css);
+  assert.match(result, /content:"background:red; appearance:none"/);
+  assert.match(result, /\/\* background:blue; \*\//);
+  assert.match(result, /@media screen and \(min-width: 10px\)/);
+  assert.match(result, /\/\* word-wrap:break-word \*\//);
 });
 
 test("extracts nested page structure for the layout canvas", () => {
@@ -197,6 +234,41 @@ test("edits widget and section properties while preserving other attributes", ()
   assert.match(xml, /locked='false'/);
   assert.equal(model.sections[1]?.maxwidgets, 5);
   assert.equal(model.sections[1]?.widgets[0]?.title, "New & Better");
+});
+
+test("edits Header image URL through the displayUrl setting", () => {
+  const { xml, model } = apply({
+    kind: "editWidget",
+    widgetId: "Header1",
+    changes: { imageUrl: "https://example.com/logo.png?a=1&b=2" },
+  });
+  assert.match(
+    xml,
+    /<b:widget-setting name='displayUrl'>https:\/\/example\.com\/logo\.png\?a=1&amp;b=2<\/b:widget-setting>/
+  );
+  assert.equal(
+    model.sections[0]?.widgets[0]?.settings["displayUrl"],
+    "https://example.com/logo.png?a=1&b=2"
+  );
+});
+
+test("adds Header settings when the widget has no settings section", () => {
+  const { xml, model } = apply(
+    { kind: "addWidget", sectionId: "main", widgetType: "Header" },
+    {
+      kind: "editWidget",
+      widgetId: "Header2",
+      changes: { imageUrl: "https://example.com/added-logo.png" },
+    }
+  );
+  assert.match(
+    xml,
+    /<b:widget-settings>[\s\S]*<b:widget-setting name='displayUrl'>https:\/\/example\.com\/added-logo\.png<\/b:widget-setting>[\s\S]*<\/b:widget-settings>/
+  );
+  assert.equal(
+    model.sections[1]?.widgets[2]?.settings["displayUrl"],
+    "https://example.com/added-logo.png"
+  );
 });
 
 test("unsupported elements, comments and CSS survive serialization", () => {

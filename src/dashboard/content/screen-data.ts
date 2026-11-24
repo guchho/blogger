@@ -3,7 +3,12 @@ import { pagePath, postPath } from "../../content/routes.js";
 import type { ContentSnapshot } from "../../content/settings.js";
 import { contentEditorMarkup } from "../../editor/content-editor/markup.js";
 import { escapeHtml } from "../../preview/values.js";
-import { CONTENT_DASHBOARD_SCRIPT } from "./client-script.js";
+import { readFileSync } from "node:fs";
+
+const CONTENT_DASHBOARD_SCRIPT = readFileSync(
+  new URL("../../scripts/content-dashboard-script.js", import.meta.url),
+  "utf8"
+);
 
 export interface ContentDashboardOptions {
   snapshot: ContentSnapshot;
@@ -143,7 +148,7 @@ export function contentOverviewBody(
       (page) =>
         `<a class="route-card" href="${escapeHtml(page.route)}">` +
         `<span class="route-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>` +
-        `<span><span class="route-name">${escapeHtml(page.title)}</span>` +
+        `<span class="route-body"><span class="route-name">${escapeHtml(page.title)}</span>` +
         `<span class="route-path">${escapeHtml(page.route)}</span></span></a>`
     )
     .join("");

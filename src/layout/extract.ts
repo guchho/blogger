@@ -162,10 +162,20 @@ export function sectionModel(element: XmlElement): LayoutSectionModel {
 
 export function widgetModel(element: XmlElement, sectionId: string): LayoutWidgetModel {
   const includables: string[] = [];
+  const settings: Record<string, string> = {};
   for (const child of element.children) {
-    if (!isElement(child) || child.name !== "b:includable") continue;
-    const id = valueOf(child, "id");
-    if (id !== undefined) includables.push(id);
+    if (!isElement(child)) continue;
+    if (child.name === "b:includable") {
+      const id = valueOf(child, "id");
+      if (id !== undefined) includables.push(id);
+    }
+    if (child.name === "b:widget-settings") {
+      for (const setting of child.children) {
+        if (!isElement(setting) || setting.name !== "b:widget-setting") continue;
+        const name = decodeOptional(valueOf(setting, "name"));
+        if (name !== undefined) settings[name] = elementText(setting);
+      }
+    }
   }
   return {
     id: valueOf(element, "id") ?? "",
@@ -178,6 +188,7 @@ export function widgetModel(element: XmlElement, sectionId: string): LayoutWidge
     span: element.span,
     attributes: attributeModels(element),
     includables,
+    settings,
   };
 }
 

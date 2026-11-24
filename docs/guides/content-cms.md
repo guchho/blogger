@@ -99,7 +99,7 @@ mode reloads JSON files in the content and data directories.
   "title": "My Blog",
   "description": "A Guchho Blogger site",
   "baseUrl": "https://example.com/",
-  "favicon": "favicon.ico",
+  "favicon": "https://guchho.js.org/favicon.ico",
   "author": "admin",
   "postsPerPage": 10
 }
