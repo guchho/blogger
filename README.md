@@ -6,10 +6,6 @@ Build Blogger templates like a normal frontend project: split XML into component
 
 [![Guchho Plugin Blogger](https://raw.githubusercontent.com/guchho/plugins/refs/heads/main/resources/guchho_blogger_plugin.png)](https://github.com/guchho)
 
-<p align="center">
-  <b>A Blogger template development plugin for Guchho.</b>
-</p>
-
 ## Install
 
 ```bash
