@@ -83,4 +83,4 @@ npm run dev
 
 ## License
 
-GPL-3.0-or-later
+@guchho/blogger is licensed under **GPL-3.0**. Copyright © [CodeHemu](https://github.com/code-hemu).
