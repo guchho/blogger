@@ -3,7 +3,7 @@ src/
 scripts/
 test/
 tests/
-examples/
+example/
 docs/
 .test-build/
 coverage/
