@@ -62,7 +62,8 @@ reload instead of overwriting the change.
 
 The Layout screen is distinct from the Blog Preview. It reads sections, widgets
 and CSS from the real `template.xml`, renders widgets into a Shadow DOM canvas
-using the template's own styles, and supports:
+using the template's own styles loaded from `/__preview/layout/skin.css` and
+`/__preview/layout/template-skin.css`, and supports:
 
 - browsing a gadget catalog with search, category and support filters,
 - adding gadgets directly or after schema-driven configuration,
