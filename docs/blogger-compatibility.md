@@ -237,7 +237,10 @@ is fixed (base date 2026-01-01). Available scenarios:
 | `widgets.html` | `/__preview/widgets/` | `index` | Built-in and custom widget showcase |
 
 Flat pages are written under `previewDir`; route-shaped copies are written at
-the output root unless a normal HTML entry owns `index.html`.
+the output root unless a normal HTML entry owns `index.html`. When the dashboard
+is enabled, the generated `layout/skin.css` and `layout/template-skin.css`
+assets follow the same pattern, with route-shaped copies at
+`/__preview/layout/...`.
 
 The root object exposes `data:view`, `data:blog`, `data:posts`, `data:post`,
 `data:page`, `data:labels`, `data:comments`, `data:widgets`,
