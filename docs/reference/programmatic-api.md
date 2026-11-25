@@ -1,3 +1,8 @@
+---
+title: Programmatic API
+description: ESM imports and TypeScript signatures for using @guchho/blogger directly.
+---
+
 # Programmatic API
 
 The package is an ESM module. Import helpers from the package root:

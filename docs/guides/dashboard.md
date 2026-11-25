@@ -1,3 +1,8 @@
+---
+title: Dashboard and Layout Editor
+description: Use the local admin screens and Layout Editor to test a Blogger theme.
+---
+
 # Dashboard and Layout Editor
 
 The preview dashboard is a local Blogger-style admin area for testing a theme.

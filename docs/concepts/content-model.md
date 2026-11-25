@@ -1,3 +1,8 @@
+---
+title: Content model
+description: The JSON fields and conventions used by Blogger posts and pages.
+---
+
 # Content model
 
 Posts and pages are stored as individual JSON files. Both share a common set of

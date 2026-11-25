@@ -1,3 +1,8 @@
+---
+title: '@guchho/blogger'
+description: Template compiler, local preview, Layout Editor, and file-based CMS for Blogger themes.
+---
+
 # @guchho/blogger documentation
 
 Documentation for the Guchho Blogger template compiler, local preview, Layout
@@ -45,8 +50,8 @@ The package has two main jobs:
 
 ## Project links
 
-- [Repository README](../README.md)
-- [CodeHemu example submodule](../example/README.md)
+- [Repository README](https://github.com/guchho/blogger/blob/main/README.md)
+- [CodeHemu example submodule](https://github.com/guchho/blogger/blob/main/example/README.md)
 
 ## Scope
 

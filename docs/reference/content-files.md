@@ -1,3 +1,8 @@
+---
+title: Content files
+description: JSON schemas and default directories for posts, pages, and site data.
+---
+
 # Content files
 
 Posts, pages and site data are JSON files inside the consuming project. Direct

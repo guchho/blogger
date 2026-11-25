@@ -1,3 +1,8 @@
+---
+title: Blogger compatibility
+description: What the compiler and development preview understand when processing Blogger templates.
+---
+
 # Blogger compatibility
 
 This document describes what `@guchho/blogger` understands when it compiles a

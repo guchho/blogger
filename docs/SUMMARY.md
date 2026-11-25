@@ -1,3 +1,8 @@
+---
+title: Table of contents
+description: A compact index of the @guchho/blogger documentation.
+---
+
 # Table of contents
 
 Use this file as a compact navigation index for the documentation.
@@ -28,5 +33,5 @@ Use this file as a compact navigation index for the documentation.
 ## Help
 
 - [Troubleshooting](troubleshooting.md)
-- [Repository README](../README.md)
-- [CodeHemu example submodule](../example/README.md)
+- [Repository README](https://github.com/guchho/blogger/blob/main/README.md)
+- [CodeHemu example submodule](https://github.com/guchho/blogger/blob/main/example/README.md)

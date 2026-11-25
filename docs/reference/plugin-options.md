@@ -1,3 +1,8 @@
+---
+title: Plugin options
+description: Every @guchho/blogger configuration key and its default.
+---
+
 # Plugin options
 
 All options are passed to the default export or named `blogger()` function in

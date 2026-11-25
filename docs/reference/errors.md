@@ -1,3 +1,8 @@
+---
+title: Error codes
+description: Stable machine-readable error codes returned by the Content API and programmatic helpers.
+---
+
 # Error codes
 
 Errors use a stable machine-readable `code` and a human-readable `message`.

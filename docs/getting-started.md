@@ -1,3 +1,8 @@
+---
+title: Getting started
+description: Install @guchho/blogger, configure the plugin, and run your first build.
+---
+
 # Getting started
 
 This guide installs `@guchho/blogger`, creates a minimal Guchho configuration,

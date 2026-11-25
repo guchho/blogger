@@ -1,3 +1,8 @@
+---
+title: Content CMS guide
+description: Create, edit, and publish file-based posts and pages through the local dashboard.
+---
+
 # Content CMS guide
 
 The file-based CMS stores posts and pages as JSON in the consuming project. The

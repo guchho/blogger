@@ -1,3 +1,8 @@
+---
+title: Rendering and routes
+description: How local content becomes Blogger-style view data and static routes.
+---
+
 # Rendering and routes
 
 Content is rendered through the same Blogger-compatible renderer used by the

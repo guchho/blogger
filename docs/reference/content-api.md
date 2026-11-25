@@ -1,3 +1,8 @@
+---
+title: Content API
+description: Dev-only HTTP endpoints used by the dashboard to read and save content.
+---
+
 # Content API
 
 The Content API is served by the dev-only save service on `127.0.0.1`. It is

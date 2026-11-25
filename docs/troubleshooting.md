@@ -1,3 +1,8 @@
+---
+title: Troubleshooting
+description: Solutions for common setup, preview, content, and save-service problems.
+---
+
 # Troubleshooting
 
 Solutions for common setup, preview, content and save-service problems.
@@ -121,4 +126,4 @@ Review:
 - [Error codes](reference/errors.md)
 - [Plugin options](reference/plugin-options.md)
 - [Content API](reference/content-api.md)
-- [Repository README](../README.md)
+- [Repository README](https://github.com/guchho/blogger/blob/main/README.md)

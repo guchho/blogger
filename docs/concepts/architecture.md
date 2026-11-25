@@ -1,3 +1,8 @@
+---
+title: Architecture
+description: How the template compiler, preview renderer, content layer, and save service fit together.
+---
+
 # Architecture
 
 `@guchho/blogger` has two related pipelines: a production template compiler and
