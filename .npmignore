@@ -4,6 +4,8 @@ scripts/
 test/
 tests/
 example/
+example.sh
+.gitmodules
 docs/
 .test-build/
 coverage/
