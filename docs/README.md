@@ -46,7 +46,7 @@ The package has two main jobs:
 ## Project links
 
 - [Repository README](../README.md)
-- [Example project](../example/README.md)
+- [CodeHemu example submodule](../example/README.md)
 
 ## Scope
 
