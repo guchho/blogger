@@ -18,8 +18,8 @@ const TEMPLATE = `<?xml version="1.0" encoding="UTF-8" ?>
 </b:section>
 </body></html>`;
 
-const EXAMPLE_TEMPLATE = readFileSync(
-  new URL("../example/src/template.xml", import.meta.url),
+const FIXTURE_TEMPLATE = readFileSync(
+  new URL("./fixtures/template.xml", import.meta.url),
   "utf8"
 );
 const NORMALIZED_EDITOR_CSS = readFileSync(
@@ -485,11 +485,11 @@ test("Layout payload carries nested structure for the Blogger layout renderer", 
   assert.equal(screen.html.includes("Page structure"), false);
 });
 
-test("real example layout preserves Blogger wrapper positions and visibility", () => {
+test("fixture layout preserves Blogger wrapper positions and visibility", () => {
   const result = buildPreview({
-    entryPath: "example/src/template.xml",
-    xml: EXAMPLE_TEMPLATE,
-    layoutXml: EXAMPLE_TEMPLATE,
+    entryPath: "test/fixtures/template.xml",
+    xml: FIXTURE_TEMPLATE,
+    layoutXml: FIXTURE_TEMPLATE,
     banner: false,
   });
   const screen = result.pages.find((item) => item.file === "dashboard-layout.html");
