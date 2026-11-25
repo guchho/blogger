@@ -1,0 +1,4 @@
+[submodule "example"]
+	path = example
+	url = https://github.com/code-hemu/codehemu.git
+	branch = main
