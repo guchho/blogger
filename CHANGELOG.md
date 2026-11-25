@@ -10,11 +10,12 @@ All notable changes to this project are documented in this file.
 - LinkList editor with inline link rows, add/delete, move up/down, sorting, title, visibility, and maximum displayed items.
 - File-based Post and Page CMS with draft/published states, scheduling, trash/restore, validation, backups, and local CRUD endpoints.
 - Deterministic development previews, route-shaped preview files, and Blogger-style dashboard screens.
-- Example project in [`example/`](example/) with a minimal Guchho configuration.
+- CodeHemu Blogger theme source as the [`example/`](example/) Git submodule.
 
 ### Changed
 
 - Simplified README with quick start, configuration, component, and example sections.
+- Tests use a local fixture instead of the example project.
 - Enforced LF line endings for reproducible golden snapshots on Windows.
 
 - Initial release of `@guchho/blogger` with Blogger template compilation, XML assembly, validation, CSS/JS/asset bundling, and preview generation.
