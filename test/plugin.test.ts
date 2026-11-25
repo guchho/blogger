@@ -22,12 +22,11 @@ function blogger(options: BloggerOptions = {}): ReturnType<typeof createBlogger>
   return createBlogger({ ...options, content });
 }
 
-const EXAMPLE_ROOT = path.resolve(
+const FIXTURE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "example"
+  "fixtures"
 );
-const ENTRY = path.join(EXAMPLE_ROOT, "src", "template.xml");
+const ENTRY = path.join(FIXTURE_ROOT, "template.xml");
 
 afterEach(async () => {
   await stopAllSaveServices();
@@ -144,7 +143,7 @@ console.log("hello");`,
 
 async function buildBundle(
   plugin: ReturnType<typeof blogger>,
-  outputDir = path.join(EXAMPLE_ROOT, "dist"),
+  outputDir = path.join(FIXTURE_ROOT, "dist"),
   extraEntries: Record<string, unknown> = {}
 ) {
   const harness = fakeContext();
@@ -405,7 +404,7 @@ test("watch builds emit flat preview pages and route-shaped copies", async () =>
         options: { dir: string },
         bundle: Record<string, unknown>
       ) => Promise<void>
-    ).call(context, { dir: path.join(EXAMPLE_ROOT, "dist") }, bundle);
+    ).call(context, { dir: path.join(FIXTURE_ROOT, "dist") }, bundle);
 
     const files = emitted.map((file) => file.fileName);
     assert.ok(files.includes("preview/index.html"));
@@ -424,7 +423,7 @@ test("watch builds forward the running layout save port into the editor", async 
   const plugin = blogger({ entry: ENTRY, layoutSavePort: 0 });
   const harness = fakeContext({ watchMode: true });
   try {
-    const { emitted } = await runBuild(plugin, harness, path.join(EXAMPLE_ROOT, "dist"));
+    const { emitted } = await runBuild(plugin, harness, path.join(FIXTURE_ROOT, "dist"));
     const layout = emitted.find((file) => file.fileName === "preview/dashboard-layout.html");
     assert.ok(layout);
     const match = /http:\/\/localhost:(\d+)\/api\/layout\/save/.exec(layout.source);
@@ -693,7 +692,7 @@ test("plugin reports template output collisions", async () => {
   const plugin = blogger({ entry: ENTRY, preview: false });
   await assert.rejects(
     () =>
-      buildBundle(plugin, path.join(EXAMPLE_ROOT, "dist"), {
+      buildBundle(plugin, path.join(FIXTURE_ROOT, "dist"), {
         "template.xml": {
           type: "asset",
           fileName: "template.xml",
