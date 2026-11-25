@@ -6,17 +6,16 @@ import { fileURLToPath } from "node:url";
 import { TemplateCompiler } from "../src/compiler/compiler.js";
 import { buildPreview } from "../src/preview/index.js";
 
-const EXAMPLE_ROOT = path.resolve(
+const FIXTURE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "example"
+  "fixtures"
 );
 
-test("the example project compiles and renders a clean preview", async () => {
-  const entryPath = path.join(EXAMPLE_ROOT, "src", "template.xml");
+test("the fixture project compiles and renders a clean preview", async () => {
+  const entryPath = path.join(FIXTURE_ROOT, "template.xml");
   const result = await new TemplateCompiler({
     entryPath,
-    projectRoot: EXAMPLE_ROOT,
+    projectRoot: FIXTURE_ROOT,
     validate: true,
   }).compile();
 
@@ -28,7 +27,7 @@ test("the example project compiles and renders a clean preview", async () => {
   const xml = result.template.xml;
 
   assert.ok(!xml.includes("g:include"), "includes should be expanded");
-  assert.ok(!xml.includes(EXAMPLE_ROOT), "no local paths should leak");
+  assert.ok(!xml.includes(FIXTURE_ROOT), "no local paths should leak");
   assert.ok(
     result.template.watchFiles.some(
       (file) => path.resolve(file) === path.resolve(entryPath)
