@@ -81,6 +81,13 @@ git submodule update --init example
 - [Documentation hub](docs/README.md)
 - [Blogger compatibility](docs/blogger-compatibility.md)
 
+## Disclaimer
+
+@guchho/blogger is an independent, community-developed project providing tools and utilities for working with Blogger and developing Blogger themes. It is **not affiliated with, endorsed by, sponsored by, or otherwise associated with Google LLC or Blogger**.
+
+"Blogger" and related names are trademarks of Google LLC.
+
+
 ## License
 
 @guchho/blogger is licensed under **GPL-3.0**. Copyright © [CodeHemu](https://github.com/code-hemu).
