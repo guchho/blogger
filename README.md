@@ -68,12 +68,12 @@ npx guchho build
 
 ## Example
 
-See [`example/`](example/) for a complete small project:
+[`example/`](example/) is a Git submodule pointing to the [CodeHemu](https://github.com/code-hemu/codehemu) Blogger theme source. It is included as a real-world reference; tests use a local fixture instead.
+
+After cloning this repository, initialize it with:
 
 ```bash
-cd example
-npm install
-npm run dev
+git submodule update --init example
 ```
 
 ## Docs
