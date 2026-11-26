@@ -43,6 +43,7 @@ The package has two main jobs:
 ### Reference
 
 - [Plugin options](reference/plugin-options.md)
+- [Data fields](reference/data-fields.md)
 - [Content files](reference/content-files.md)
 - [Content API](reference/content-api.md)
 - [Error codes](reference/errors.md)
@@ -57,6 +58,7 @@ post routes, short page routes, labels, excerpts, and Blogger data tags.
 ### Posts
 
 - [Designing with Blogger data tags](https://github.com/guchho/blogger/blob/main/example/src/posts/designing-with-blogger-data-tags.json) — use `data:` expressions and `b:loop` blocks in a template.
+- [Reading data fields in a Blogger template](https://github.com/guchho/blogger/blob/main/example/src/posts/reading-data-fields-in-a-blogger-template.json) — inspect `view`, `blog`, `post`, `labels` and `comments` values.
 - [Building a faster preview workflow](https://github.com/guchho/blogger/blob/main/example/src/posts/building-a-faster-preview-workflow.json) — keep the feedback loop short while editing widgets and layouts.
 - [A practical guide to content models](https://github.com/guchho/blogger/blob/main/example/src/posts/a-practical-guide-to-content-models.json) — understand posts, pages, slugs, status, and scheduled publishing.
 - [Custom widgets without custom code](https://github.com/guchho/blogger/blob/main/example/src/posts/custom-widgets-without-custom-code.json) — extend a template with built-in widgets and includables.
@@ -66,6 +68,7 @@ post routes, short page routes, labels, excerpts, and Blogger data tags.
 ### Pages
 
 - [About](https://github.com/guchho/blogger/blob/main/example/src/pages/about.json) — introduction to the example project and its local content.
+- [Data field examples](https://github.com/guchho/blogger/blob/main/example/src/pages/data-field-examples.json) — copyable snippets for the most common template values.
 - [Contact](https://github.com/guchho/blogger/blob/main/example/src/pages/contact.json) — starter copy for a project contact page.
 - [Privacy policy](https://github.com/guchho/blogger/blob/main/example/src/pages/privacy-policy.json) — notes on content files, browser storage, and external links.
 - [Resources](https://github.com/guchho/blogger/blob/main/example/src/pages/resources.json) — reading list for template structure, content workflow, and design checks.
