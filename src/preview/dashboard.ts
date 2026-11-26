@@ -538,14 +538,14 @@ function editorBody(kind: "post" | "page"): string {
   );
 }
 
-function commentsBody(): string {
+function commentsBody(postUrl: string): string {
   type CommentStatus = "published" | "awaiting" | "spam";
   const statusLabels: Record<CommentStatus, string> = {
     published: "Published",
     awaiting: "Awaiting moderation",
     spam: "Spam",
   };
-  const items = mockComments().map((comment, index) => {
+  const items = mockComments(postUrl).map((comment, index) => {
     const status: CommentStatus = index === 0 ? "published" : "awaiting";
     return {
       id: toText(comment["id"] ?? ""),
@@ -554,7 +554,7 @@ function commentsBody(): string {
       avatar: toText(comment["authorAvatarSrc"] ?? ""),
       body: toText(comment["body"] ?? "").replace(/<[^>]*>/g, "").trim(),
       timestamp: toText(comment["timestamp"] ?? ""),
-      url: toText(comment["url"] ?? ""),
+      url: `${postUrl}#comments`,
       status,
     };
   });
@@ -1051,6 +1051,13 @@ export function buildDashboardScreens(
       pageNew: SCREEN_ROUTES["page-new"],
     },
   };
+  const postRoute = pages.find(
+    (page) => page.file === "post.html" || page.file.startsWith("post-")
+  )?.route;
+  const postUrl =
+    postRoute === undefined
+      ? new URL("2026/01/getting-started-with-guchho.html", PREVIEW_BLOG_URL).toString()
+      : new URL(postRoute, PREVIEW_BLOG_URL).toString();
   const bodies: Record<DashboardScreenKey, string> = {
     overview:
       contentInput === undefined ? overviewBody(pages) : contentOverviewBody(pages, contentInput),
@@ -1060,7 +1067,7 @@ export function buildDashboardScreens(
     pages: contentInput === undefined ? pagesBody() : contentPagesBody(contentInput),
     "page-new":
       contentInput === undefined ? editorBody("page") : contentEditorBody("page", contentInput),
-    comments: commentsBody(),
+    comments: commentsBody(postUrl),
     layout: layoutBody(layout),
     theme: themeBody(templateXml, baseStyle),
     settings: settingsBody(favicon),
