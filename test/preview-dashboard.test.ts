@@ -283,6 +283,29 @@ test("comments studio offers search, status tabs, bulk moderation and scoped scr
   assert.equal(screen.html.includes('data-guchho-preview="theme-script"'), false);
 });
 
+test("comment links target a generated post with a real comments section", () => {
+  const result = build({ xml: FIXTURE_TEMPLATE });
+  const screen = result.pages.find((item) => item.file === "dashboard-comments.html");
+  const post = result.pages.find((item) => item.file === "post.html");
+  assert.ok(screen);
+  assert.ok(post);
+
+  const links = [...screen.html.matchAll(/<a class="comment-post"[^>]*href="([^"]+)"/g)].map(
+    (match) => match[1] as string
+  );
+  assert.equal(links.length, 2);
+  for (const link of links) {
+    const target = new URL(link);
+    assert.equal(
+      result.pages.some((item) => item.route === target.pathname),
+      true,
+      `comment link has no generated page: ${link}`
+    );
+    assert.equal(target.hash, "#comments");
+    assert.ok(post.html.includes('id="comments"'), "post is missing the comments section");
+  }
+});
+
 test("dashboard: false removes the button and every admin screen", () => {
   const result = build({ dashboard: false });
   assert.equal(result.pages.some((item) => item.file.startsWith("dashboard")), false);
