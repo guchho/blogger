@@ -214,6 +214,10 @@ fallback exists so a bare `<b:widget type="...">` still renders.
 | `ContactForm` | `contactFormMessage`, `contactFormMessageSent`, `contactFormMessageError` |
 | `Attribution` | `blog.title`, `messages.poweredBy` |
 
+The `posts` and `labels` seen inside widgets are injected from the root data at
+render time. Comment, backlink and pagination fields in those posts are from the
+mock dataset; content posts expose an empty `comments` array instead.
+
 Every widget also receives `type`, `id`, `title`, `instanceId`,
 `allBylineItems`, `headerByline`, `footerBylines`, `messages`, `sharing`,
 `postDisplay`, `links`, `image`, `height`, `width`, `imagePlacement`,
@@ -225,10 +229,15 @@ Widgets also appear in `data:widgets`, which is an array that additionally
 carries one key per widget type, so `data:widgets.Blog.first` works like
 Blogger.
 
-## Mock data and scenarios
+## Preview data and scenarios
 
-Preview data is deterministic. Nothing is fetched from the network and the clock
-is fixed (base date 2026-01-01). Available scenarios:
+Mock preview data is deterministic. Nothing is fetched from the network and the
+mock clock is fixed (base date 2026-01-01). When content files are present, posts,
+pages, site identity and dates come from those files instead; widgets, messages
+and comments remain deterministic. See [Data fields](reference/data-fields.md)
+for the field-level inventory.
+
+These scenarios are generated when no content is supplied:
 
 | File | Route | Page type | Contents |
 | --- | --- | --- | --- |
@@ -240,6 +249,10 @@ is fixed (base date 2026-01-01). Available scenarios:
 | `search.html` | `/search/` | `search` | Search results; `/search?q=...` is not a distinct static route |
 | `404.html` | `/404.html` | `error_page` | Not found |
 | `widgets.html` | `/__preview/widgets/` | `index` | Built-in and custom widget showcase |
+
+Content builds add one scenario per published post, page, label and archive
+month. They also generate search, not found, home and the optional widget
+showcase. Routes are described in [Rendering and routes](concepts/rendering.md).
 
 Flat pages are written under `previewDir`; route-shaped copies are written at
 the output root unless a normal HTML entry owns `index.html`. When the dashboard
@@ -256,14 +269,16 @@ The root object exposes `data:view`, `data:blog`, `data:posts`, `data:post`,
 metadata includes `pageName`, `searchUrl`, `analytics4` and
 `analyticsAccountNumber`.
 
-Posts use deterministic authors (Ada Lovelace, Grace Hopper), titles, labels,
-comment threads, image URLs and dates. The blog URL is
-`http://localhost:3000/`.
+Mock posts use deterministic authors (Ada Lovelace, Grace Hopper), titles,
+labels, comment threads, image URLs and dates. The mock blog URL is
+`http://localhost:3000/`; content builds use `baseUrl` from settings, with the
+`siteUrl` plugin option taking precedence.
 
 ## Known differences from Blogger
 
 - **No live data.** Blogger fetches posts, comments, feeds and pagination from
-  its backend. The preview always uses the fixed mock dataset above.
+  its backend. The renderer uses local JSON content when available and the fixed
+  mock dataset otherwise; neither is fetched at render time.
 - **Minimal default markup.** Built-in widget markups are structural fallbacks,
   not pixel-accurate copies of Blogger's defaults.
 - **Limited expression language.** Only the operators, helpers and properties
