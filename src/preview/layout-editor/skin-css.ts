@@ -1,5 +1,6 @@
 const TARGET_PROPERTIES = new Set([
   "background",
+  "background-color",
   "-webkit-transition",
   "transition",
   "box-sizing",
@@ -11,26 +12,29 @@ const TARGET_PROPERTIES = new Set([
   "appearance",
 ]);
 
+const INTERACTIVE_PSEUDO_CLASSES = /:(?:active|hover|focus|focus-visible|target)(?![-\w])/;
+
 export const LAYOUT_SKIN_CSS_FILE = "layout/skin.css";
 export const LAYOUT_TEMPLATE_SKIN_CSS_FILE = "layout/template-skin.css";
 export const LAYOUT_SKIN_CSS_URL = "/__preview/layout/skin.css";
 export const LAYOUT_TEMPLATE_SKIN_CSS_URL = "/__preview/layout/template-skin.css";
 
 export function commentLayoutSkinCss(css: string): string {
+  const sanitized = removeInteractiveRules(css);
   const ranges: Array<[number, number]> = [];
   let statementStart = 0;
   let index = 0;
 
-  while (index < css.length) {
-    const skipped = skipTrivia(css, index);
+  while (index < sanitized.length) {
+    const skipped = skipTrivia(sanitized, index);
     if (skipped !== index) {
       index = skipped;
       continue;
     }
 
-    const character = css.charAt(index);
+    const character = sanitized.charAt(index);
     if (character === "(" || character === "[") {
-      index = skipBalanced(css, index);
+      index = skipBalanced(sanitized, index);
       continue;
     }
     if (character === "{" || character === ";" || character === "}") {
@@ -43,7 +47,7 @@ export function commentLayoutSkinCss(css: string): string {
       continue;
     }
 
-    const raw = css.slice(statementStart, index);
+    const raw = sanitized.slice(statementStart, index);
     const leading = /^(\s|\/\*[\s\S]*?\*\/)*/.exec(raw)?.[0].length ?? 0;
     const property = raw
       .slice(leading)
@@ -52,7 +56,7 @@ export function commentLayoutSkinCss(css: string): string {
       .toLowerCase();
 
     if (TARGET_PROPERTIES.has(property)) {
-      const end = findDeclarationEnd(css, index + 1);
+      const end = findDeclarationEnd(sanitized, index + 1);
       ranges.push([statementStart + leading, end]);
       statementStart = end;
       index = end;
@@ -62,12 +66,12 @@ export function commentLayoutSkinCss(css: string): string {
     index += 1;
   }
 
-  let result = css;
+  let result = sanitized;
   for (let rangeIndex = ranges.length - 1; rangeIndex >= 0; rangeIndex -= 1) {
     const range = ranges[rangeIndex];
     if (!range) continue;
     const [start, end] = range;
-    result = `${result.slice(0, start)}/* ${css.slice(start, end)} */${result.slice(end)}`;
+    result = `${result.slice(0, start)}/* ${sanitized.slice(start, end)} */${result.slice(end)}`;
   }
   return result;
 }
@@ -135,4 +139,93 @@ function findDeclarationEnd(css: string, index: number): number {
     cursor += 1;
   }
   return css.length;
+}
+
+function removeInteractiveRules(css: string): string {
+  const ranges: Array<[number, number]> = [];
+  const starts: number[] = [0];
+  let index = 0;
+
+  while (index < css.length) {
+    const skipped = skipTrivia(css, index);
+    if (skipped !== index) {
+      index = skipped;
+      continue;
+    }
+
+    const character = css.charAt(index);
+    if (character === "(" || character === "[") {
+      index = skipBalanced(css, index);
+      continue;
+    }
+    if (character === "{") {
+      const segmentStart = starts.pop() ?? 0;
+      if (hasInteractivePseudo(css.slice(segmentStart, index))) {
+        const end = Math.min(findBlockEnd(css, index + 1) + 1, css.length);
+        ranges.push([segmentStart, end]);
+        starts.push(end);
+        index = end;
+        continue;
+      }
+      starts.push(index + 1);
+      index += 1;
+      continue;
+    }
+    if (character === "}") {
+      starts.pop();
+      starts.push(index + 1);
+      index += 1;
+      continue;
+    }
+    if (character === ";") {
+      starts[starts.length - 1] = index + 1;
+      index += 1;
+      continue;
+    }
+    index += 1;
+  }
+
+  let result = css;
+  for (let rangeIndex = ranges.length - 1; rangeIndex >= 0; rangeIndex -= 1) {
+    const range = ranges[rangeIndex];
+    if (!range) continue;
+    const [start, end] = range;
+    result = `${result.slice(0, start)}${result.slice(end)}`;
+  }
+  return result;
+}
+
+function findBlockEnd(css: string, index: number): number {
+  let depth = 0;
+  let cursor = index;
+  while (cursor < css.length) {
+    const skipped = skipTrivia(css, cursor);
+    if (skipped !== cursor) {
+      cursor = skipped;
+      continue;
+    }
+    const character = css.charAt(cursor);
+    if (character === "(" || character === "[") {
+      cursor = skipBalanced(css, cursor);
+      continue;
+    }
+    if (character === "{") {
+      depth += 1;
+      cursor += 1;
+      continue;
+    }
+    if (character === "}") {
+      if (depth === 0) return cursor;
+      depth -= 1;
+    }
+    cursor += 1;
+  }
+  return css.length;
+}
+
+function hasInteractivePseudo(selector: string): boolean {
+  const normalized = selector
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, " ");
+  return INTERACTIVE_PSEUDO_CLASSES.test(normalized);
 }
