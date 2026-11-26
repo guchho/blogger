@@ -29,6 +29,7 @@ const IMAGE = (id: number, size = 1600): string =>
   previewImage(`Post ${id}`, size, (id * 47 + 190) % 360);
 const AVATAR = (label: string, id: number): string =>
   previewImage(label, 160, (id * 67 + 24) % 360);
+const FIRST_POST_URL = `${PREVIEW_BLOG_URL}2026/01/getting-started-with-guchho.html`;
 
 export interface MockAuthor {
   name: string;
@@ -190,12 +191,10 @@ export function mockLabels(): ValueMap[] {
   }));
 }
 
-export function mockComments(
-  baseUrl = `${PREVIEW_BLOG_URL}2026/01/getting-started.html`
-): ValueMap[] {
+export function mockComments(baseUrl = FIRST_POST_URL): ValueMap[] {
   return [
     {
-      id: "c1",
+      id: "1",
       author: "Reader One",
       authorUrl: `${PREVIEW_BLOG_URL}profile/reader-one`,
       authorAvatarSrc: AVATAR("R1", 3),
@@ -207,7 +206,7 @@ export function mockComments(
       isDeleted: false,
     },
     {
-      id: "c2",
+      id: "2",
       author: "Reader Two",
       authorUrl: `${PREVIEW_BLOG_URL}profile/reader-two`,
       authorAvatarSrc: AVATAR("R2", 4),
