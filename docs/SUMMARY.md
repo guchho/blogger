@@ -24,6 +24,7 @@ Use this file as a compact navigation index for the documentation.
 ## Reference
 
 - [Plugin options](reference/plugin-options.md)
+- [Data fields](reference/data-fields.md)
 - [Content files](reference/content-files.md)
 - [Content API](reference/content-api.md)
 - [Error codes](reference/errors.md)
