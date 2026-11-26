@@ -5,3 +5,4 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 todo.md
+example/package-lock.json
