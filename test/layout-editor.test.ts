@@ -106,7 +106,7 @@ test("comments layout-breaking declarations in skin CSS copies", () => {
   ]) {
     assert.ok(result.includes(`/* ${declaration} */`), `missing comment: ${declaration}`);
   }
-  assert.match(result, /background-color:#fff/);
+  assert.match(result, /\/\* background-color:#fff; \*\//);
   assert.match(result, /color:red/);
 });
 
@@ -117,6 +117,29 @@ test("keeps comments, strings and nested values intact when commenting skin CSS"
   assert.match(result, /\/\* background:blue; \*\//);
   assert.match(result, /@media screen and \(min-width: 10px\)/);
   assert.match(result, /\/\* word-wrap:break-word \*\//);
+});
+
+test("removes complete rules with interactive pseudo-classes from skin CSS copies", () => {
+  const css = `.a:active{color:red}.b:hover{color:red}.c:focus{color:red}.d:focus-visible{color:red}.e:target{color:red}.f:focus-within{color:blue}.g{color:green}`;
+  const result = commentLayoutSkinCss(css);
+  for (const selector of [".a:active", ".b:hover", ".c:focus", ".d:focus-visible", ".e:target"]) {
+    assert.ok(!result.includes(`${selector}{`), `rule not removed: ${selector}`);
+  }
+  assert.match(result, /\.f:focus-within\{color:blue\}/);
+  assert.match(result, /\.g\{color:green\}/);
+});
+
+test("removes grouped rules when one selector is interactive", () => {
+  assert.equal(commentLayoutSkinCss(".a:hover,.b{color:red}"), "");
+});
+
+test("removes interactive rules inside media queries without touching strings or comments", () => {
+  const css = `@media screen{.keep{color:red}.drop:hover{color:blue}}.a::after{content:":hover";color:green}/* :target */`;
+  const result = commentLayoutSkinCss(css);
+  assert.match(result, /@media screen\{\.keep\{color:red\}\}/);
+  assert.ok(!result.includes(".drop:hover"));
+  assert.match(result, /content:":hover"/);
+  assert.match(result, /\/\* :target \*\//);
 });
 
 test("extracts nested page structure for the layout canvas", () => {
