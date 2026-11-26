@@ -25,6 +25,7 @@ The package has two main jobs:
 - [Dashboard guide](guides/dashboard.md) — use the local admin screens and
   Layout Editor.
 - [Troubleshooting](troubleshooting.md) — common errors and fixes.
+- [Example content](#example-content) — posts and pages included with the example project.
 
 ## Documentation map
 
@@ -47,6 +48,27 @@ The package has two main jobs:
 - [Error codes](reference/errors.md)
 - [Programmatic API](reference/programmatic-api.md)
 - [Blogger compatibility](blogger-compatibility.md)
+
+## Example content
+
+The `example/` project includes published posts and pages that exercise dated
+post routes, short page routes, labels, excerpts, and Blogger data tags.
+
+### Posts
+
+- [Designing with Blogger data tags](https://github.com/guchho/blogger/blob/main/example/src/posts/designing-with-blogger-data-tags.json) — use `data:` expressions and `b:loop` blocks in a template.
+- [Building a faster preview workflow](https://github.com/guchho/blogger/blob/main/example/src/posts/building-a-faster-preview-workflow.json) — keep the feedback loop short while editing widgets and layouts.
+- [A practical guide to content models](https://github.com/guchho/blogger/blob/main/example/src/posts/a-practical-guide-to-content-models.json) — understand posts, pages, slugs, status, and scheduled publishing.
+- [Custom widgets without custom code](https://github.com/guchho/blogger/blob/main/example/src/posts/custom-widgets-without-custom-code.json) — extend a template with built-in widgets and includables.
+- [Why static previews matter](https://github.com/guchho/blogger/blob/main/example/src/posts/why-static-previews-matter.json) — review deterministic output, real routes, and collaboration artifacts.
+- [Writing with the rich editor](https://github.com/guchho/blogger/blob/main/example/src/posts/writing-with-the-rich-editor.json) — see how dashboard formatting becomes sanitized HTML.
+
+### Pages
+
+- [About](https://github.com/guchho/blogger/blob/main/example/src/pages/about.json) — introduction to the example project and its local content.
+- [Contact](https://github.com/guchho/blogger/blob/main/example/src/pages/contact.json) — starter copy for a project contact page.
+- [Privacy policy](https://github.com/guchho/blogger/blob/main/example/src/pages/privacy-policy.json) — notes on content files, browser storage, and external links.
+- [Resources](https://github.com/guchho/blogger/blob/main/example/src/pages/resources.json) — reading list for template structure, content workflow, and design checks.
 
 ## Project links
 
