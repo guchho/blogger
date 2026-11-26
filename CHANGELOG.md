@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Preview layout CSS assets now comment out `background-color` and remove complete rules using `:active`, `:hover`, `:focus`, `:focus-visible`, or `:target`.
+
 ## 0.1.0
 
 ### Added
