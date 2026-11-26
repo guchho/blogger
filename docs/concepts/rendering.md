@@ -27,6 +27,50 @@ A page exposes the common post fields without labels or comments.
 Rich-text `content` is sanitized by default. Set `content.sanitize: false` to
 disable sanitization; this should only be done for trusted source files.
 
+## Worked example
+
+Given `src/posts/hello-world.json`:
+
+```json
+{
+  "id": "hello-world",
+  "type": "post",
+  "title": "Hello world",
+  "slug": "hello-world",
+  "content": "<p>My first post.</p>",
+  "excerpt": "A short introduction.",
+  "status": "published",
+  "labels": ["News"],
+  "author": "admin",
+  "featuredImage": null,
+  "allowComments": true,
+  "createdAt": "2026-11-21T09:00:00.000Z",
+  "updatedAt": "2026-11-21T09:00:00.000Z",
+  "publishedAt": "2026-11-21T09:00:00.000Z",
+  "publishAt": "2026-11-21T09:00:00.000Z",
+  "trashedAt": null
+}
+```
+
+the post scenario sets `data:view.isPost` to `true` and exposes the item through
+`data:post`:
+
+```xml
+<b:if cond='data:view.isPost'>
+  <h1><data:post.title/></h1>
+  <p><data:post.date/> by <data:post.author.name/></p>
+  <div><data:post.body/></div>
+  <a expr:href='data:post.labels.first.url'>
+    <data:post.labels.first.name/>
+  </a>
+</b:if>
+```
+
+`data:post.date` renders as `November 21, 2026`, and the scenario is written to
+`dist/2026/11/hello-world.html`. On home, label and archive views the same post
+appears inside `data:posts` instead. For the complete field list, see
+[Data fields](../reference/data-fields.md).
+
 ## Generated scenarios
 
 When content exists, the renderer builds scenarios for:
