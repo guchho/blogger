@@ -113,6 +113,32 @@ mode reloads JSON files in the content and data directories.
 `data/categories.json` may be an array or `{ "categories": [...] }`.
 `data/authors.json` may be an array or `{ "authors": [...] }`.
 
+## Read the values in a template
+
+The JSON above becomes Blogger-style `data:` fields when a scenario renders. A
+post view receives `data:post`; listings receive `data:posts`:
+
+```xml
+<b:if cond='data:view.isPost'>
+  <article>
+    <h1><data:post.title/></h1>
+    <p><data:post.date/> — <data:post.author.name/></p>
+    <div class='entry'><data:post.body/></div>
+  </article>
+<b:else/>
+  <ul>
+    <b:loop values='data:posts' var='post'>
+      <li><a expr:href='data:post.url'><data:post.title/></a></li>
+    </b:loop>
+  </ul>
+</b:if>
+```
+
+Use this snippet in a widget's `main` includable. After a build, open
+`/2026/11/hello-world.html` to see the single-post branch and `/` to see the
+listing branch. The [Data fields reference](../reference/data-fields.md) lists
+every field, including labels, comments, widgets and messages.
+
 ## Publish and schedule
 
 - **Publish now** sets `status` to `published` and `publishedAt` to the current
